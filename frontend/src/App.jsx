@@ -35,15 +35,15 @@ function Sidebar() {
   ];
 
   return (
-    <div className="w-64 bg-white/80 backdrop-blur-lg border-r border-gray-100 flex flex-col h-screen sticky top-0 shadow-sm">
+    <div className="w-64 glass-effect border-r border-white/40 flex flex-col h-screen sticky top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
       <div className="p-6">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent flex items-center gap-2">
-          <Droplet className="text-blue-600" />
+        <h1 className="text-2xl font-bold text-gradient flex items-center gap-2">
+          <Droplet className="text-blue-600 drop-shadow-md" strokeWidth={2.5} />
           AqvaSense
         </h1>
-        <p className="text-xs text-slate-400 mt-1 uppercase font-semibold tracking-wider">Drought Monitoring</p>
+        <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-[0.2em]">Drought Monitoring</p>
       </div>
-      <nav className="flex-1 px-4 space-y-1 mt-4">
+      <nav className="flex-1 px-4 space-y-1.5 mt-2 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -52,13 +52,20 @@ function Sidebar() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 relative group",
                 isActive 
-                  ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100" 
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-white/80 text-blue-700 shadow-sm border border-white/60 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-blue-600 before:rounded-r-full" 
+                  : "text-slate-500 hover:bg-white/50 hover:text-slate-800 border border-transparent"
               )}
             >
-              <Icon size={18} className={cn(isActive ? "text-blue-600" : "text-slate-400")} />
+              <Icon 
+                size={18} 
+                strokeWidth={isActive ? 2.5 : 2}
+                className={cn(
+                  "transition-colors duration-300",
+                  isActive ? "text-blue-600 drop-shadow-sm" : "text-slate-400 group-hover:text-slate-600"
+                )} 
+              />
               {item.name}
             </Link>
           );
@@ -105,19 +112,25 @@ function AppContent() {
         path="/*"
         element={
           user ? (
-            <div className="flex min-h-screen bg-slate-50/50">
+            <div className="flex min-h-screen bg-slate-50/50 relative overflow-hidden">
+              {/* Premium Background Elements */}
+              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 blur-[120px] pointer-events-none" />
+              <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[50%] rounded-full bg-cyan-400/10 blur-[100px] pointer-events-none" />
+              
               <Sidebar />
-              <main className="flex-1 overflow-x-hidden p-8">
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/rainfall" element={<RainfallAnalysis />} />
-                  <Route path="/groundwater" element={<GroundwaterAnalysis />} />
-                  <Route path="/tankers" element={<TankerAvailability />} />
-                  <Route path="/risk-calculation" element={<RiskCalculation />} />
-                  <Route path="/classification" element={<RiskClassification />} />
-                  <Route path="/supply-demand" element={<SupplyDemand />} />
-                  <Route path="/prediction" element={<FuturePrediction />} />
-                </Routes>
+              <main className="flex-1 overflow-x-hidden p-8 animate-fade-in relative z-0">
+                <div className="max-w-7xl mx-auto">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/rainfall" element={<RainfallAnalysis />} />
+                    <Route path="/groundwater" element={<GroundwaterAnalysis />} />
+                    <Route path="/tankers" element={<TankerAvailability />} />
+                    <Route path="/risk-calculation" element={<RiskCalculation />} />
+                    <Route path="/classification" element={<RiskClassification />} />
+                    <Route path="/supply-demand" element={<SupplyDemand />} />
+                    <Route path="/prediction" element={<FuturePrediction />} />
+                  </Routes>
+                </div>
               </main>
             </div>
           ) : (

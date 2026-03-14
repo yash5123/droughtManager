@@ -1,6 +1,8 @@
+import { cn } from "../../App";
+
 export function Card({ className, children }) {
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 ${className || ''}`}>
+    <div className={cn("glass-card rounded-2xl overflow-hidden", className)}>
       {children}
     </div>
   );
@@ -8,7 +10,7 @@ export function Card({ className, children }) {
 
 export function CardContent({ className, children }) {
   return (
-    <div className={`p-6 ${className || ''}`}>
+    <div className={cn("p-6", className)}>
       {children}
     </div>
   );

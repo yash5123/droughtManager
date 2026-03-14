@@ -32,17 +32,22 @@ export default function Login() {
   };
 
   return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-            <div className="flex flex-col items-center justify-center mb-8">
-                <div className="p-3 bg-blue-50 rounded-xl mb-4">
-                  <Droplet className="text-blue-600 w-8 h-8" />
+      <div className="min-h-screen bg-gradient-mesh flex items-center justify-center p-4">
+        <div className="max-w-md w-full glass-card p-10 animate-slide-up relative overflow-hidden">
+            {/* Ambient glows */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
+
+            <div className="flex flex-col items-center justify-center mb-10 relative z-10">
+                <div className="p-4 bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-white/60 mb-5 relative group">
+                  <div className="absolute inset-0 bg-blue-400/20 rounded-2xl blur group-hover:bg-blue-400/30 transition-colors" />
+                  <Droplet className="text-blue-600 w-10 h-10 relative drop-shadow-md" strokeWidth={2.5} />
                 </div>
-                <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+                <h1 className="text-3xl font-bold text-gradient tracking-tight">
                   AqvaSense
                 </h1>
-                <p className="text-slate-500 text-sm mt-1">
-                  {isRegister ? 'Create an account to continue' : 'Sign in to your account'}
+                <p className="text-slate-500 text-sm mt-2 font-medium">
+                  {isRegister ? 'Create your premium account' : 'Welcome back, sign in to continue'}
                 </p>
             </div>
 
@@ -52,14 +57,15 @@ export default function Login() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
               {isRegister && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Full Name</label>
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full px-4 py-3 bg-white/50 border border-slate-200/60 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+                    placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
@@ -67,23 +73,25 @@ export default function Login() {
               )}
               
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Address</label>
                 <input
                   type="email"
                   required
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-white/50 border border-slate-200/60 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+                  placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Password</label>
                 <input
                   type="password"
                   required
                   minLength={6}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-white/50 border border-slate-200/60 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                 />
@@ -91,16 +99,16 @@ export default function Login() {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white font-semibold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-2"
               >
-                {isRegister ? 'Sign Up' : 'Sign In'}
+                {isRegister ? 'Create Account' : 'Sign In'}
               </button>
             </form>
 
-            <div className="mt-6 flex items-center justify-between">
-              <span className="w-1/5 border-b border-slate-200 lg:w-1/4"></span>
-              <span className="text-xs text-center text-slate-500 uppercase">Or continue with</span>
-              <span className="w-1/5 border-b border-slate-200 lg:w-1/4"></span>
+            <div className="mt-8 flex items-center justify-between relative z-10">
+              <span className="w-1/4 border-b border-slate-200"></span>
+              <span className="text-xs text-center text-slate-400 font-bold uppercase tracking-wider">Or continue with</span>
+              <span className="w-1/4 border-b border-slate-200"></span>
             </div>
 
             <div className="mt-6 flex justify-center">
