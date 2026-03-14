@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function RainfallAnalysis() {
   const data = [
@@ -17,19 +17,29 @@ export default function RainfallAnalysis() {
         <p className="text-slate-500 text-sm mt-1">Compare rainfall shortages across villages.</p>
       </header>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 mb-6">Comparative Rainfall Levels</h3>
+      <div className="glass-card p-6 animate-slide-up">
+        <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Comparative Rainfall Levels (mm)</h3>
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="village" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-              <Bar dataKey="rainfall" radius={[6, 6, 0, 0]}>
+            <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <defs>
+                <linearGradient id="colorRainNormal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.6}/>
+                </linearGradient>
+                <linearGradient id="colorRainDeficit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="#f87171" stopOpacity={0.6}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+              <XAxis dataKey="village" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 14}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dx={-10} />
+              <Tooltip cursor={{fill: '#f8fafc', opacity: 0.4}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+              <Bar dataKey="rainfall" radius={[8, 8, 0, 0]} maxBarSize={60}>
                 {
                   data.map((entry, index) => (
-                    <cell key={`cell-${index}`} fill={entry.rainfall < 50 ? '#ef4444' : '#3b82f6'} />
+                    <Cell key={`cell-${index}`} fill={entry.rainfall < 50 ? 'url(#colorRainDeficit)' : 'url(#colorRainNormal)'} />
                   ))
                 }
               </Bar>

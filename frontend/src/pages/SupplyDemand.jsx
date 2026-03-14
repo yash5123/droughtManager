@@ -16,18 +16,24 @@ export default function SupplyDemand() {
         <p className="text-slate-500 text-sm mt-1">Cross-reference available resources with population demand.</p>
       </header>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 className="text-lg font-semibold text-slate-800 mb-6">Resource Allocation Analysis (Liters/day)</h3>
+      <div className="glass-card p-6 animate-slide-up">
+        <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Resource Allocation Analysis (Liters/day)</h3>
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="village" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-              <Legend wrapperStyle={{paddingTop: '20px'}} />
-              <Bar dataKey="demand" name="Population Demand" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Line type="monotone" name="Current Supply" dataKey="supply" stroke="#f59e0b" strokeWidth={3} dot={{r: 4}} />
+            <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <defs>
+                <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+              <XAxis dataKey="village" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 14}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dx={-10} />
+              <Tooltip cursor={{fill: '#f8fafc', opacity: 0.4}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+              <Legend wrapperStyle={{paddingTop: '30px'}} iconType="circle" />
+              <Bar dataKey="demand" name="Population Demand" fill="url(#colorDemand)" radius={[8, 8, 0, 0]} maxBarSize={60} />
+              <Line type="monotone" name="Current Supply" dataKey="supply" stroke="#f59e0b" strokeWidth={4} activeDot={{r: 8, stroke: '#fff', strokeWidth: 2}} dot={{r: 5, fill: '#fff', strokeWidth: 2}} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
