@@ -1,9 +1,31 @@
-# OS
-.DS_Store
+# Dependencies
+node_modules/
 
-# Editor
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Build Outputs
+dist/
+build/
+dist-ssr/
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and Editor
+.DS_Store
 .vscode/
 .idea/
-
-# General
-*.log
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
