@@ -37,6 +37,12 @@ export default function TankerAvailability() {
     setDispatchLiters(2000);
   };
 
+  const handleMarkDelivered = (id) => {
+    setTankers(tankers.map(t => 
+      t.id === id ? { ...t, status: 'Delivered', eta: '-' } : t
+    ));
+  };
+
   const chartData = useMemo(() => {
     return tankers.map((tanker) => ({ village: tanker.village, capacity: tanker.capacity }));
   }, [tankers]);
@@ -142,11 +148,18 @@ export default function TankerAvailability() {
               
               <div className="mt-6 space-y-5">
                 {tankers.filter(t => t.status === 'Enroute').map(t => (
-                   <div key={t.id} className="flex gap-4 items-start relative before:absolute before:inset-y-0 before:-left-2 before:w-0.5 before:bg-amber-400 ml-4">
+                   <div key={t.id} className="flex gap-4 items-center relative before:absolute before:inset-y-0 before:-left-2 before:w-0.5 before:bg-amber-400 ml-4">
                       <div className="flex-1">
                         <p className="text-sm font-bold text-slate-800">{t.id} <span className="text-xs font-normal text-slate-500 opacity-75">to {t.village}</span></p>
                         <p className="text-xs text-amber-600 font-semibold mt-1">Arriving in {t.eta}</p>
                       </div>
+                      <button 
+                        onClick={() => handleMarkDelivered(t.id)} 
+                        className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer" 
+                        title="Mark Delivered"
+                      >
+                         <CheckCircle2 size={18} />
+                      </button>
                    </div>
                 ))}
               </div>
@@ -184,6 +197,14 @@ export default function TankerAvailability() {
                   <span className="text-slate-500 flex items-center gap-2"><Clock size={16}/> ETA</span>
                   <span className="font-semibold text-slate-800">{t.eta}</span>
                 </div>
+                {t.status === 'Enroute' && (
+                  <button 
+                    onClick={() => handleMarkDelivered(t.id)} 
+                    className="w-full mt-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 size={16}/> Mark as Delivered
+                  </button>
+                )}
               </div>
             </div>
           </div>
