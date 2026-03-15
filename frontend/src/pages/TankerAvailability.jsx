@@ -80,7 +80,7 @@ export default function TankerAvailability() {
                   <XAxis dataKey="village" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 13}} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dx={-10} />
                   <Tooltip cursor={{fill: '#f8fafc', opacity: 0.4}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-                  <Bar dataKey="capacity" name="Allocated Volume" fill="url(#colorTanker)" radius={[6, 6, 0, 0]} maxBarSize={50} />
+                  <Bar dataKey="capacity" name="Allocated Volume" fill="url(#colorTanker)" radius={[6, 6, 0, 0]} maxBarSize={40} background={{ fill: 'rgba(241, 245, 249, 0.5)', radius: [6, 6, 0, 0] }} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -107,22 +107,11 @@ export default function TankerAvailability() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
         {tankers.map((t) => (
           <div key={t.id} className="glass-card overflow-hidden group">
-            <div className="w-full h-40 overflow-hidden relative">
-               <iframe
-                  src={t.mapUrl}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title={`Map of ${t.village}`}
-                  className="absolute inset-0 z-0"
-               ></iframe>
-               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent z-10 pointer-events-none" />
-               <div className="absolute bottom-4 left-4 z-20 pointer-events-none">
+            <div className="w-full h-24 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden relative flex flex-col justify-end p-5">
+               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
+               <div className="relative z-20">
                  <h4 className="text-white font-bold text-lg drop-shadow-md">{t.village}</h4>
-                 <p className="text-slate-200 text-xs drop-shadow-sm flex items-center gap-1"><MapPin size={12}/> {t.district}</p>
+                 <p className="text-slate-300 text-xs flex items-center gap-1 opacity-80"><MapPin size={12}/> {t.district}</p>
                </div>
             </div>
             <div className="p-5">

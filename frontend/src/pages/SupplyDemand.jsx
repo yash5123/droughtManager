@@ -67,17 +67,7 @@ export default function SupplyDemand() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
         {data.map((region) => (
           <div key={region.id} className="glass-card p-5 group hover:shadow-lg transition-all border border-transparent hover:border-slate-300 flex flex-col sm:flex-row gap-4">
-             <div className="w-full sm:w-48 h-32 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0 relative">
-               <iframe
-                  src={region.mapUrl}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title={`Map of ${region.name}`}
-               ></iframe>
+             <div className="hidden sm:block w-8 h-full rounded-lg bg-slate-50 border border-slate-100 flex-shrink-0 relative">
             </div>
             <div className="flex-1 flex flex-col justify-center">
               <div className="flex justify-between items-start mb-2">

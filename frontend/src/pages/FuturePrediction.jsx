@@ -66,19 +66,6 @@ export default function FuturePrediction() {
               </div>
               
               <div className="lg:col-span-1 flex flex-col gap-4">
-                 <div className="h-40 rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative">
-                   <iframe
-                      src={village.mapUrl}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      allowFullScreen=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title={`Map of ${village.name}`}
-                      className="absolute inset-0 z-0"
-                   ></iframe>
-                 </div>
                  <div className="flex-1 border border-purple-100 bg-purple-50/70 rounded-2xl p-6 relative overflow-hidden transition-all duration-500 hover:shadow-lg">
                    <div className="absolute -right-4 -top-4 text-purple-200/50">
                      <TrendingUp size={100} />

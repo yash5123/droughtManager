@@ -35,7 +35,7 @@ export default function GroundwaterAnalysis() {
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 13}} dy={10} />
               <YAxis reversed={false} axisLine={false} tickLine={false} domain={[0, 60]} tick={{fill: '#64748b'}} dx={-10} />
               <Tooltip cursor={{fill: '#f8fafc', opacity: 0.4}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
-              <Bar dataKey="depth" radius={[8, 8, 0, 0]} maxBarSize={60}>
+              <Bar dataKey="depth" radius={[8, 8, 0, 0]} maxBarSize={40} background={{ fill: 'rgba(241, 245, 249, 0.5)', radius: [8, 8, 0, 0] }}>
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.depth > 30 ? 'url(#colorDepthWarning)' : 'url(#colorDepthNormal)'} />
                 ))}
@@ -63,18 +63,6 @@ export default function GroundwaterAnalysis() {
                   ? `${village.name} shows heavily depleted aquifers. Immediate groundwater charging needed.` 
                   : `${village.name} aquifers remain within safe operational limits currently.`}
               </p>
-            </div>
-            <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden border border-slate-200 shadow-sm flex-shrink-0">
-               <iframe
-                  src={village.mapUrl}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title={`Map of ${village.name}`}
-               ></iframe>
             </div>
           </div>
         ))}

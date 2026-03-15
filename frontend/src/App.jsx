@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Droplet, CloudRain, Truck, AlertTriangle, ShieldAlert, Activity, TrendingUp, Home, LogOut } from 'lucide-react';
+import { Droplet, CloudRain, Truck, AlertTriangle, ShieldAlert, Activity, TrendingUp, Home, LogOut, MapPin } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -12,6 +12,7 @@ import RiskCalculation from './pages/RiskCalculation';
 import RiskClassification from './pages/RiskClassification';
 import SupplyDemand from './pages/SupplyDemand';
 import FuturePrediction from './pages/FuturePrediction';
+import MapOverview from './pages/MapOverview';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -25,6 +26,7 @@ function Sidebar() {
   
   const navItems = [
     { name: 'Dashboard', path: '/', icon: Home },
+    { name: 'Map Overview', path: '/map-overview', icon: MapPin },
     { name: 'Rainfall', path: '/rainfall', icon: CloudRain },
     { name: 'Groundwater', path: '/groundwater', icon: Droplet },
     { name: 'Tankers', path: '/tankers', icon: Truck },
@@ -129,6 +131,7 @@ function AppContent() {
                     <Route path="/classification" element={<RiskClassification />} />
                     <Route path="/supply-demand" element={<SupplyDemand />} />
                     <Route path="/prediction" element={<FuturePrediction />} />
+                    <Route path="/map-overview" element={<MapOverview />} />
                   </Routes>
                 </div>
               </main>
