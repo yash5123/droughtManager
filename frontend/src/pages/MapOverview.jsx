@@ -37,8 +37,8 @@ export default function MapOverview() {
             </div>
             <div className="p-4 bg-slate-50/80 backdrop-blur-sm border-t border-slate-100">
                <div className="flex justify-between text-xs text-slate-600 font-medium">
-                  <span>Lat: {village.lat.toFixed(4)}</span>
-                  <span>Long: {village.lng.toFixed(4)}</span>
+                  <span>Lat: {village.latitude.toFixed(4)}</span>
+                  <span>Long: {village.longitude.toFixed(4)}</span>
                </div>
             </div>
           </div>
