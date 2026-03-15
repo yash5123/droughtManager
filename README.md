@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/droplets.svg" alt="Drop" width="100" style="filter: invert(47%) sepia(91%) saturate(2314%) hue-rotate(189deg) brightness(101%) contrast(100%);"/>
+  <img src="assets/aqvasense_banner.png" alt="AqvaSense Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
   <h1 align="center">🌊 AqvaSense</h1>
   <h3 align="center">Advanced Drought & Water Resource Monitoring</h3>
   
@@ -23,14 +23,29 @@
 
 ## ✨ Key Features
 
-- 📊 **Real-time Analytics Dashboard**: Instant, beautiful overview of critical regions, active tankers, and water levels featuring interactive `Recharts` data visualizations natively supporting gradients and Area maps.
-- 🗺️ **Premium Geospatial Mapping**: Integrated interactive Leaflet maps displaying dynamic "Drought Impact Zones" (15km radius impact heatmaps) along with color-coded risk severity markers. Clicking markers activates smooth camera fly-to animations.
-- 💧 **Advanced Groundwater & Rainfall Monitoring**: Track aquifer depletion trends and rainfall shortages across entire districts with automated categorization (e.g., Severe Deficit vs Normal), backed by historical tracking capability.
-- 🚚 **Tanker Allocation & Logistics**: A dedicated interface to dispatch emergency water trucks to high-risk villages in real-time, compute expected times of arrival, and a dedicated UI to mark successful water-drop deliveries.
-- ⚠️ **Automated Risk Calculation Engine**: Algorithmic drought severity scoring driven by supply-vs-demand gaps, population density, and long-term environmental factors to generate actionable "Drought Priority" lists.
-- 🔔 **Live Alerts System**: Simulated real-time notification dropdown dynamically built into the sleek sidebar and top navigation for tracking critical environmental events and operational successes across the region.
-- 📑 **Data Export & Reporting**: One-click generation of comprehensive CSV reports aggregating the current system's overarching metrics directly from the dashboard for government record-keeping and external audits.
-- 📱 **Fully Responsive Glassmorphic UI**: Architected from the ground up for mobile compatibility, featuring a sliding-drawer menu natively responsive to touch devices, all styled with deeply immersive "glass card" aesthetics using Tailwind CSS.
+- 📊 **Real-time Analytics Dashboard**
+  <p>Instant, beautiful overview of critical regions, active tankers, and water levels featuring interactive <code>Recharts</code> data visualizations natively supporting gradients and Area maps.</p>
+
+- 🗺️ **Premium Geospatial Mapping**
+  <p>Integrated interactive Leaflet maps displaying dynamic "Drought Impact Zones" (15km radius impact heatmaps) along with color-coded risk severity markers. Clicking markers activates smooth camera fly-to animations.</p>
+
+- 💧 **Advanced Groundwater & Rainfall Monitoring**
+  <p>Track aquifer depletion trends and rainfall shortages across entire districts with automated categorization (e.g., Severe Deficit vs Normal), backed by historical tracking capability.</p>
+
+- 🚚 **Tanker Allocation & Logistics**
+  <p>A dedicated interface to dispatch emergency water trucks to high-risk villages in real-time, compute expected times of arrival, and a dedicated UI to mark successful water-drop deliveries.</p>
+
+- ⚠️ **Automated Risk Calculation Engine**
+  <p>Algorithmic drought severity scoring driven by supply-vs-demand gaps, population density, and long-term environmental factors to generate actionable "Drought Priority" lists.</p>
+
+- 🔔 **Live Alerts System**
+  <p>Simulated real-time notification dropdown dynamically built into the sleek sidebar and top navigation for tracking critical environmental events and operational successes across the region.</p>
+
+- 📑 **Data Export & Reporting**
+  <p>One-click generation of comprehensive CSV reports aggregating the current system's overarching metrics directly from the dashboard for government record-keeping and external audits.</p>
+
+- 📱 **Fully Responsive Glassmorphic UI**
+  <p>Architected from the ground up for mobile compatibility, featuring a sliding-drawer menu natively responsive to touch devices, all styled with deeply immersive "glass card" aesthetics using Tailwind CSS.</p>
 
 ## 🛠️ Technology Stack
 
