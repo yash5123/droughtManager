@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="assets/aqvasense_banner.png" alt="AqvaSense Banner" width="600" style="border-radius: 12px; margin-bottom: 20px;" />
-  <h1 align="center">🌊 AqvaSense</h1>
+  <img src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/1f4a7.svg" alt="AqvaSense Logo" width="72" style="margin-bottom: 10px;" />
+  <h1 align="center">AqvaSense</h1>
   <h3 align="center">Advanced Drought & Water Resource Monitoring</h3>
   
   <p align="center">
