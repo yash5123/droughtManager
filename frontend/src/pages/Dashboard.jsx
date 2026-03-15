@@ -13,13 +13,13 @@ export default function Dashboard() {
     rainfallRaw: 120
   });
 
-  const generateMockData = () => {
+  const mockChartData = React.useMemo(() => {
     return Array.from({length: 6}).map((_, i) => ({
       name: `Month ${i+1}`,
       rainfall: Math.floor(Math.random() * 200) + 50,
       groundwater: Math.floor(Math.random() * 50) + 10,
     }));
-  };
+  }, []);
 
   const handleExport = () => {
     const reportData = [
@@ -80,7 +80,7 @@ export default function Dashboard() {
           </h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={generateMockData()}>
+              <AreaChart data={mockChartData}>
                 <defs>
                   <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
@@ -108,7 +108,7 @@ export default function Dashboard() {
           </h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={generateMockData()}>
+              <AreaChart data={mockChartData}>
                 <defs>
                   <linearGradient id="colorGroundwater" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.4}/>
