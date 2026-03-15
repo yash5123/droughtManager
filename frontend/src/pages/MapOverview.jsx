@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Circle, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, AlertTriangle, Droplet } from 'lucide-react';
 import { villages } from '../utils/villageData';
@@ -64,50 +64,65 @@ export default function MapOverview() {
           {villages.map((village) => {
             const risk = getVillageRisk(village.name);
             return (
-              <CircleMarker
-                key={village.id}
-                center={[village.latitude, village.longitude]}
-                pathOptions={{ 
-                  color: risk.color, 
-                  fillColor: risk.color, 
-                  fillOpacity: 0.7,
-                  weight: 2
-                }}
-                radius={12}
-                eventHandlers={{
-                  click: (e) => {
-                    const map = e.target._map;
-                    map.flyTo([village.latitude, village.longitude], 12, {
-                      animate: true,
-                      duration: 1.5
-                    });
-                  }
-                }}
-              >
-                <Popup className="rounded-xl overflow-hidden shadow-xl border-0 !p-0">
-                   <div className="min-w-[220px]">
-                      <div className="p-4" style={{ backgroundColor: risk.fill }}>
-                        <h3 className="font-bold text-slate-900 text-base mb-1">{village.name}</h3>
-                        <p className="text-slate-700 text-xs font-medium opacity-80">{village.district} District</p>
-                      </div>
-                      <div className="p-4 bg-white">
-                         <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-                            <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Risk Level</span>
-                            <span className="font-bold text-sm flex items-center gap-1" style={{ color: risk.color }}>
-                              {risk.level === 'High' && <AlertTriangle size={14} />}
-                              {risk.level}
-                            </span>
-                         </div>
-                         <div className="flex items-center justify-between mb-1">
-                            <span className="text-slate-600 text-xs flex items-center gap-1.5">
-                              <Droplet size={12} className="text-blue-500"/> Risk Score
-                            </span>
-                            <span className="font-bold text-slate-800">{risk.score}/100</span>
-                         </div>
-                      </div>
-                   </div>
-                </Popup>
-              </CircleMarker>
+              <React.Fragment key={village.id}>
+                {/* Drought Impact Heatmap Layer */}
+                <Circle 
+                  center={[village.latitude, village.longitude]}
+                  radius={15000} // 15km approximate radius of impact
+                  pathOptions={{
+                    color: risk.color,
+                    fillColor: risk.color,
+                    fillOpacity: 0.15,
+                    stroke: false
+                  }}
+                />
+                
+                {/* Village Core Marker */}
+                <CircleMarker
+                  center={[village.latitude, village.longitude]}
+                  pathOptions={{ 
+                    color: risk.color, 
+                    fillColor: risk.color, 
+                    fillOpacity: 0.9,
+                    weight: 2,
+                    color: '#ffffff' // White border for contrast
+                  }}
+                  radius={8}
+                  eventHandlers={{
+                    click: (e) => {
+                      const map = e.target._map;
+                      map.flyTo([village.latitude, village.longitude], 10, { // Zoom out slightly to see the radius
+                        animate: true,
+                        duration: 1.5
+                      });
+                    }
+                  }}
+                >
+                  <Popup className="rounded-xl overflow-hidden shadow-xl border-0 !p-0">
+                     <div className="min-w-[220px]">
+                        <div className="p-4" style={{ backgroundColor: risk.fill }}>
+                          <h3 className="font-bold text-slate-900 text-base mb-1">{village.name}</h3>
+                          <p className="text-slate-700 text-xs font-medium opacity-80">{village.district} District</p>
+                        </div>
+                        <div className="p-4 bg-white">
+                           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                              <span className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Risk Level</span>
+                              <span className="font-bold text-sm flex items-center gap-1" style={{ color: risk.color }}>
+                                {risk.level === 'High' && <AlertTriangle size={14} />}
+                                {risk.level}
+                              </span>
+                           </div>
+                           <div className="flex items-center justify-between mb-1">
+                              <span className="text-slate-600 text-xs flex items-center gap-1.5">
+                                <Droplet size={12} className="text-blue-500"/> Risk Score
+                              </span>
+                              <span className="font-bold text-slate-800">{risk.score}/100</span>
+                           </div>
+                        </div>
+                     </div>
+                  </Popup>
+                </CircleMarker>
+              </React.Fragment>
             );
           })}
         </MapContainer>

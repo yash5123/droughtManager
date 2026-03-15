@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Droplet, AlertTriangle, Truck, CloudRain } from 'lucide-react';
+import { Droplet, AlertTriangle, Truck, CloudRain, Download } from 'lucide-react';
 import axios from 'axios';
+import { exportToCSV } from '../utils/exportUtils';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -20,11 +21,47 @@ export default function Dashboard() {
     }));
   };
 
+  const handleExport = () => {
+    const reportData = [
+      {
+        "Metric Name": "Total Villages Monitored",
+        "Value": stats.villages,
+        "Status": "Active"
+      },
+      {
+        "Metric Name": "Critical Regions",
+        "Value": stats.critical,
+        "Status": "High Alert"
+      },
+      {
+        "Metric Name": "Active Tankers",
+        "Value": stats.tankers,
+        "Status": "Enroute/Delivered"
+      },
+      {
+        "Metric Name": "Avg Rainfall",
+        "Value": `${stats.rainfallRaw} mm`,
+        "Status": "Below Normal"
+      }
+    ];
+
+    exportToCSV(reportData, `Drought_Report_${new Date().toISOString().split('T')[0]}`);
+  };
+
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">System Overview</h2>
-        <p className="text-slate-500 text-sm mt-1">Real-time water resource monitoring dashboard.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">System Overview</h2>
+          <p className="text-slate-500 text-sm mt-1">Real-time water resource monitoring dashboard.</p>
+        </div>
+        <button 
+          onClick={handleExport}
+          className="flex items-center gap-2 bg-white border border-slate-200 hover:border-blue-500 hover:text-blue-600 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300"
+        >
+          <Download size={18} />
+          Export Report
+        </button>
       </header>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
