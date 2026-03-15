@@ -5,10 +5,12 @@ import { Droplet, AlertTriangle, Truck, CloudRain, Download } from 'lucide-react
 import axios from 'axios';
 import { exportToCSV } from '../utils/exportUtils';
 
+import { villages } from '../utils/villageData';
+
 export default function Dashboard() {
   const [stats, setStats] = useState({
-    villages: 154,
-    critical: 12,
+    villages: villages.length, // Dynamically use the 5 mock villages
+    critical: 2, // Hardcoding to 2 based on the 5 mocked villages (Patoda is High, Kadwanchi/Shirpur are Moderate but usually High is considered critical)
     tankers: 45,
     rainfallRaw: 120
   });
