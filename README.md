@@ -1,14 +1,17 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/droplet.svg" alt="Drop" width="100"/>
-  <h1>AqvaSense | Drought Monitoring</h1>
-  <p><strong>Advanced Data-Driven Water Resource Management System</strong></p>
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/droplets.svg" alt="Drop" width="100" style="filter: invert(47%) sepia(91%) saturate(2314%) hue-rotate(189deg) brightness(101%) contrast(100%);"/>
+  <h1 align="center">🌊 AqvaSense</h1>
+  <h3 align="center">Advanced Drought & Water Resource Monitoring</h3>
+  
+  <p align="center">
+    <strong>A next-generation, data-driven platform for government planning and disaster mitigation.</strong>
+  </p>
 
-  <p>
-    <img alt="React" src="https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB"/>
-    <img alt="TailwindCSS" src="https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white"/>
-    <img alt="Leaflet" src="https://img.shields.io/badge/Leaflet-%23199900.svg?style=for-the-badge&logo=Leaflet&logoColor=white"/>
-    <img alt="NodeJS" src="https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white"/>
-    <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white"/>
+  <p align="center">
+    <img alt="React" src="https://img.shields.io/badge/react-18.x-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB"/>
+    <img alt="TailwindCSS" src="https://img.shields.io/badge/tailwindcss-v3.4-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white"/>
+    <img alt="Leaflet" src="https://img.shields.io/badge/react--leaflet-v4.x-%23199900.svg?style=for-the-badge&logo=Leaflet&logoColor=white"/>
+    <img alt="NodeJS" src="https://img.shields.io/badge/node.js-backend-%236DA55F.svg?style=for-the-badge&logo=node.js&logoColor=white"/>
   </p>
 </div>
 
