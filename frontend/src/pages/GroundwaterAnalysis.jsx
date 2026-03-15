@@ -3,10 +3,10 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveCo
 import { villages } from '../utils/villageData';
 
 export default function GroundwaterAnalysis() {
-  const data = villages.map(v => ({
+  const data = React.useMemo(() => villages.map(v => ({
     ...v,
     depth: Math.floor(Math.random() * 40) + 10 // Depth in meters: 10m to 50m
-  }));
+  })), []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

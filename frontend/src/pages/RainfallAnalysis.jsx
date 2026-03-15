@@ -4,10 +4,10 @@ import { villages } from '../utils/villageData';
 
 export default function RainfallAnalysis() {
   // Generate mock rainfall data for realistic presentation
-  const data = villages.map(v => ({
+  const data = React.useMemo(() => villages.map(v => ({
     ...v,
     rainfall: Math.floor(Math.random() * 150) + 10 // Range from 10 to 160 mm
-  }));
+  })), []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
