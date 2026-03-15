@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/aqvasense_banner.png" alt="AqvaSense Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+  <img src="assets/aqvasense_banner.png" alt="AqvaSense Banner" width="600" style="border-radius: 12px; margin-bottom: 20px;" />
   <h1 align="center">🌊 AqvaSense</h1>
   <h3 align="center">Advanced Drought & Water Resource Monitoring</h3>
   
@@ -17,9 +17,11 @@
 
 ---
 
-## 🌟 Overview
+## 🎯 The Mission
 
-**AqvaSense** is a comprehensive, full-stack web application designed for government planning, disaster mitigation, and real-time monitoring of critical water resources. By tracking rainfall deficits, observing groundwater depletion, and managing emergency water tanker logistics across diverse geographical regions, the platform empowers authorities to make proactive, life-saving, data-informed decisions.
+The escalating frequency of severe drought conditions requires a modernized, technological approach to water resource management. **AqvaSense** bridges the gap between raw environmental data and actionable government intervention. By centralizing rainfall statistics, groundwater depletion metrics, and population demands, authorities can shift from reactive emergency responses to proactive risk mitigation and automated logistics dispatching.
+
+---
 
 ## ✨ Key Features
 
@@ -47,33 +49,57 @@
 - 📱 **Fully Responsive Glassmorphic UI**
   <p>Architected from the ground up for mobile compatibility, featuring a sliding-drawer menu natively responsive to touch devices, all styled with deeply immersive "glass card" aesthetics using Tailwind CSS.</p>
 
+---
+
+## 🏗️ System Architecture & Core Modules
+
+AqvaSense is designed with a monolithic frontend and modular component architecture focusing on domain-driven design. The application is comprised of several distinct analytical modules:
+
+### 1. The Risk Classification Engine
+Drought severity isn't just about lack of rain—it's a multi-variable equation. The Risk Calculation module computes a holistic "Risk Score" out of 100 based on:
+- **Rainfall Deficit** (Weight: 40%)
+- **Groundwater Depletion** (Weight: 30%)
+- **Population Density & Water Demand Gap** (Weight: 30%)
+
+Villages are then automatically bucketed into classifications: **High**, **Moderate**, or **Low** Risk.
+
+### 2. Supply vs. Demand Intelligence
+Visualizes the exact gap between liters of water available natively versus the daily consumption rate per capita. This allows administrators to accurately predict exactly how many supplementary tankers are required to sustain a population.
+
+### 3. Tanker Logistics & Dispatch
+Instead of relying on phone calls, the platform features a centralized dispatch grid. Operators can view available trucks, assign them to critical villages, receive calculated ETAs, and utilize a one-click completion system to mark drops as fulfilled.
+
+---
+
 ## 🛠️ Technology Stack
 
 ### Frontend Architecture
-- **Framework**: [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Data Visualization**: [Recharts](https://recharts.org/), [React-Leaflet](https://react-leaflet.js.org/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Routing**: React Router DOM
+- **Framework**: [React](https://reactjs.org/) (Function components, hooks) + [Vite](https://vitejs.dev/) for extremely fast HMR.
+- **Styling Methodologies**: Utility-first CSS via [Tailwind CSS](https://tailwindcss.com/) combined with custom global CSS mapping for glassmorphism classes (`.glass-card`).
+- **Data Visualization**: [Recharts](https://recharts.org/) for area, bar, and custom scatter plots. [React-Leaflet](https://react-leaflet.js.org/) for DOM-based interactive map mounting.
+- **Icons**: [Lucide React](https://lucide.dev/) for clean, consistent UI iconography.
+- **Routing**: Client-side single-page routing via React Router DOM.
 
-### Backend & Database (Planned)
-- **Runtime Environment**: [Node.js](https://nodejs.org/en/) & [Express.js](https://expressjs.com/)
-- **Database**: [MongoDB](https://www.mongodb.com/) (Mongoose ORM)
-- **Authentication**: Firebase Auth / Custom JWT implementation
-- **Deployment**: Vercel (Client) / Render (API Server)
+### Backend & Database Integrations (Planned/Simulated)
+- **Runtime Environment**: [Node.js](https://nodejs.org/en/) & [Express.js](https://expressjs.com/) for building RESTful endpoints.
+- **Database**: [MongoDB](https://www.mongodb.com/) utilizing Mongoose for NoSQL document modeling of Village schemas, Tanker statuses, and historical rainfall data.
+- **Authentication**: Firebase Authentication or Custom JWT implementation handling Auth Context on the frontend.
+- **Environment**: Cloud-native deployment intended for Render (Backend) and Vercel (Frontend).
 
 ---
 
 ## 🎨 UI/UX Design Principles
 
-AqvaSense was built with a strict adherence to modern, premium aesthetics:
-- **Glassmorphism**: Extensive use of backdrop-blurs, semi-transparent elements, and light borders to create a layered "glass" effect across dashboards.
-- **Micro-interactions**: Hover events, smooth gradient transitions, and responsive re-rendering.
-- **Dark Mode Sign-In**: A stunning, sleek dark theme dedicated to the authentication gateway, providing a striking contrast to the main administrative dashboard.
+AqvaSense was built with strict adherence to modern, premium aesthetics designed to prevent operator fatigue:
+- **Immersive Glassmorphism**: Extensive use of backdrop-blurs, semi-transparent layered elements, and exceedingly light colored borders to create an organic "glass" effect across dashboards without relying on flat, solid colors.
+- **Micro-interactions**: Hover events, smooth gradient transitions, and responsive re-rendering encourage user engagement.
+- **Dark Mode Auth Gateway**: A stunning, sleek dark theme dedicated to the authentication/login gateway, providing a striking, secure contrast to the main administrative dashboard.
+
+---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+We believe in open-source solutions for global environmental challenges. 
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
