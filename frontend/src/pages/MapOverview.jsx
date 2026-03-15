@@ -74,6 +74,15 @@ export default function MapOverview() {
                   weight: 2
                 }}
                 radius={12}
+                eventHandlers={{
+                  click: (e) => {
+                    const map = e.target._map;
+                    map.flyTo([village.latitude, village.longitude], 12, {
+                      animate: true,
+                      duration: 1.5
+                    });
+                  }
+                }}
               >
                 <Popup className="rounded-xl overflow-hidden shadow-xl border-0 !p-0">
                    <div className="min-w-[220px]">

@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { villages } from '../utils/villageData';
 
 export default function TankerAvailability() {
-  const [tankers] = useState(
+  const [tankers, setTankers] = useState(
     villages.map((v, i) => ({
       id: `TNK-102${i + 4}`,
       village: v.name,
@@ -16,6 +16,26 @@ export default function TankerAvailability() {
       capacity: (i + 1) * 2000 + 3000
     }))
   );
+
+  const [selectedVillage, setSelectedVillage] = useState(villages[0].name);
+  const [dispatchLiters, setDispatchLiters] = useState(2000);
+
+  const handleDispatch = (e) => {
+    e.preventDefault();
+    const v = villages.find(v => v.name === selectedVillage);
+    if (!v) return;
+    const newTanker = {
+      id: `TNK-${Math.floor(Math.random() * 9000) + 1000}`,
+      village: v.name,
+      district: v.district,
+      mapUrl: v.mapUrl,
+      status: 'Enroute',
+      eta: '45 mins',
+      capacity: dispatchLiters
+    };
+    setTankers([newTanker, ...tankers]);
+    setDispatchLiters(2000);
+  };
 
   const chartData = useMemo(() => {
     return tankers.map((tanker) => ({ village: tanker.village, capacity: tanker.capacity }));
@@ -86,11 +106,41 @@ export default function TankerAvailability() {
             </div>
          </div>
          <div className="lg:col-span-1 glass-card p-0 overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex-1">
+            <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+               <h3 className="text-lg font-semibold text-slate-800 mb-1 font-outfit">Dispatch Tanker</h3>
+               <p className="text-xs text-slate-500 mb-4">Allocate emergency resources.</p>
+               <form onSubmit={handleDispatch} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 mb-1 block">Target Village</label>
+                    <select 
+                      value={selectedVillage} 
+                      onChange={e => setSelectedVillage(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                      {villages.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 mb-1 block">Volume (Liters)</label>
+                    <input 
+                      type="number"
+                      min="1000"
+                      step="500"
+                      value={dispatchLiters}
+                      onChange={e => setDispatchLiters(Number(e.target.value))}
+                      className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                    <Truck size={16} /> Allocate Truck
+                  </button>
+               </form>
+            </div>
+            <div className="p-6 flex-1 bg-white overflow-y-auto max-h-[300px]">
               <h3 className="text-lg font-semibold text-slate-800 mb-2 font-outfit">Live Tracking</h3>
-              <p className="text-sm text-slate-500">Monitor en-route deliveries in real-time.</p>
+              <p className="text-sm text-slate-500">Monitor en-route deliveries.</p>
               
-              <div className="mt-8 space-y-6">
+              <div className="mt-6 space-y-5">
                 {tankers.filter(t => t.status === 'Enroute').map(t => (
                    <div key={t.id} className="flex gap-4 items-start relative before:absolute before:inset-y-0 before:-left-2 before:w-0.5 before:bg-amber-400 ml-4">
                       <div className="flex-1">
