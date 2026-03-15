@@ -2,28 +2,30 @@ import React, { useState, useMemo } from 'react';
 import { Truck, MapPin, Clock, Droplets, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { villages } from '../utils/villageData';
 
 export default function TankerAvailability() {
-  const [tankers] = useState([
-    { id: 'TNK-1024', village: 'Village A', status: 'Enroute', eta: '45 mins', capacity: 5000 },
-    { id: 'TNK-1025', village: 'Village B', status: 'Delivered', eta: '-', capacity: 8000 },
-    { id: 'TNK-1026', village: 'Village C', status: 'Pending', eta: '2 hrs', capacity: 5000 },
-    { id: 'TNK-1027', village: 'Village D', status: 'Enroute', eta: '10 mins', capacity: 10000 },
-  ]);
+  const [tankers] = useState(
+    villages.map((v, i) => ({
+      id: `TNK-102${i + 4}`,
+      village: v.name,
+      district: v.district,
+      mapUrl: v.mapUrl,
+      status: i % 2 === 0 ? 'Enroute' : (i === 1 ? 'Delivered' : 'Pending'),
+      eta: i % 2 === 0 ? `${(i + 1) * 15} mins` : (i === 1 ? '-' : '2 hrs'),
+      capacity: (i + 1) * 2000 + 3000
+    }))
+  );
 
   const chartData = useMemo(() => {
-    const capacities = tankers.reduce((acc, tanker) => {
-      acc[tanker.village] = (acc[tanker.village] || 0) + tanker.capacity;
-      return acc;
-    }, {});
-    return Object.entries(capacities).map(([village, capacity]) => ({ village, capacity }));
+    return tankers.map((tanker) => ({ village: tanker.village, capacity: tanker.capacity }));
   }, [tankers]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <header>
         <h2 className="text-2xl font-bold text-slate-800">Water Tanker Logistics</h2>
-        <p className="text-slate-500 text-sm mt-1">Manage emergency water distribution to critical areas.</p>
+        <p className="text-slate-500 text-sm mt-1">Manage emergency water distribution directly mapped to 5 target villages.</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -43,7 +45,9 @@ export default function TankerAvailability() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Total Volume</p>
-              <h3 className="text-3xl font-extrabold text-slate-800">28k L</h3>
+              <h3 className="text-3xl font-extrabold text-slate-800">
+                {tankers.reduce((sum, t) => sum + t.capacity, 0) / 1000}k L
+              </h3>
             </div>
         </div>
 
@@ -53,14 +57,16 @@ export default function TankerAvailability() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Delivered</p>
-              <h3 className="text-3xl font-extrabold text-slate-800">1</h3>
+              <h3 className="text-3xl font-extrabold text-slate-800">
+                {tankers.filter(t => t.status === 'Delivered').length}
+              </h3>
             </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
          <div className="lg:col-span-2 glass-card p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Volume Allocation per Region (Liters)</h3>
+            <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Volume Allocation per Village (Liters)</h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -82,7 +88,7 @@ export default function TankerAvailability() {
          <div className="lg:col-span-1 glass-card p-0 overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-100 flex-1">
               <h3 className="text-lg font-semibold text-slate-800 mb-2 font-outfit">Live Tracking</h3>
-              <p className="text-sm text-slate-500">Monitor en-route deliveries in real-time to assure rapid response.</p>
+              <p className="text-sm text-slate-500">Monitor en-route deliveries in real-time.</p>
               
               <div className="mt-8 space-y-6">
                 {tankers.filter(t => t.status === 'Enroute').map(t => (
@@ -98,40 +104,52 @@ export default function TankerAvailability() {
          </div>
       </div>
 
-      <Card className="glass-card border-none">
-        <CardContent className="p-0">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="p-4 text-sm font-semibold text-slate-600">Tanker ID</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Destination</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Status</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">Capacity</th>
-                <th className="p-4 text-sm font-semibold text-slate-600">ETA</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tankers.map((t) => (
-                <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <td className="p-4 font-medium text-slate-800">{t.id}</td>
-                  <td className="p-4 text-slate-600 flex items-center gap-2"><MapPin size={16} className="text-blue-500"/> {t.village}</td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      t.status === 'Enroute' ? 'bg-amber-100 text-amber-700' :
-                      t.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-slate-600">{t.capacity} L</td>
-                  <td className="p-4 text-slate-500 flex items-center gap-2"><Clock size={16}/> {t.eta}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
+        {tankers.map((t) => (
+          <div key={t.id} className="glass-card overflow-hidden group">
+            <div className="w-full h-40 overflow-hidden relative">
+               <iframe
+                  src={t.mapUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map of ${t.village}`}
+                  className="absolute inset-0 z-0"
+               ></iframe>
+               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent z-10 pointer-events-none" />
+               <div className="absolute bottom-4 left-4 z-20 pointer-events-none">
+                 <h4 className="text-white font-bold text-lg drop-shadow-md">{t.village}</h4>
+                 <p className="text-slate-200 text-xs drop-shadow-sm flex items-center gap-1"><MapPin size={12}/> {t.district}</p>
+               </div>
+            </div>
+            <div className="p-5">
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-mono text-sm font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded">{t.id}</span>
+                <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                  t.status === 'Enroute' ? 'bg-amber-100 text-amber-700' :
+                  t.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                  'bg-slate-100 text-slate-700'
+                }`}>
+                  {t.status}
+                </span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
+                  <span className="text-slate-500 flex items-center gap-2"><Droplets size={16}/> Capacity</span>
+                  <span className="font-semibold text-slate-800">{t.capacity} L</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-500 flex items-center gap-2"><Clock size={16}/> ETA</span>
+                  <span className="font-semibold text-slate-800">{t.eta}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
