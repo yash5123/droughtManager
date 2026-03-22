@@ -3,7 +3,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Droplet, AlertTriangle, Truck, CloudRain, Download, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { exportToCSV } from '../utils/exportUtils';
-import { getDashboardSummary, getAllVillagesRainfall } from '../services/weatherService';
+import { getDashboardSummary, getAllVillagesRainfall, getAllVillagesSoilMoisture } from '../services/weatherService';
 
 import { villages } from '../utils/villageData';
 
@@ -23,38 +23,44 @@ export default function Dashboard() {
     async function fetchLiveData() {
       try {
         setLoading(true);
-        // Fetch dashboard summary with real weather data
-        const summary = await getDashboardSummary();
+        // Fetch all data in parallel
+        const [summary, rainfallData, soilData] = await Promise.all([
+          getDashboardSummary(),
+          getAllVillagesRainfall(30),      // 30-day accumulated rainfall
+          getAllVillagesSoilMoisture()     // soil moisture levels
+        ]);
+
+        // Use 30-day average rainfall for KPI instead of instantaneous
+        const avgRain30d = rainfallData.length > 0
+          ? Math.round(rainfallData.reduce((sum, v) => sum + v.totalRainfall, 0) / rainfallData.length * 10) / 10
+          : 0;
+
         setStats({
           villages: summary.villages,
           critical: summary.critical,
-          tankers: 45, // tankers remain from DB
-          rainfallRaw: summary.avgRainfall
+          tankers: 45,
+          rainfallRaw: avgRain30d
         });
 
-        // Build chart data from each village's current weather
-        const chartData = summary.weatherData.map(v => ({
-          name: v.name.split(' ')[0], // short name
-          rainfall: v.weather?.precipitation || 0,
-          humidity: v.weather?.relative_humidity_2m || 0,
+        // Build chart from 30-day accumulated rainfall (meaningful values)
+        const chartData = rainfallData.map(v => ({
+          name: v.name,
+          rainfall: v.totalRainfall,
         }));
         setRainfallChart(chartData);
 
-        // Build groundwater proxy chart (soil moisture)
-        const gwData = summary.weatherData.map(v => ({
-          name: v.name.split(' ')[0],
-          groundwater: v.weather?.soil_moisture_0_to_7cm 
-            ? Math.round(v.weather.soil_moisture_0_to_7cm * 1000) / 10 
-            : 0,
+        // Build groundwater chart from soil moisture (already in %)
+        const gwData = soilData.map(v => ({
+          name: v.name,
+          groundwater: v.avgMoisture || 0,
         }));
         setGroundwaterChart(gwData);
 
         setIsLive(true);
       } catch (error) {
         console.error('Failed to fetch live weather data:', error);
-        // Fallback to generated data if API fails
         const fallback = villages.map((v, i) => ({
-          name: v.name.split(' ')[0],
+          name: v.name,
           rainfall: Math.floor(Math.random() * 200) + 50,
           groundwater: Math.floor(Math.random() * 50) + 10,
         }));
@@ -107,7 +113,7 @@ export default function Dashboard() {
         <StatCard title="Total Villages Monitored" value={loading ? '...' : stats.villages} icon={Droplet} color="text-blue-500" bg="bg-blue-50" />
         <StatCard title="Critical Regions" value={loading ? '...' : stats.critical} icon={AlertTriangle} color="text-red-500" bg="bg-red-50" />
         <StatCard title="Active Tankers" value={stats.tankers} icon={Truck} color="text-amber-500" bg="bg-amber-50" />
-        <StatCard title="Current Rainfall (mm)" value={loading ? '...' : stats.rainfallRaw} icon={CloudRain} color="text-cyan-500" bg="bg-cyan-50" />
+        <StatCard title="Avg Rainfall (30d mm)" value={loading ? '...' : stats.rainfallRaw} icon={CloudRain} color="text-cyan-500" bg="bg-cyan-50" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
@@ -115,7 +121,7 @@ export default function Dashboard() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-110 duration-500" />
           <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
             <CloudRain className="w-5 h-5 text-blue-500" />
-            Current Rainfall by Village
+            30-Day Rainfall by Village (mm)
             {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
           </h3>
           <div className="h-72">
@@ -133,7 +139,7 @@ export default function Dashboard() {
                 <Tooltip 
                   contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} 
                   itemStyle={{ color: '#0f172a', fontWeight: 600 }}
-                  formatter={(value) => [`${value} mm`, 'Precipitation']}
+                  formatter={(value) => [`${value} mm`, '30-Day Total']}
                 />
                 <Area type="monotone" dataKey="rainfall" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorRain)" activeDot={{r: 8, strokeWidth: 0, fill: '#2563eb'}} />
               </AreaChart>
