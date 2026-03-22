@@ -1,42 +1,52 @@
 export const villages = [
   {
     id: 1,
-    name: "Hiware Bazar",
-    district: "Ahmednagar",
-    latitude: 18.9667,
-    longitude: 74.5667,
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15112.585787688204!2d74.55110915264359!3d18.96918861271101!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcecb0c2830b8c9%3A0xc6c7df32a83853d6!2sHiware%20Bazar%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1715000000000!5m2!1sen!2sin"
+    name: "Barmer",
+    district: "Barmer",
+    state: "Rajasthan",
+    latitude: 25.7521,
+    longitude: 71.3967,
+    population: 2604,
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d57377.60791792543!2d71.37041395!3d25.7520686!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3942ee45fae6df01%3A0x78c60e7e2b33b13e!2sBarmer%2C%20Rajasthan!5e0!3m2!1sen!2sin!4v1715000000000!5m2!1sen!2sin"
   },
   {
     id: 2,
-    name: "Ralegan Siddhi",
-    district: "Ahmednagar",
-    latitude: 18.9912,
-    longitude: 74.2985,
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15110.875382346743!2d74.28828375264366!3d18.988052612660126!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcdd50734c56fd9%3A0x6b7fa093c31bb996!2sRalegan%20Siddhi%2C%20Maharashtra%20414302!5e0!3m2!1sen!2sin!4v1715000000001!5m2!1sen!2sin"
+    name: "Latur",
+    district: "Latur",
+    state: "Maharashtra",
+    latitude: 18.4088,
+    longitude: 76.5604,
+    population: 3820,
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d60513.68024050437!2d76.5231055!3d18.407745!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcf83c7e1909a67%3A0x61c7b1e5d69e31cb!2sLatur%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1715000000001!5m2!1sen!2sin"
   },
   {
     id: 3,
-    name: "Kadwanchi",
-    district: "Jalna",
-    latitude: 19.8297,
-    longitude: 75.9255,
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15024.962637242857!2d75.91261!3d19.82902!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bdba6dbf73e4491%3A0xe54e2fe7e61a868!2sKadwanchi%2C%20Maharashtra%20431203!5e0!3m2!1sen!2sin!4v1715000000002!5m2!1sen!2sin"
+    name: "Anantapur",
+    district: "Anantapur",
+    state: "Andhra Pradesh",
+    latitude: 14.6819,
+    longitude: 77.6006,
+    population: 5210,
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d61703.5127854835!2d77.5659!3d14.6819!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb14b65a24f0449%3A0xa3a03af4812291aa!2sAnantapur%2C%20Andhra%20Pradesh!5e0!3m2!1sen!2sin!4v1715000000002!5m2!1sen!2sin"
   },
   {
     id: 4,
-    name: "Patoda",
-    district: "Beed",
-    latitude: 18.9482,
-    longitude: 75.8719,
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30230.70617300481!2d75.85025735877843!3d18.9482470760611!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc5c290c0018df1%3A0x4642fb2f25f2ee37!2sPatoda%2C%20Maharashtra%20414204!5e0!3m2!1sen!2sin!4v1715000000003!5m2!1sen!2sin"
+    name: "Bhuj",
+    district: "Kutch",
+    state: "Gujarat",
+    latitude: 23.2420,
+    longitude: 69.6669,
+    population: 4450,
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d57849.35123415247!2d69.6317!3d23.242!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3950bad25a8b0969%3A0x8fa79a6c9cf3eeb4!2sBhuj%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1715000000003!5m2!1sen!2sin"
   },
   {
     id: 5,
-    name: "Shirpur",
-    district: "Dhule",
-    latitude: 21.3534,
-    longitude: 74.8872,
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d29796.884177579183!2d74.86901842841571!3d21.353383344600293!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bdf2d0006362573%3A0x6a1a7c36a6cf9e2!2sShirpur%2C%20Maharashtra%20425405!5e0!3m2!1sen!2sin!4v1715000000004!5m2!1sen!2sin"
+    name: "Jaisalmer",
+    district: "Jaisalmer",
+    state: "Rajasthan",
+    latitude: 26.9157,
+    longitude: 70.9083,
+    population: 3150,
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d56859.81553684959!2d70.8747!3d26.9157!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3947b5ec2f4c0805%3A0x18b93c676bc06488!2sJaisalmer%2C%20Rajasthan!5e0!3m2!1sen!2sin!4v1715000000004!5m2!1sen!2sin"
   }
 ];

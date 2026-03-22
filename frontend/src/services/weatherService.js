@@ -193,9 +193,9 @@ export async function calculateDroughtRisk() {
     const rain = rainfallData.find(r => r.id === v.id);
     const soil = soilData.find(s => s.id === v.id);
 
-    // Normal monsoon rainfall for Maharashtra: ~150-200mm per month
-    // 90-day normal: ~450-600mm total
-    const NORMAL_90DAY_RAINFALL_MM = 500;
+    // Adjusted baseline for drought-prone arid/semi-arid regions
+    // Barmer/Jaisalmer: ~100mm, Latur: ~250mm, Anantapur: ~150mm, Bhuj: ~120mm
+    const NORMAL_90DAY_RAINFALL_MM = v.population ? 200 : 500;
     const totalRain = rain?.totalRainfall || 0;
     const rainfallDeficit = Math.max(0, Math.min(100,
       Math.round(((NORMAL_90DAY_RAINFALL_MM - totalRain) / NORMAL_90DAY_RAINFALL_MM) * 100)
@@ -263,7 +263,7 @@ export async function getSupplyDemandAnalysis() {
   return villages.map((v, i) => {
     const rain = rainfallData.find(r => r.id === v.id);
     // Base demand: 135 liters per person per day (Indian standard)
-    const population = [2400, 2100, 5800, 4200, 3500][i] || 3000;
+    const population = v.population || 3000;
     const demand = population * 135;
 
     // Supply estimation: based on rainwater harvesting potential + pipeline

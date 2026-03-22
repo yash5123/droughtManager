@@ -15,8 +15,8 @@ const getRiskColors = (level) => {
 };
 
 export default function MapOverview() {
-  const center = [19.7515, 75.7139]; 
-  const zoom = 7;
+  const center = [21.8, 73.0]; // Centered to fit Rajasthan, Gujarat, Maharashtra, AP 
+  const zoom = 5;
   const [riskData, setRiskData] = useState({});
   const [weatherData, setWeatherData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -54,11 +54,11 @@ export default function MapOverview() {
         console.error('Failed to fetch map data:', error);
         // Fallback static risk
         const fallback = {
-          "Hiware Bazar": { level: 'Normal', score: 25, color: '#10b981', fill: '#d1fae5' },
-          "Ralegan Siddhi": { level: 'Normal', score: 30, color: '#10b981', fill: '#d1fae5' },
-          "Kadwanchi": { level: 'Moderate Risk', score: 65, color: '#f59e0b', fill: '#fef3c7' },
-          "Patoda": { level: 'Critical', score: 85, color: '#ef4444', fill: '#fee2e2' },
-          "Shirpur": { level: 'Moderate Risk', score: 55, color: '#f59e0b', fill: '#fef3c7' }
+          "Barmer": { level: 'Critical', score: 82, color: '#ef4444', fill: '#fee2e2' },
+          "Latur": { level: 'Moderate Risk', score: 58, color: '#f59e0b', fill: '#fef3c7' },
+          "Anantapur": { level: 'Critical', score: 75, color: '#ef4444', fill: '#fee2e2' },
+          "Bhuj": { level: 'Moderate Risk', score: 62, color: '#f59e0b', fill: '#fef3c7' },
+          "Jaisalmer": { level: 'Critical', score: 90, color: '#ef4444', fill: '#fee2e2' }
         };
         setRiskData(fallback);
         setIsLive(false);
