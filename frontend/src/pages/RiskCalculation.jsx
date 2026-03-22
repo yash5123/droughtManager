@@ -1,14 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Activity, Calculator, CheckCircle2 } from 'lucide-react';
+import { Activity, Calculator, CheckCircle2, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { villages } from '../utils/villageData';
+import { calculateDroughtRisk } from '../services/weatherService';
 
 export default function RiskCalculation() {
   const [rainfallDeficit, setRainfallDeficit] = useState(60);
   const [gwDepletion, setGwDepletion] = useState(45);
   const [popDemand, setPopDemand] = useState(80);
+  const [selectedVillage, setSelectedVillage] = useState(null);
+  const [liveRiskData, setLiveRiskData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await calculateDroughtRisk();
+        setLiveRiskData(data);
+        // Auto-set sliders to first village's real values
+        if (data.length > 0) {
+          const first = data[0];
+          setRainfallDeficit(first.rainfallDeficit || 60);
+          setGwDepletion(first.moistureDepletion || 45);
+          setSelectedVillage(first.name);
+        }
+        setIsLive(true);
+      } catch (error) {
+        console.error('Failed to fetch risk data:', error);
+        setIsLive(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const handleVillageSelect = (villageName) => {
+    const village = liveRiskData.find(v => v.name === villageName);
+    if (village) {
+      setRainfallDeficit(village.rainfallDeficit || 50);
+      setGwDepletion(village.moistureDepletion || 40);
+      setSelectedVillage(villageName);
+    }
+  };
 
   const calculateRisk = () => {
-    // Weights: Rainfall = 40%, Groundwater = 35%, Population Demand = 25%
     return Math.round((rainfallDeficit * 0.40) + (gwDepletion * 0.35) + (popDemand * 0.25));
   };
 
@@ -24,9 +62,41 @@ export default function RiskCalculation() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <header>
-        <h2 className="text-2xl font-bold text-slate-800">Drought Risk Calculator</h2>
-        <p className="text-slate-500 text-sm mt-1">Interactive algorithm to determine the severity index of drought.</p>
+        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <Calculator className="text-blue-600" />
+          Drought Risk Calculator
+        </h2>
+        <div className="flex items-center gap-3 mt-1">
+          <p className="text-slate-500 text-sm">Interactive algorithm powered by real-time Open-Meteo data.</p>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+            {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
+            {isLive ? 'Live Data' : 'Manual'}
+          </span>
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+        </div>
       </header>
+
+      {/* Village quick-select */}
+      {isLive && liveRiskData.length > 0 && (
+        <div className="flex gap-2 flex-wrap animate-slide-up">
+          {liveRiskData.map(v => (
+            <button
+              key={v.id}
+              onClick={() => handleVillageSelect(v.name)}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                selectedVillage === v.name
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300'
+              }`}
+            >
+              {v.name}
+              <span className={`ml-2 text-xs ${selectedVillage === v.name ? 'text-blue-200' : 'text-slate-400'}`}>
+                {v.riskScore}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up">
         <div className="lg:col-span-2 space-y-6">
@@ -34,6 +104,9 @@ export default function RiskCalculation() {
               <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 font-outfit">
                 <Calculator className="text-blue-600" size={28} />
                 Dynamic Risk Assessment
+                {selectedVillage && isLive && (
+                  <span className="text-sm font-medium text-slate-400 ml-2">— {selectedVillage}</span>
+                )}
               </h3>
 
               <div className="space-y-8 mb-8">
@@ -125,6 +198,11 @@ export default function RiskCalculation() {
              <p className="text-xs text-slate-500 leading-relaxed">
                Risk Score = <span className="text-blue-600 font-mono">0.40(R)</span> + <span className="text-teal-600 font-mono">0.35(GW)</span> + <span className="text-amber-600 font-mono">0.25(P)</span>
              </p>
+             {isLive && (
+               <p className="text-xs text-emerald-600 mt-2 font-medium">
+                 ✓ R and GW values auto-populated from Open-Meteo live data
+               </p>
+             )}
           </div>
         </div>
       </div>

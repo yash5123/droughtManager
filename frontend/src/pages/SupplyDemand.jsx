@@ -1,24 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { MapPin } from 'lucide-react';
+import { MapPin, Loader2, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 import { villages } from '../utils/villageData';
+import { getSupplyDemandAnalysis } from '../services/weatherService';
 
 export default function SupplyDemand() {
-  const data = villages.map((v, i) => {
-    let demand = 10000 + i * 2000;
-    let supply = 8000 + (i % 2 === 0 ? 1000 : -2000);
-    return {
-      ...v,
-      demand,
-      supply
-    };
-  });
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const analysis = await getSupplyDemandAnalysis();
+        setData(analysis);
+        setIsLive(true);
+      } catch (error) {
+        console.error('Failed to fetch supply/demand data:', error);
+        setData(villages.map((v, i) => {
+          let demand = 10000 + i * 2000;
+          let supply = 8000 + (i % 2 === 0 ? 1000 : -2000);
+          return { ...v, demand, supply, deficit: Math.max(0, demand - supply), status: supply >= demand ? 'Sufficient' : 'Shortage' };
+        }));
+        setIsLive(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <header>
-        <h2 className="text-2xl font-bold text-slate-800">Water Demand vs Supply</h2>
-        <p className="text-slate-500 text-sm mt-1">Cross-reference available resources with population demand per village.</p>
+        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <AlertTriangle className="text-amber-500" />
+          Water Demand vs Supply
+        </h2>
+        <div className="flex items-center gap-3 mt-1">
+          <p className="text-slate-500 text-sm">Supply estimates derived from real rainfall data (30-day Open-Meteo).</p>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+            {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
+            {isLive ? 'Live Data' : 'Offline'}
+          </span>
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -36,10 +63,14 @@ export default function SupplyDemand() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 13}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dx={-10} />
-                <Tooltip cursor={{fill: '#f8fafc', opacity: 0.4}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                <Tooltip 
+                  cursor={{fill: '#f8fafc', opacity: 0.4}} 
+                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} 
+                  formatter={(value) => [`${value.toLocaleString()} L`, undefined]}
+                />
                 <Legend wrapperStyle={{paddingTop: '30px'}} iconType="circle" />
                 <Bar dataKey="demand" name="Population Demand" fill="url(#colorDemand)" radius={[8, 8, 0, 0]} maxBarSize={60} />
-                <Line type="monotone" name="Current Supply" dataKey="supply" stroke="#f59e0b" strokeWidth={4} activeDot={{r: 8, stroke: '#fff', strokeWidth: 2}} dot={{r: 5, fill: '#fff', strokeWidth: 2}} />
+                <Line type="monotone" name="Estimated Supply" dataKey="supply" stroke="#f59e0b" strokeWidth={4} activeDot={{r: 8, stroke: '#fff', strokeWidth: 2}} dot={{r: 5, fill: '#fff', strokeWidth: 2}} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -52,11 +83,16 @@ export default function SupplyDemand() {
            <div className="space-y-4">
              {data.map(v => (
                <div key={v.id} className="bg-white/60 p-3 rounded-lg border border-white/50 shadow-sm flex justify-between items-center text-sm">
-                 <span className="font-medium text-slate-700">{v.name}</span>
+                 <div>
+                   <span className="font-medium text-slate-700">{v.name}</span>
+                   {v.rainfallContext !== undefined && (
+                     <p className="text-[10px] text-slate-400 mt-0.5">{Math.round(v.rainfallContext)} mm rain (30d)</p>
+                   )}
+                 </div>
                  {v.supply >= v.demand ? (
                     <span className="text-green-600 font-semibold text-xs bg-green-50 px-2 py-1 rounded-full">Surplus</span>
                  ) : (
-                    <span className="text-red-600 font-semibold text-xs bg-red-50 px-2 py-1 rounded-full">Deficit {-1 * (v.supply - v.demand)} L</span>
+                    <span className="text-red-600 font-semibold text-xs bg-red-50 px-2 py-1 rounded-full">Deficit {Math.round(v.deficit).toLocaleString()} L</span>
                  )}
                </div>
              ))}
@@ -79,12 +115,18 @@ export default function SupplyDemand() {
               <div className="mt-2 text-sm space-y-2 text-slate-600">
                  <div className="flex justify-between items-center border-b border-slate-50 pb-1">
                     <span>Demand</span>
-                    <span className="font-semibold">{region.demand} L</span>
+                    <span className="font-semibold">{region.demand?.toLocaleString()} L</span>
                  </div>
                  <div className="flex justify-between items-center border-b border-slate-50 pb-1">
                     <span>Supply</span>
-                    <span className="font-semibold">{region.supply} L</span>
+                    <span className="font-semibold">{region.supply?.toLocaleString()} L</span>
                  </div>
+                 {region.population && (
+                   <div className="flex justify-between items-center border-b border-slate-50 pb-1">
+                      <span>Population</span>
+                      <span className="font-semibold">{region.population?.toLocaleString()}</span>
+                   </div>
+                 )}
                  <div className="flex justify-between items-center">
                     <span>Status</span>
                     {region.supply >= region.demand ? (
