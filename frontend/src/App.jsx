@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Droplet, CloudRain, Truck, AlertTriangle, ShieldAlert, Activity, TrendingUp, Home, LogOut, MapPin, Menu, X, Bell } from 'lucide-react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 
 import Dashboard from './pages/Dashboard';
 import RainfallAnalysis from './pages/RainfallAnalysis';
@@ -15,10 +14,6 @@ import FuturePrediction from './pages/FuturePrediction';
 import MapOverview from './pages/MapOverview';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
-export function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
 
 function Sidebar({ isOpen, setIsOpen, notifications, unreadCount, markAsRead, isNotifOpen, setIsNotifOpen }) {
   const location = useLocation();
