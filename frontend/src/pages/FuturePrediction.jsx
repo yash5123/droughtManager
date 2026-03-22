@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp, AlertCircle, MapPin, Loader2, Wifi, WifiOff, CloudRain } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { getAllVillagesForecast } from '../services/weatherService';
+import { ForecastInfo } from '../components/ui/DataSourceInfo';
 
 export default function FuturePrediction() {
   const [isGenerating, setIsGenerating] = useState({});
@@ -85,6 +86,7 @@ export default function FuturePrediction() {
           </span>
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
         </div>
+        <ForecastInfo days={16} lastUpdated={isLive ? new Date() : null} />
       </header>
 
       <div className="space-y-8 pb-8">

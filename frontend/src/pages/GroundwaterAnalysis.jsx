@@ -3,6 +3,7 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveCo
 import { Loader2, Wifi, WifiOff, Droplet } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { getAllVillagesSoilMoisture } from '../services/weatherService';
+import DataSourceInfo from '../components/ui/DataSourceInfo';
 
 export default function GroundwaterAnalysis() {
   const [data, setData] = useState([]);
@@ -49,6 +50,7 @@ export default function GroundwaterAnalysis() {
             {isLive ? 'Live Data' : 'Offline'}
           </span>
         </div>
+        <DataSourceInfo period={14} periodLabel="14-day soil moisture" lastUpdated={isLive ? new Date() : null} />
       </header>
 
       <div className="glass-card p-6 animate-slide-up">

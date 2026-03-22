@@ -3,6 +3,7 @@ import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 import { MapPin, Loader2, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { getSupplyDemandAnalysis } from '../services/weatherService';
+import DataSourceInfo from '../components/ui/DataSourceInfo';
 
 export default function SupplyDemand() {
   const [data, setData] = useState([]);
@@ -46,6 +47,7 @@ export default function SupplyDemand() {
           </span>
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
         </div>
+        <DataSourceInfo period={30} periodLabel="30-day supply model" lastUpdated={isLive ? new Date() : null} />
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Droplet, AlertTriangle, Truck, CloudRain, Download, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { exportToCSV } from '../utils/exportUtils';
 import { getDashboardSummary, getAllVillagesRainfall, getAllVillagesSoilMoisture } from '../services/weatherService';
+import DataSourceInfo from '../components/ui/DataSourceInfo';
 
 import { villages } from '../utils/villageData';
 
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const [groundwaterChart, setGroundwaterChart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     async function fetchLiveData() {
@@ -57,6 +59,7 @@ export default function Dashboard() {
         setGroundwaterChart(gwData);
 
         setIsLive(true);
+        setLastUpdated(new Date());
       } catch (error) {
         console.error('Failed to fetch live weather data:', error);
         const fallback = villages.map((v, i) => ({
@@ -99,6 +102,7 @@ export default function Dashboard() {
               {isLive ? 'Live Data' : 'Offline'}
             </span>
           </div>
+          <DataSourceInfo period={30} periodLabel="30 days" lastUpdated={lastUpdated} />
         </div>
         <button 
           onClick={handleExport}

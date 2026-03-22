@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Activity, Calculator, CheckCircle2, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { calculateDroughtRisk } from '../services/weatherService';
+import DataSourceInfo from '../components/ui/DataSourceInfo';
 
 export default function RiskCalculation() {
   const [rainfallDeficit, setRainfallDeficit] = useState(60);
@@ -74,6 +75,7 @@ export default function RiskCalculation() {
           </span>
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
         </div>
+        <DataSourceInfo period={90} periodLabel="90-day risk analysis" lastUpdated={isLive ? new Date() : null} />
       </header>
 
       {/* Village quick-select */}

@@ -3,6 +3,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { MapPin, Loader2, Wifi, WifiOff, ShieldAlert } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { calculateDroughtRisk } from '../services/weatherService';
+import DataSourceInfo from '../components/ui/DataSourceInfo';
 
 export default function RiskClassification() {
   const [regions, setRegions] = useState([]);
@@ -52,6 +53,7 @@ export default function RiskClassification() {
           </span>
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
         </div>
+        <DataSourceInfo period={90} periodLabel="90-day analysis" lastUpdated={isLive ? new Date() : null} />
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-slide-up">

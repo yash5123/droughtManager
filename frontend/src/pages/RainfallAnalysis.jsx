@@ -3,6 +3,7 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveCo
 import { Loader2, Wifi, WifiOff, CloudRain } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { getAllVillagesRainfall } from '../services/weatherService';
+import DataSourceInfo from '../components/ui/DataSourceInfo';
 
 export default function RainfallAnalysis() {
   const [data, setData] = useState([]);
@@ -70,6 +71,7 @@ export default function RainfallAnalysis() {
             ))}
           </div>
         </div>
+        <DataSourceInfo period={period} periodLabel={`${period} days`} lastUpdated={isLive ? new Date() : null} />
       </header>
 
       <div className="glass-card p-6 animate-slide-up">
