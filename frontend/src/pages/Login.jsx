@@ -255,7 +255,7 @@ export default function Login() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-slate-900 text-slate-100 font-inter">
       {/* Left Content Section */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 text-blue-50 overflow-hidden bg-slate-950">
+      <div className="relative hidden lg:flex flex-col min-h-screen p-12 text-blue-50 overflow-hidden bg-slate-950">
         
         {/* Glow Effects corresponding to existing design */}
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent z-0" />
@@ -270,7 +270,7 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="relative z-20 flex items-end justify-center h-[500px]">
+        <div className="relative z-20 flex flex-1 items-center justify-center min-h-0 py-6">
           {/* Cartoon Characters */}
           <div className="relative" style={{ width: '550px', height: '400px' }}>
             {/* Purple tall rectangle */}
@@ -400,15 +400,6 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="relative z-20 flex flex-col items-start text-left gap-4 w-full">
-          <div className="flex flex-col items-start gap-3">
-             <h2 className="text-xl font-medium tracking-tight">AqvaSense Logistics</h2>
-             <p className="text-blue-200/60 text-sm max-w-[320px] leading-relaxed">
-               Intelligent drought management and resource allocation grid for Maharashtra administrators.
-             </p>
-          </div>
-        </div>
-
         {/* Decorative elements */}
         <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.15]" />
       </div>
@@ -425,17 +416,19 @@ export default function Login() {
             <span className="text-xl font-semibold tracking-wide text-white">AqvaSense</span>
           </div>
 
-          <div className="text-center mb-10 lg:mb-12">
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-3 lg:mb-10">Welcome back!</h1>
-            <p className="text-blue-400 text-sm font-medium mb-3 lg:hidden">AqvaSense Logistics</p>
-            <p className="text-slate-500 text-xs max-w-[300px] mx-auto leading-relaxed lg:hidden">Intelligent drought management and resource allocation grid for Maharashtra administrators.</p>
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-4">Welcome back!</h1>
+            <h2 className="text-lg font-medium tracking-tight text-white mb-3">AqvaSense Logistics</h2>
+            <p className="text-slate-400 text-sm max-w-[340px] mx-auto leading-relaxed">
+              Intelligent drought management and resource allocation grid for Maharashtra administrators.
+            </p>
           </div>
 
-          <div className="relative w-full" style={{ minHeight: '56px' }}>
+          <div className="flex w-full flex-col gap-8">
             {error && (
-              <div className="absolute bottom-[64px] left-0 right-0 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] shrink-0" />
-                {error}
+              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl flex items-start gap-3 text-left">
+                <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] shrink-0" />
+                <span>{error}</span>
               </div>
             )}
             <button
