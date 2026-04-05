@@ -252,16 +252,6 @@ export default function Login() {
     onError: () => setError('Google Sign-In failed. Please try again.'),
   });
 
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7856/ingest/606bcbcf-d7ac-4f98-83a8-0a7a9bc92d52',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f6f117'},body:JSON.stringify({sessionId:'f6f117',runId:'pre-fix',hypothesisId:'H4',location:'Login.jsx:useEffect-mount',message:'Login committed mount',data:{ok:true},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-  }, []);
-
-  // #region agent log
-  fetch('http://127.0.0.1:7856/ingest/606bcbcf-d7ac-4f98-83a8-0a7a9bc92d52',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f6f117'},body:JSON.stringify({sessionId:'f6f117',runId:'pre-fix',hypothesisId:'H1',location:'Login.jsx:before-return',message:'binding check before JSX',data:{typeofIsTyping:typeof isTyping,typeofPassword:typeof password,typeofShowPassword:typeof showPassword,typeofIsPurplePeeking:typeof isPurplePeeking},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-slate-900 text-slate-100 font-inter">
       {/* Left Content Section */}
@@ -410,10 +400,10 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="relative z-20 flex flex-col items-end text-right gap-4 w-full">
-          <div className="flex flex-col items-end gap-1">
+        <div className="relative z-20 flex flex-col items-start text-left gap-4 w-full">
+          <div className="flex flex-col items-start gap-3">
              <h2 className="text-xl font-medium tracking-tight">AqvaSense Logistics</h2>
-             <p className="text-blue-200/60 text-sm max-w-[320px]">
+             <p className="text-blue-200/60 text-sm max-w-[320px] leading-relaxed">
                Intelligent drought management and resource allocation grid for Maharashtra administrators.
              </p>
           </div>
@@ -435,10 +425,10 @@ export default function Login() {
             <span className="text-xl font-semibold tracking-wide text-white">AqvaSense</span>
           </div>
 
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">Welcome back!</h1>
-            <p className="text-blue-400 text-sm font-medium mb-2">AqvaSense Logistics</p>
-            <p className="text-slate-500 text-xs max-w-[300px] mx-auto">Intelligent drought management and resource allocation grid for Maharashtra administrators.</p>
+          <div className="text-center mb-10 lg:mb-12">
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-3 lg:mb-10">Welcome back!</h1>
+            <p className="text-blue-400 text-sm font-medium mb-3 lg:hidden">AqvaSense Logistics</p>
+            <p className="text-slate-500 text-xs max-w-[300px] mx-auto leading-relaxed lg:hidden">Intelligent drought management and resource allocation grid for Maharashtra administrators.</p>
           </div>
 
           <div className="relative w-full" style={{ minHeight: '56px' }}>
@@ -451,9 +441,9 @@ export default function Login() {
             <button
               onClick={() => googleLogin()}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 h-14 rounded-xl border border-slate-600 bg-slate-800/60 hover:bg-slate-700/80 text-slate-100 text-base font-medium transition-all duration-200 hover:border-slate-500 active:scale-[0.98] disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-5 h-14 rounded-xl border border-slate-600 bg-slate-800/60 hover:bg-slate-700/80 text-slate-100 text-base font-medium transition-all duration-200 hover:border-slate-500 active:scale-[0.98] disabled:opacity-60 px-2"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="shrink-0" width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
