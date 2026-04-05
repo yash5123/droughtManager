@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Checkbox } from "../components/ui/checkbox";
-import { Eye, EyeOff, Mail, Sparkles, Droplet } from "lucide-react";
-import { cn } from "../lib/utils";
+import { Droplet } from "lucide-react";
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -474,12 +469,9 @@ export default function Login() {
           </div>
 
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">
-               {isRegister ? 'Create an account' : 'Welcome back!'}
-            </h1>
-            <p className="text-slate-400 text-sm">
-               {isRegister ? 'Register your credentials to access the analytics grid.' : 'Please enter your details to authenticate'}
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">Welcome back!</h1>
+            <p className="text-blue-400 text-sm font-medium mb-2">AqvaSense Logistics</p>
+            <p className="text-slate-500 text-xs max-w-[300px] mx-auto">Intelligent drought management and resource allocation grid for Maharashtra administrators.</p>
           </div>
 
           {error && (
@@ -489,123 +481,16 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {isRegister && (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-slate-300">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Rahul Desai"
-                  value={name}
-                  autoComplete="off"
-                  onChange={(e) => setName(e.target.value)}
-                  onFocus={() => setIsTyping(true)}
-                  onBlur={() => setIsTyping(false)}
-                  required
-                  className="h-12 bg-slate-950 border-slate-700 focus:border-blue-500 text-slate-100 placeholder:text-slate-600"
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-300">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="administrator@maharashtra.gov.in"
-                value={email}
-                autoComplete="off"
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setIsTyping(true)}
-                onBlur={() => setIsTyping(false)}
-                required
-                className="h-12 bg-slate-950 border-slate-700 focus:border-blue-500 text-slate-100 placeholder:text-slate-600"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                 <Label htmlFor="password" className="text-sm font-medium text-slate-300">Password</Label>
-                 {!isRegister && (
-                    <a href="#" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                      Forgot password?
-                    </a>
-                 )}
-              </div>
-              
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-12 pr-10 bg-slate-950 border-slate-700 focus:border-blue-500 text-slate-100 placeholder:text-slate-600"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-5" />
-                  ) : (
-                    <Eye className="size-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {!isRegister && (
-               <div className="flex items-center space-x-2 pt-1 pb-1">
-                 <Checkbox id="remember" className="border-slate-600 data-[state=checked]:bg-blue-600" />
-                 <Label
-                   htmlFor="remember"
-                   className="text-sm font-normal text-slate-400 cursor-pointer"
-                 >
-                   Remember for 30 days
-                 </Label>
-               </div>
-            )}
-
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base font-medium mt-2 bg-blue-600 hover:bg-blue-700 text-white" 
-              size="lg" 
-              disabled={isLoading}
-            >
-              {isLoading ? "Authenticating..." : (isRegister ? "Register Account" : "Log in")}
-            </Button>
-          </form>
-
-          <div className="mt-8 mb-8 flex items-center justify-between opacity-60">
-            <span className="w-full border-b border-slate-700"></span>
-            <span className="px-4 text-[11px] font-medium tracking-widest text-slate-500 uppercase">Or</span>
-            <span className="w-full border-b border-slate-700"></span>
-          </div>
-
-          <div className="flex justify-center w-full [&>div]:w-full [&_iframe]:w-full [&_iframe]:!max-w-none">
-             <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google Sign-In failed')}
-                useOneTap
-                theme="filled_black"
-                shape="rectangular"
-                size="large"
-                text={isRegister ? "signup_with" : "signin_with"}
-             />
-          </div>
-
-          <div className="text-center text-sm text-slate-400 mt-8">
-            {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button 
-              onClick={() => setIsRegister(!isRegister)} 
-              className="text-blue-400 font-medium hover:text-blue-300 hover:underline"
-            >
-              {isRegister ? "Sign In" : "Sign Up"}
-            </button>
+          <div className="flex justify-center w-full" style={{ minHeight: '44px' }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Google Sign-In failed')}
+              theme="filled_black"
+              shape="rectangular"
+              size="large"
+              width="420"
+              text="signin_with"
+            />
           </div>
         </div>
       </div>
