@@ -153,9 +153,8 @@ export default function Login() {
   const [mouseY, setMouseY] = useState(0);
   const [isPurpleBlinking, setIsPurpleBlinking] = useState(false);
   const [isBlackBlinking, setIsBlackBlinking] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const [isLookingAtEachOther, setIsLookingAtEachOther] = useState(false);
-  const [isPurplePeeking, setIsPurplePeeking] = useState(false);
+
   const purpleRef = useRef(null);
   const blackRef = useRef(null);
   const yellowRef = useRef(null);
@@ -209,36 +208,7 @@ export default function Login() {
     return () => clearTimeout(timeout);
   }, []);
 
-  useEffect(() => {
-    if (isTyping) {
-      setIsLookingAtEachOther(true);
-      const timer = setTimeout(() => {
-        setIsLookingAtEachOther(false);
-      }, 800);
-      return () => clearTimeout(timer);
-    } else {
-      setIsLookingAtEachOther(false);
-    }
-  }, [isTyping]);
 
-  useEffect(() => {
-    if (password.length > 0 && showPassword) {
-      const schedulePeek = () => {
-        const peekInterval = setTimeout(() => {
-          setIsPurplePeeking(true);
-          setTimeout(() => {
-            setIsPurplePeeking(false);
-          }, 800);
-        }, Math.random() * 3000 + 2000);
-        return peekInterval;
-      };
-
-      const firstPeek = schedulePeek();
-      return () => clearTimeout(firstPeek);
-    } else {
-      setIsPurplePeeking(false);
-    }
-  }, [password, showPassword, isPurplePeeking]);
 
   const calculatePosition = (ref) => {
     if (!ref.current) return { faceX: 0, faceY: 0, bodySkew: 0 };
