@@ -35,8 +35,10 @@ export default function SupplyDemand() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <header>
-        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <AlertTriangle className="text-amber-500" />
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+            <AlertTriangle size={24} />
+          </div>
           Water Demand vs Supply
         </h2>
         <div className="flex items-center gap-3 mt-1">

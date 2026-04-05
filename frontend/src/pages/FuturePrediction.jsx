@@ -74,8 +74,10 @@ export default function FuturePrediction() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <header>
-        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <TrendingUp className="text-purple-500" />
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center text-white shadow-lg shadow-fuchsia-500/20">
+            <TrendingUp size={24} />
+          </div>
           Future Drought Prediction
         </h2>
         <div className="flex items-center gap-3 mt-1">

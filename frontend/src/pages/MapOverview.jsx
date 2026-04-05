@@ -82,8 +82,10 @@ export default function MapOverview() {
       <header className="shrink-0 bg-white/50 backdrop-blur-md p-6 rounded-2xl border border-slate-200/60 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <MapPin className="text-blue-600" />
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <MapPin size={24} />
+              </div>
               Geospatial Overview
             </h2>
             <div className="flex items-center gap-3 mt-1">

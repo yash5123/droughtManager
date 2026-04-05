@@ -63,8 +63,10 @@ export default function RiskCalculation() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <header>
-        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <Calculator className="text-blue-600" />
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <Calculator size={24} />
+          </div>
           Drought Risk Calculator
         </h2>
         <div className="flex items-center gap-3 mt-1">
