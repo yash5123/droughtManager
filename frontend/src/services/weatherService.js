@@ -31,14 +31,27 @@ function setCache(key, data) {
   cache.set(key, { data, timestamp: Date.now() });
 }
 
+let requestQueue = Promise.resolve();
+
 async function fetchWithCache(url) {
   const key = getCacheKey(url);
   const cached = getFromCache(key);
   if (cached) return cached;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Open-Meteo API error: ${res.status}`);
-  const data = await res.json();
+  const data = await new Promise((resolve, reject) => {
+    requestQueue = requestQueue.then(async () => {
+      try {
+        await new Promise(r => setTimeout(r, 200)); // 200ms delay to spread load
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Open-Meteo API error: ${res.status}`);
+        const json = await res.json();
+        resolve(json);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+
   setCache(key, data);
   return data;
 }

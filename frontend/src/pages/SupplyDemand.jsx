@@ -54,7 +54,7 @@ export default function SupplyDemand() {
         <div className="glass-card p-6 animate-slide-up lg:col-span-2">
           <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Resource Allocation Analysis (Liters/day)</h3>
           <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                 <defs>
                   <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">

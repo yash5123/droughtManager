@@ -14,6 +14,7 @@ import FuturePrediction from './pages/FuturePrediction';
 import MapOverview from './pages/MapOverview';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './components/ui/Toast';
 
 function Sidebar({ isOpen, setIsOpen, notifications, unreadCount, markAsRead, isNotifOpen, setIsNotifOpen }) {
   const location = useLocation();
@@ -278,7 +279,9 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppContent />
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

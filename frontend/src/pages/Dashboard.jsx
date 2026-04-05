@@ -129,7 +129,7 @@ export default function Dashboard() {
             {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
           </h3>
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <AreaChart data={rainfallChart}>
                 <defs>
                   <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
