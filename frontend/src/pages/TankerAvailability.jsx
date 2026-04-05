@@ -14,6 +14,7 @@ export default function TankerAvailability() {
   const [dispatchLiters, setDispatchLiters] = useState(2000);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const toast = useToast();
 
   const fetchTankers = async () => {
@@ -22,6 +23,7 @@ export default function TankerAvailability() {
       setTankers(res.data.data);
     } catch (err) {
       console.error(err);
+      setError('Failed to load active tankers');
       toast.error('Failed to load active tankers');
     } finally {
       setIsLoading(false);
@@ -51,7 +53,9 @@ export default function TankerAvailability() {
       setDispatchLiters(2000);
       fetchTankers();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to dispatch tanker');
+      const errMsg = err.response?.data?.error || 'Failed to dispatch tanker';
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
