@@ -155,6 +155,11 @@ export default function Login() {
   const [isBlackBlinking, setIsBlackBlinking] = useState(false);
   const [isLookingAtEachOther, setIsLookingAtEachOther] = useState(false);
 
+  const password = "";
+  const showPassword = false;
+  const isTyping = false;
+  const isPurplePeeking = false;
+
   const purpleRef = useRef(null);
   const blackRef = useRef(null);
   const yellowRef = useRef(null);
@@ -246,6 +251,16 @@ export default function Login() {
     },
     onError: () => setError('Google Sign-In failed. Please try again.'),
   });
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7856/ingest/606bcbcf-d7ac-4f98-83a8-0a7a9bc92d52',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f6f117'},body:JSON.stringify({sessionId:'f6f117',runId:'pre-fix',hypothesisId:'H4',location:'Login.jsx:useEffect-mount',message:'Login committed mount',data:{ok:true},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+  }, []);
+
+  // #region agent log
+  fetch('http://127.0.0.1:7856/ingest/606bcbcf-d7ac-4f98-83a8-0a7a9bc92d52',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f6f117'},body:JSON.stringify({sessionId:'f6f117',runId:'pre-fix',hypothesisId:'H1',location:'Login.jsx:before-return',message:'binding check before JSX',data:{typeofIsTyping:typeof isTyping,typeofPassword:typeof password,typeofShowPassword:typeof showPassword,typeofIsPurplePeeking:typeof isPurplePeeking},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-slate-900 text-slate-100 font-inter">
