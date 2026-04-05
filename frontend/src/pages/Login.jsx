@@ -448,18 +448,12 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="relative z-20 flex flex-col gap-4">
-          <div className="flex flex-col items-start gap-1">
+        <div className="relative z-20 flex flex-col items-end text-right gap-4 w-full">
+          <div className="flex flex-col items-end gap-1">
              <h2 className="text-xl font-medium tracking-tight">AqvaSense Logistics</h2>
              <p className="text-blue-200/60 text-sm max-w-[320px]">
                Intelligent drought management and resource allocation grid for Maharashtra administrators.
              </p>
-          </div>
-          
-          <div className="flex items-center gap-8 text-xs text-blue-200/40">
-            <span className="hover:text-blue-100 transition-colors cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-blue-100 transition-colors cursor-pointer">Terms of Service</span>
-            <span className="hover:text-blue-100 transition-colors cursor-pointer">Contact</span>
           </div>
         </div>
 
