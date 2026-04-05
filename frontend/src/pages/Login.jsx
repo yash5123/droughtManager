@@ -474,14 +474,13 @@ export default function Login() {
             <p className="text-slate-500 text-xs max-w-[300px] mx-auto">Intelligent drought management and resource allocation grid for Maharashtra administrators.</p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] shrink-0" />
-              {error}
-            </div>
-          )}
-
-          <div className="flex justify-center w-full" style={{ minHeight: '44px' }}>
+          <div className="relative flex justify-center w-full" style={{ minHeight: '44px' }}>
+            {error && (
+              <div className="absolute bottom-[52px] left-0 right-0 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] shrink-0" />
+                {error}
+              </div>
+            )}
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => setError('Google Sign-In failed')}
