@@ -11,4 +11,6 @@ const droughtRiskSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+droughtRiskSchema.index({ village: 1, date: -1 });
+
 export default mongoose.model('DroughtRisk', droughtRiskSchema);

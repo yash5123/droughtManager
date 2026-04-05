@@ -6,4 +6,6 @@ const rainfallSchema = new mongoose.Schema({
   amountMm: { type: Number, required: true },
 }, { timestamps: true });
 
+rainfallSchema.index({ village: 1, date: -1 });
+
 export default mongoose.model('Rainfall', rainfallSchema);

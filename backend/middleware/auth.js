@@ -8,7 +8,7 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ error: 'No authentication token, access denied' });
     }
 
-    const verified = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
     if (!verified) {
       return res.status(401).json({ error: 'Token verification failed, authorization denied' });
     }
@@ -16,7 +16,7 @@ const authMiddleware = (req, res, next) => {
     req.user = verified.id;
     next();
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
 

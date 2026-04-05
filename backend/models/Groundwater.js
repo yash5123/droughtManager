@@ -6,4 +6,6 @@ const groundwaterSchema = new mongoose.Schema({
   levelMeters: { type: Number, required: true }, // depth of water table
 }, { timestamps: true });
 
+groundwaterSchema.index({ village: 1, date: -1 });
+
 export default mongoose.model('Groundwater', groundwaterSchema);

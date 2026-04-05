@@ -1,24 +1,45 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
 import { OAuth2Client } from 'google-auth-library';
+import rateLimit from 'express-rate-limit';
 import User from '../models/User.js';
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs for auth routes
+  message: { error: 'Too many authentication attempts from this IP, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
+
+// Validation error handler
+const handleValidation = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  return null;
 };
 
 // Register via Email/Password
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, [
+  body('name').trim().isLength({ min: 3, max: 50 }).withMessage('Name must be between 3 and 50 characters'),
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+], async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const validationError = handleValidation(req, res);
+    if (validationError) return;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Please enter all fields' });
-    }
+    const { name, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -36,13 +57,15 @@ router.post('/register', async (req, res) => {
 });
 
 // Login via Email/Password
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, [
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
+  body('password').notEmpty().withMessage('Password is required'),
+], async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const validationError = handleValidation(req, res);
+    if (validationError) return;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Please enter all fields' });
-    }
+    const { email, password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -62,7 +85,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Google OAuth Login / Registration
-router.post('/google', async (req, res) => {
+router.post('/google', authLimiter, async (req, res) => {
   try {
     const { idToken } = req.body;
     
