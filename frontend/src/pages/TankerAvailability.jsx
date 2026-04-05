@@ -143,7 +143,7 @@ export default function TankerAvailability() {
             <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Volume Allocation per Village (Liters)</h3>
             <div className="h-[300px]">
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <defs>
                       <linearGradient id="colorTanker" x1="0" y1="0" x2="0" y2="1">

@@ -163,7 +163,7 @@ export default function RiskCalculation() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110"></div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2 font-outfit border-b border-slate-100 pb-3">Weight Distribution</h3>
               <div className="flex-1 min-h-[200px] relative mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <PieChart>
                       <Pie
                         data={data}

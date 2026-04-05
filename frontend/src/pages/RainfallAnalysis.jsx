@@ -80,7 +80,7 @@ export default function RainfallAnalysis() {
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
         </h3>
         <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <defs>
                 <linearGradient id="colorRainNormal" x1="0" y1="0" x2="0" y2="1">

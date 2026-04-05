@@ -60,7 +60,7 @@ export default function GroundwaterAnalysis() {
          </h3>
          <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-6">Note: Higher depth = Lower water availability</p>
          <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <defs>
                 <linearGradient id="colorDepthWarning" x1="0" y1="0" x2="0" y2="1">
