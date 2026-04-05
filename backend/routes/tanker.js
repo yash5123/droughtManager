@@ -49,7 +49,7 @@ router.patch('/:id', [
 
 // Create new tanker assignment
 router.post('/', [
-  body('village').isMongoId().withMessage('Village must be a valid MongoDB ObjectId'),
+  body('village').isString().notEmpty().withMessage('Village name is required'),
   body('capacityLiters').isFloat({ gt: 0 }).withMessage('Capacity must be a positive number'),
   body('dispatchDate').isISO8601().toDate().withMessage('Dispatch date must be a valid date'),
 ], async (req, res) => {

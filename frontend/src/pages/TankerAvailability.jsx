@@ -81,9 +81,16 @@ export default function TankerAvailability() {
   if (isLoading) {
     return (
       <div className="space-y-6 animate-in fade-in duration-500">
-        <header className="page-header">
-          <h1>Water Tanker Logistics</h1>
-          <p>Manage emergency water distribution directly mapped to target villages.</p>
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg shadow-blue-500/20">
+                <Truck size={24} />
+              </div>
+              <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Water Tanker Logistics</h2>
+            </div>
+            <p className="text-slate-500 text-sm mt-2 ml-[3.25rem] font-medium">Manage emergency water distribution directly mapped to target villages.</p>
+          </div>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <SkeletonCard />
@@ -97,9 +104,16 @@ export default function TankerAvailability() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <header className="page-header">
-        <h1>Water Tanker Logistics</h1>
-        <p>Manage emergency water distribution directly mapped to target villages.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg shadow-blue-500/20">
+              <Truck size={24} />
+            </div>
+            <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Water Tanker Logistics</h2>
+          </div>
+          <p className="text-slate-500 text-sm mt-2 ml-[3.25rem] font-medium">Manage emergency water distribution directly mapped to target villages.</p>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -141,9 +155,9 @@ export default function TankerAvailability() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
          <div className="lg:col-span-2 glass-card p-6">
             <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Volume Allocation per Village (Liters)</h3>
-            <div className="h-[300px]">
+            <div className="h-[300px] w-full mt-4">
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                <ResponsiveContainer width="99%" height={300}>
                   <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <defs>
                       <linearGradient id="colorTanker" x1="0" y1="0" x2="0" y2="1">

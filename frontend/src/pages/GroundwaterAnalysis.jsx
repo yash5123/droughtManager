@@ -38,19 +38,25 @@ export default function GroundwaterAnalysis() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <header>
-        <div className="flex items-center gap-2">
-          <Droplet className="text-cyan-500" />
-          <h2 className="text-2xl font-bold text-slate-800">Groundwater Level Monitoring</h2>
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-cyan-400 to-blue-500 text-white rounded-xl shadow-lg shadow-cyan-500/20">
+              <Droplet size={24} />
+            </div>
+            <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Groundwater Level Monitoring</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 mt-2 ml-[3.25rem]">
+            <p className="text-slate-500 text-sm font-medium">Estimated aquifer depth using Open-Meteo soil moisture data.</p>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+              {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
+              {isLive ? 'LIVE DATA' : 'OFFLINE'}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-3 mt-1">
-          <p className="text-slate-500 text-sm">Estimated aquifer depth using Open-Meteo soil moisture data.</p>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-            {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
-            {isLive ? 'Live Data' : 'Offline'}
-          </span>
+        <div className="pb-1 hidden sm:block">
+          <DataSourceInfo period={14} periodLabel="14-day soil moisture" lastUpdated={isLive ? new Date() : null} />
         </div>
-        <DataSourceInfo period={14} periodLabel="14-day soil moisture" lastUpdated={isLive ? new Date() : null} />
       </header>
 
       <div className="glass-card p-6 animate-slide-up">
@@ -59,8 +65,8 @@ export default function GroundwaterAnalysis() {
            {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
          </h3>
          <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-6">Note: Higher depth = Lower water availability</p>
-         <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+         <div className="h-[400px] w-full mt-4">
+          <ResponsiveContainer width="99%" height={400}>
             <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <defs>
                 <linearGradient id="colorDepthWarning" x1="0" y1="0" x2="0" y2="1">
