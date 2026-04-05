@@ -6,6 +6,7 @@ import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
 import SkeletonCard from '../components/ui/SkeletonCard';
 import SkeletonChart from '../components/ui/SkeletonChart';
+import BorderGlow from '../components/ui/BorderGlow';
 
 export default function TankerAvailability() {
   const [tankers, setTankers] = useState([]);
@@ -117,47 +118,54 @@ export default function TankerAvailability() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-orange-500/20">
-              <Truck size={26} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Active Fleet</p>
-              <h3 className="text-3xl font-extrabold text-slate-800">{tankers.filter(t => t.status !== 'Delivered').length}</h3>
-            </div>
-        </div>
+        <BorderGlow backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0}>
+          <div className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform h-full">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-orange-500/20">
+                <Truck size={26} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Active Fleet</p>
+                <h3 className="text-3xl font-extrabold text-slate-800">{tankers.filter(t => t.status !== 'Delivered').length}</h3>
+              </div>
+          </div>
+        </BorderGlow>
         
-        <div className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg shadow-cyan-500/20">
-              <Droplets size={26} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Total Volume</p>
-              <h3 className="text-3xl font-extrabold text-slate-800">
-                {Math.round(tankers.reduce((sum, t) => sum + (t.capacityLiters || 0), 0) / 1000)}k L
-              </h3>
-            </div>
-        </div>
+        <BorderGlow backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0}>
+          <div className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform h-full">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg shadow-cyan-500/20">
+                <Droplets size={26} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Total Volume</p>
+                <h3 className="text-3xl font-extrabold text-slate-800">
+                  {Math.round(tankers.reduce((sum, t) => sum + (t.capacityLiters || 0), 0) / 1000)}k L
+                </h3>
+              </div>
+          </div>
+        </BorderGlow>
 
-        <div className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform md:col-span-2 lg:col-span-1 border border-emerald-100">
-            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 text-white shadow-lg shadow-green-500/20">
-              <CheckCircle2 size={26} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Delivered</p>
-              <h3 className="text-3xl font-extrabold text-slate-800">
-                {tankers.filter(t => t.status === 'Delivered').length}
-              </h3>
-            </div>
-        </div>
+        <BorderGlow backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0} className="md:col-span-2 lg:col-span-1">
+          <div className="glass-card p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform h-full border border-emerald-100">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 text-white shadow-lg shadow-green-500/20">
+                <CheckCircle2 size={26} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-400 tracking-wider uppercase">Delivered</p>
+                <h3 className="text-3xl font-extrabold text-slate-800">
+                  {tankers.filter(t => t.status === 'Delivered').length}
+                </h3>
+              </div>
+          </div>
+        </BorderGlow>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-         <div className="lg:col-span-2 glass-card p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Volume Allocation per Village (Liters)</h3>
-            <div className="h-[300px] w-full mt-4">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="99%" height={300}>
+         <BorderGlow backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0} className="lg:col-span-2">
+           <div className="glass-card p-6 h-full">
+              <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Volume Allocation per Village (Liters)</h3>
+              <div className="h-[300px] w-full mt-4">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="99%" height={300}>
                   <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <defs>
                       <linearGradient id="colorTanker" x1="0" y1="0" x2="0" y2="1">
@@ -176,8 +184,10 @@ export default function TankerAvailability() {
                 <div className="flex items-center justify-center h-full text-slate-400">No tankers dispatched yet</div>
               )}
             </div>
-         </div>
-         <div className="lg:col-span-1 glass-card p-0 overflow-hidden flex flex-col">
+          </div>
+        </BorderGlow>
+         <BorderGlow backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0} className="lg:col-span-1">
+           <div className="glass-card p-0 overflow-hidden flex flex-col h-full">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50">
                <h3 className="text-lg font-semibold text-slate-800 mb-1 font-outfit">Dispatch Tanker</h3>
                <p className="text-xs text-slate-500 mb-4">Allocate emergency resources.</p>
@@ -202,10 +212,11 @@ export default function TankerAvailability() {
                       onChange={e => setDispatchLiters(Number(e.target.value))}
                       className="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
-                  </div>
-                  <button disabled={isSubmitting} type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 disabled:bg-blue-400 disabled:cursor-not-allowed">
-                    <Truck size={16} /> {isSubmitting ? 'Dispatching...' : 'Allocate Truck'}
-                  </button>
+                   </div>
+                   <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors flex justify-center mt-2">
+                     Dispatch
+                   </button>
+                    {error && <p className="text-red-500 text-xs mt-2 text-center">{error}</p>}
                </form>
             </div>
             <div className="p-6 flex-1 bg-white overflow-y-auto max-h-[300px]">
@@ -234,48 +245,51 @@ export default function TankerAvailability() {
               </div>
             </div>
          </div>
+         </BorderGlow>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
         {tankers.map((t) => (
-          <div key={t._id} className="glass-card overflow-hidden group">
-            <div className="w-full h-20 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden relative flex flex-col justify-end p-5">
-               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
-               <div className="relative z-20">
-                 <h4 className="text-white font-bold text-md drop-shadow-md">{t.village}</h4>
-               </div>
-            </div>
-            <div className="p-5">
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded tracking-wide">TNK-{t._id.slice(-4).toUpperCase()}</span>
-                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${
-                  t.status === 'Enroute' || t.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                  t.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
-                  'bg-slate-100 text-slate-700'
-                }`}>
-                  {t.status}
-                </span>
+          <BorderGlow key={t._id} backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0}>
+            <div className="glass-card overflow-hidden group h-full">
+              <div className="w-full h-20 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden relative flex flex-col justify-end p-5">
+                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
+                 <div className="relative z-20">
+                   <h4 className="text-white font-bold text-md drop-shadow-md">{t.village}</h4>
+                 </div>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
-                  <span className="text-slate-500 flex items-center gap-2"><Droplets size={16}/> Capacity</span>
-                  <span className="font-semibold text-slate-800">{t.capacityLiters} L</span>
+              <div className="p-5">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded tracking-wide">TNK-{t._id.slice(-4).toUpperCase()}</span>
+                  <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${
+                    t.status === 'Enroute' || t.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                    t.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
+                    {t.status}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500 flex items-center gap-2"><Clock size={16}/> Dispatched</span>
-                  <span className="font-semibold text-slate-800 text-xs">{new Date(t.dispatchDate).toLocaleDateString()}</span>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm border-b border-slate-50 pb-2">
+                    <span className="text-slate-500 flex items-center gap-2"><Droplets size={16}/> Capacity</span>
+                    <span className="font-semibold text-slate-800">{t.capacityLiters} L</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 flex items-center gap-2"><Clock size={16}/> Dispatched</span>
+                    <span className="font-semibold text-slate-800 text-xs">{new Date(t.dispatchDate).toLocaleDateString()}</span>
+                  </div>
+                  {(t.status === 'Enroute' || t.status === 'Pending') && (
+                    <button 
+                      onClick={(e) => handleMarkDelivered(t._id, e)} 
+                      className="w-full mt-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <CheckCircle2 size={16}/> Mark as Delivered
+                    </button>
+                  )}
                 </div>
-                {(t.status === 'Enroute' || t.status === 'Pending') && (
-                  <button 
-                    onClick={(e) => handleMarkDelivered(t._id, e)} 
-                    className="w-full mt-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <CheckCircle2 size={16}/> Mark as Delivered
-                  </button>
-                )}
               </div>
             </div>
-          </div>
+          </BorderGlow>
         ))}
       </div>
     </div>

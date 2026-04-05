@@ -4,6 +4,7 @@ import { MapPin, Loader2, Wifi, WifiOff, ShieldAlert } from 'lucide-react';
 import { villages } from '../utils/villageData';
 import { calculateDroughtRisk } from '../services/weatherService';
 import DataSourceInfo from '../components/ui/DataSourceInfo';
+import BorderGlow from '../components/ui/BorderGlow';
 
 export default function RiskClassification() {
   const [regions, setRegions] = useState([]);
@@ -87,50 +88,52 @@ export default function RiskClassification() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up mb-8" style={{ animationDelay: '100ms' }}>
         {regions.map((region) => (
-          <div key={region.id} className="glass-card p-5 group hover:shadow-lg transition-all border border-transparent hover:border-slate-300 flex flex-col sm:flex-row gap-4">
-             <div className="w-full sm:w-8 h-full rounded-lg bg-slate-50 border border-slate-100 flex-shrink-0 relative hidden sm:block">
-             </div>
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-semibold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">{region.name}</h4>
-                  <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/>{region.district} District</p>
-                </div>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm border ${
-                    region.level === 'Critical' ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200' :
-                    region.level === 'Moderate' ? 'bg-gradient-to-r from-amber-50 to-orange-100 text-amber-700 border-amber-200' :
-                    'bg-gradient-to-r from-emerald-50 to-green-100 text-emerald-700 border-emerald-200'
-                  }`}>
-                    {region.level}
-                </span>
-              </div>
-
-              {/* Show real data breakdown when available */}
-              {region.rainfallDeficit !== undefined && (
-                <div className="flex gap-2 my-2 flex-wrap">
-                  <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full border border-blue-100">
-                    Rain Deficit: {region.rainfallDeficit}%
-                  </span>
-                  <span className="text-[10px] bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-100">
-                    Moisture Depletion: {region.moistureDepletion}%
-                  </span>
-                  <span className="text-[10px] bg-slate-50 text-slate-600 font-semibold px-2 py-0.5 rounded-full border border-slate-200">
-                    90d Total: {Math.round(region.totalRainfall90d)} mm
+          <BorderGlow key={region.id} backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0}>
+            <div className="glass-card p-5 group hover:shadow-lg transition-all border border-transparent hover:border-slate-300 flex flex-col sm:flex-row gap-4 h-full">
+               <div className="w-full sm:w-8 h-full rounded-lg bg-slate-50 border border-slate-100 flex-shrink-0 relative hidden sm:block">
+               </div>
+              <div className="flex-1 flex flex-col justify-center">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-semibold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">{region.name}</h4>
+                    <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/>{region.district} District</p>
+                  </div>
+                  <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm border ${
+                      region.level === 'Critical' ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200' :
+                      region.level === 'Moderate' ? 'bg-gradient-to-r from-amber-50 to-orange-100 text-amber-700 border-amber-200' :
+                      'bg-gradient-to-r from-emerald-50 to-green-100 text-emerald-700 border-emerald-200'
+                    }`}>
+                      {region.level}
                   </span>
                 </div>
-              )}
 
-              <div className="mt-2">
-                 <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span>Risk Score</span>
-                    <span className="font-bold text-slate-700">{region.score}/100</span>
-                 </div>
-                 <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-700 ${region.score > 70 ? 'bg-red-500' : region.score > 40 ? 'bg-amber-500' : 'bg-green-500'}`} style={{width: `${region.score}%`}}></div>
-                 </div>
+                {/* Show real data breakdown when available */}
+                {region.rainfallDeficit !== undefined && (
+                  <div className="flex gap-2 my-2 flex-wrap">
+                    <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full border border-blue-100">
+                      Rain Deficit: {region.rainfallDeficit}%
+                    </span>
+                    <span className="text-[10px] bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-100">
+                      Moisture Depletion: {region.moistureDepletion}%
+                    </span>
+                    <span className="text-[10px] bg-slate-50 text-slate-600 font-semibold px-2 py-0.5 rounded-full border border-slate-200">
+                      90d Total: {Math.round(region.totalRainfall90d)} mm
+                    </span>
+                  </div>
+                )}
+
+                <div className="mt-2">
+                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                      <span>Risk Score</span>
+                      <span className="font-bold text-slate-700">{region.score}/100</span>
+                   </div>
+                   <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-700 ${region.score > 70 ? 'bg-red-500' : region.score > 40 ? 'bg-amber-500' : 'bg-green-500'}`} style={{width: `${region.score}%`}}></div>
+                   </div>
+                </div>
               </div>
             </div>
-          </div>
+          </BorderGlow>
         ))}
       </div>
 

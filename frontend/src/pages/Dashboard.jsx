@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
+import BorderGlow from '../components/ui/BorderGlow';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Droplet, AlertTriangle, Truck, CloudRain, Download, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { exportToCSV } from '../utils/exportUtils';
@@ -194,15 +195,17 @@ export default function Dashboard() {
 
 function StatCard({ title, value, icon: Icon, color, bg }) {
   return (
-    <div className="glass-card p-6 rounded-2xl flex items-center gap-4 transition-all hover:-translate-y-1.5 duration-300 relative overflow-hidden group">
-      <div className={`absolute -right-6 -top-6 w-24 h-24 ${bg.replace('50', '200')} opacity-20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none`} />
-      <div className={`p-4 rounded-xl ${bg} shadow-inner`}>
-        <Icon className={`w-6 h-6 ${color} drop-shadow-sm`} />
+    <BorderGlow backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0}>
+      <div className="glass-card p-6 rounded-2xl flex items-center gap-4 transition-all hover:-translate-y-1.5 duration-300 relative overflow-hidden group">
+        <div className={`absolute -right-6 -top-6 w-24 h-24 ${bg.replace('50', '200')} opacity-20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500 pointer-events-none`} />
+        <div className={`p-4 rounded-xl ${bg} shadow-inner`}>
+          <Icon className={`w-6 h-6 ${color} drop-shadow-sm`} />
+        </div>
+        <div>
+          <h4 className="text-slate-500 text-sm font-medium tracking-wide uppercase text-[11px]">{title}</h4>
+          <p className="text-3xl font-bold text-slate-800 mt-1 tracking-tight">{value}</p>
+        </div>
       </div>
-      <div>
-        <h4 className="text-slate-500 text-sm font-medium tracking-wide uppercase text-[11px]">{title}</h4>
-        <p className="text-3xl font-bold text-slate-800 mt-1 tracking-tight">{value}</p>
-      </div>
-    </div>
+    </BorderGlow>
   );
 }
