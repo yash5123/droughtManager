@@ -44,7 +44,7 @@ function Sidebar({ isOpen, setIsOpen, notifications, unreadCount, markAsRead, is
 
       {/* Sidebar Navigation */}
       <div className={cn(
-        "glass-effect border-r border-white/40 flex flex-col h-screen fixed md:sticky top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 transition-transform duration-300 w-64 md:translate-x-0",
+        "glass-effect border-r border-white/40 flex flex-col h-screen fixed top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50 transition-transform duration-300 w-64 md:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-6 flex items-center justify-between">
@@ -184,7 +184,7 @@ function AppContent() {
         path="/*"
         element={
           user ? (
-            <div className="flex min-h-screen bg-slate-50/50 relative overflow-hidden">
+            <div className="flex h-screen bg-slate-50/50 relative overflow-hidden">
               {/* Premium Background Elements */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 blur-[120px] pointer-events-none" />
               <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[50%] rounded-full bg-cyan-400/10 blur-[100px] pointer-events-none" />
@@ -199,7 +199,7 @@ function AppContent() {
                 setIsNotifOpen={setIsNotifOpen}
               />
               
-              <main className="flex-1 w-full bg-slate-50/50 min-h-screen flex flex-col relative z-0 hide-scrollbar overflow-x-hidden">
+              <main className="flex-1 md:ml-64 w-full bg-slate-50/50 h-screen flex flex-col relative z-0 hide-scrollbar overflow-x-hidden">
                 {/* Mobile Header Bar */}
                 <header className="md:hidden flex items-center justify-between p-4 bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-30">
                    <div className="flex items-center gap-2">
