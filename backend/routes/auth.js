@@ -1,16 +1,15 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
-import { OAuth2Client } from 'google-auth-library';
 import rateLimit from 'express-rate-limit';
+import fetch from 'node-fetch';
 import User from '../models/User.js';
 
 const router = express.Router();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs for auth routes
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: { error: 'Too many authentication attempts from this IP, please try again after 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -20,7 +19,6 @@ const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-// Validation error handler
 const handleValidation = (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -50,7 +48,7 @@ router.post('/register', authLimiter, [
     const savedUser = await newUser.save();
 
     const token = generateToken(savedUser._id);
-    res.status(201).json({ token, user: { id: savedUser._id, name: savedUser.name, email: savedUser.email }});
+    res.status(201).json({ token, user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -78,7 +76,7 @@ router.post('/login', authLimiter, [
     }
 
     const token = generateToken(user._id);
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email }});
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -87,42 +85,37 @@ router.post('/login', authLimiter, [
 // Google OAuth Login / Registration
 router.post('/google', authLimiter, async (req, res) => {
   try {
-    const { idToken } = req.body;
-    
-    if(!idToken) {
-        return res.status(400).json({ error: 'No Google Token provided' });
+    const { access_token } = req.body;
+
+    if (!access_token) {
+      return res.status(400).json({ error: 'No Google access token provided' });
     }
 
-    // Verify Google Token
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    const googleRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
     });
-    const payload = ticket.getPayload();
-    const { email, name, sub: googleId } = payload;
 
-    // Check if user exists
+    if (!googleRes.ok) {
+      return res.status(401).json({ error: 'Invalid or expired Google access token' });
+    }
+
+    const { email, name, sub: googleId } = await googleRes.json();
+
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create new user if they don't exist
-      user = new User({
-        name,
-        email,
-        googleId
-      });
+      user = new User({ name, email, googleId });
       await user.save();
     } else if (!user.googleId) {
-      // Link Google Account to existing email account
       user.googleId = googleId;
       await user.save();
     }
 
     const token = generateToken(user._id);
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email }});
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Google Auth Error:', err);
-    res.status(500).json({ error: 'Authentication failed with Google.' });
+    res.status(500).json({ error: err.message });
   }
 });
 
