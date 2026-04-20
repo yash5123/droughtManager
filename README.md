@@ -209,13 +209,6 @@ The tech stack was carefully chosen to be **modern but practical** — React 19 
 
   **Made with ❤️ and lots of ☕ by the developer**
 
-  <br/>
-
-  ![Stars](https://img.shields.io/github/stars/yash5123/droughtManager?style=for-the-badge&color=f59e0b&logo=github)
-  ![Forks](https://img.shields.io/github/forks/yash5123/droughtManager?style=for-the-badge&color=6366f1&logo=github)
-
-  <br/>
-
   *💧 Every drop counts. Every village matters.*
 
   <br/>
