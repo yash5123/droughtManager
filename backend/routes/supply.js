@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
     );
 
     const analysis = villages.map(v => {
-      // 135 liters per capita per day — standard Indian MDWS norm
+      // 135 liters per capita per day - standard Indian MDWS norm
       const demand = Math.round(v.population * 135);
 
       // Supply = 70% baseline pipeline + 30% adjusted by recent rainfall (mm → % factor)

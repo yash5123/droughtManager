@@ -1,7 +1,7 @@
 /**
  * Open-Meteo Weather Service
  * Fetches real-time weather, historical, and forecast data for drought monitoring.
- * No API key required — completely free.
+ * No API key required - completely free.
  * Docs: https://open-meteo.com/en/docs
  */
 

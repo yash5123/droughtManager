@@ -80,7 +80,7 @@ export default function RainfallAnalysis() {
 
       <div className="glass-card p-6 animate-slide-up">
         <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit flex items-center gap-2">
-          Total Rainfall — Past {period} Days (mm)
+          Total Rainfall - Past {period} Days (mm)
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
         </h3>
         <div className="h-[400px] w-full mt-4">

@@ -102,7 +102,7 @@ export default function FuturePrediction() {
                    <CardContent>
                       <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-semibold text-slate-800">
-                          {isLive ? 'Forecast' : 'Drought Probability (%)'} — {village.name}
+                          {isLive ? 'Forecast' : 'Drought Probability (%)'} - {village.name}
                         </h3>
                         <span className="text-xs font-semibold text-slate-500 px-2 py-1 bg-slate-100 rounded-lg">{village.district} District</span>
                       </div>

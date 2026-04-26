@@ -21,7 +21,7 @@ export default function DataSourceInfo({ period, periodLabel, lastUpdated, class
       </span>
       <span className="inline-flex items-center gap-1.5">
         <Calendar size={11} className="text-emerald-400" />
-        Period: <span className="text-slate-600 font-semibold">{fmt(start)} — {fmt(now)}</span>
+        Period: <span className="text-slate-600 font-semibold">{fmt(start)} - {fmt(now)}</span>
         {periodLabel && <span className="text-slate-400">({periodLabel})</span>}
       </span>
       {lastUpdated && (
@@ -35,7 +35,7 @@ export default function DataSourceInfo({ period, periodLabel, lastUpdated, class
 }
 
 /**
- * Forecast variant — shows future date range
+ * Forecast variant - shows future date range
  */
 export function ForecastInfo({ days = 16, lastUpdated, className = '' }) {
   const now = new Date();

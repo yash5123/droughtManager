@@ -109,7 +109,7 @@ export default function RiskCalculation() {
                 <Calculator className="text-blue-600" size={28} />
                 Dynamic Risk Assessment
                 {selectedVillage && isLive && (
-                  <span className="text-sm font-medium text-slate-400 ml-2">— {selectedVillage}</span>
+                  <span className="text-sm font-medium text-slate-400 ml-2">- {selectedVillage}</span>
                 )}
               </h3>
 

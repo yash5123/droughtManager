@@ -6,7 +6,7 @@ import Groundwater from '../models/Groundwater.js';
 
 const router = express.Router();
 
-// GET /api/risk — paginated list of risk records
+// GET /api/risk - paginated list of risk records
 router.get('/', async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page) || 1);
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/risk/calculate — compute and upsert drought risk for all villages
+// POST /api/risk/calculate - compute and upsert drought risk for all villages
 router.post('/calculate', async (req, res) => {
   try {
     const villages = await Village.find().lean();

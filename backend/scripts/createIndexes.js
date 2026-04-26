@@ -1,5 +1,5 @@
 /**
- * createIndexes.js — Task 20
+ * createIndexes.js - Task 20
  * Run with: npm run create-indexes
  *
  * Creates compound and unique indexes on MongoDB collections to optimise
