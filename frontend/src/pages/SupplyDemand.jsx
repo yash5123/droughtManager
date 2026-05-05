@@ -1,149 +1,128 @@
 import React, { useState, useEffect } from 'react';
-import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { MapPin, Loader2, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
-import { villages } from '../utils/villageData';
-import { getSupplyDemandAnalysis } from '../services/weatherService';
-import DataSourceInfo from '../components/ui/DataSourceInfo';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Scale, Truck, AlertTriangle } from 'lucide-react';
+import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../components/ui/Toast.jsx';
+import RiskBadge from '../components/ui/RiskBadge.jsx';
+import LoginPrompt from '../components/ui/LoginPrompt.jsx';
+import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
+import EmptyState from '../components/ui/EmptyState.jsx';
+import { useCountUp } from '../hooks/useCountUp.js';
+import { formatNumber } from '../utils/formatters.js';
+import api from '../services/api.js';
+
+const LITERS_PER_PERSON_DAY = 50;
+const TANKER_CAPACITY = 10000;
 
 export default function SupplyDemand() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isLive, setIsLive] = useState(false);
+  const { activeVillages, dataSource } = useVillageData();
+  const { user, openLoginModal } = useAuth();
+  const { addToast } = useToast();
+  const [supplyData, setSupplyData] = useState(null);
+  const [dispatching, setDispatching] = useState(null);
 
+  // Try backend first, fall back to client-side estimation
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const analysis = await getSupplyDemandAnalysis();
-        setData(analysis);
-        setIsLive(true);
-      } catch (error) {
-        console.error('Failed to fetch supply/demand data:', error);
-        setData(villages.map((v, i) => {
-          let demand = 10000 + i * 2000;
-          let supply = 8000 + (i % 2 === 0 ? 1000 : -2000);
-          return { ...v, demand, supply, deficit: Math.max(0, demand - supply), status: supply >= demand ? 'Sufficient' : 'Shortage' };
-        }));
-        setIsLive(false);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    api.get('/supply').then(r => setSupplyData({ source: 'backend', data: r.data })).catch(() => setSupplyData(null));
   }, []);
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <header>
-        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-            <AlertTriangle size={24} />
-          </div>
-          Water Demand vs Supply
-        </h2>
-        <div className="flex items-center gap-3 mt-1">
-          <p className="text-slate-500 text-sm">Supply estimates derived from real rainfall data (30-day Open-Meteo).</p>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-            {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
-            {isLive ? 'Live Data' : 'Offline'}
-          </span>
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
-        </div>
-        <DataSourceInfo period={30} periodLabel="30-day supply model" lastUpdated={isLive ? new Date() : null} />
-      </header>
+  const villages = activeVillages.map(v => {
+    const dailyDemand = v.population * LITERS_PER_PERSON_DAY;
+    const supplyFactor = v.riskScore > 70 ? 0.3 : v.riskScore > 50 ? 0.5 : v.riskScore > 25 ? 0.75 : 0.95;
+    const dailySupply = Math.round(dailyDemand * supplyFactor);
+    const deficit = dailyDemand - dailySupply;
+    const tankersNeeded = Math.ceil(deficit / TANKER_CAPACITY);
+    return { ...v, dailyDemand, dailySupply, deficit, tankersNeeded };
+  });
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="glass-card p-6 animate-slide-up lg:col-span-2">
-          <h3 className="text-lg font-semibold text-slate-800 mb-6 font-outfit">Resource Allocation Analysis (Liters/day)</h3>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <defs>
-                  <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.6}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 13}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dx={-10} />
-                <Tooltip 
-                  cursor={{fill: '#f8fafc', opacity: 0.4}} 
-                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} 
-                  formatter={(value) => [`${value.toLocaleString()} L`, undefined]}
-                />
-                <Legend wrapperStyle={{paddingTop: '30px'}} iconType="circle" />
-                <Bar dataKey="demand" name="Population Demand" fill="url(#colorDemand)" radius={[8, 8, 0, 0]} maxBarSize={60} />
-                <Line type="monotone" name="Estimated Supply" dataKey="supply" stroke="#f59e0b" strokeWidth={4} activeDot={{r: 8, stroke: '#fff', strokeWidth: 2}} dot={{r: 5, fill: '#fff', strokeWidth: 2}} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
+  const totalDemand = villages.reduce((s, v) => s + v.dailyDemand, 0);
+  const totalSupply = villages.reduce((s, v) => s + v.dailySupply, 0);
+  const totalDeficit = totalDemand - totalSupply;
+  const criticalCount = villages.filter(v => v.tankersNeeded > 3).length;
+
+  const chartData = villages.slice(0, 12).map(v => ({
+    name: v.name.length > 8 ? v.name.slice(0, 7) + '…' : v.name,
+    demand: Math.round(v.dailyDemand / 1000),
+    supply: Math.round(v.dailySupply / 1000),
+  }));
+
+  const handleDispatch = async (village) => {
+    if (!user) { openLoginModal(); return; }
+    setDispatching(village._id);
+    try {
+      await api.post('/tanker', { village: village.name, capacityLiters: TANKER_CAPACITY, dispatchDate: new Date().toISOString() });
+      addToast(`Tanker dispatched to ${village.name}`, 'success');
+    } catch (err) { addToast(err.response?.data?.error || 'Dispatch failed', 'error'); }
+    finally { setDispatching(null); }
+  };
+
+  return (
+    <div className="space-y-5 animate-fade-in">
+      <DataSourceBanner dataSource={dataSource} />
+      {!supplyData && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: 'rgba(59,130,246,0.08)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+          <AlertTriangle className="w-3.5 h-3.5" /> Showing client-side estimates. Backend supply data unavailable.
         </div>
-        
-        <div className="lg:col-span-1 border border-blue-100 bg-blue-50/50 rounded-2xl p-6 relative overflow-hidden transition-all duration-500 hover:shadow-lg">
-           <h3 className="text-blue-900 font-semibold mb-4 relative z-10 flex items-center gap-2">
-             Key Insights
-           </h3>
-           <div className="space-y-4">
-             {data.map(v => (
-               <div key={v.id} className="bg-white/60 p-3 rounded-lg border border-white/50 shadow-sm flex justify-between items-center text-sm">
-                 <div>
-                   <span className="font-medium text-slate-700">{v.name}</span>
-                   {v.rainfallContext !== undefined && (
-                     <p className="text-[10px] text-slate-400 mt-0.5">{Math.round(v.rainfallContext)} mm rain (30d)</p>
-                   )}
-                 </div>
-                 {v.supply >= v.demand ? (
-                    <span className="text-green-600 font-semibold text-xs bg-green-50 px-2 py-1 rounded-full">Surplus</span>
-                 ) : (
-                    <span className="text-red-600 font-semibold text-xs bg-red-50 px-2 py-1 rounded-full">Deficit {Math.round(v.deficit).toLocaleString()} L</span>
-                 )}
-               </div>
-             ))}
-           </div>
-        </div>
+      )}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MetricCard label="Daily Demand" value={totalDemand} unit="L" color="#3b82f6" />
+        <MetricCard label="Daily Supply" value={totalSupply} unit="L" color="#22c55e" />
+        <MetricCard label="Deficit" value={totalDeficit} unit="L" color="#ef4444" />
+        <MetricCard label="Critical Villages" value={criticalCount} unit="" color="#f97316" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        {data.map((region) => (
-          <div key={region.id} className="glass-card p-5 group hover:shadow-lg transition-all border border-transparent hover:border-slate-300 flex flex-col sm:flex-row gap-4">
-             <div className="hidden sm:block w-8 h-full rounded-lg bg-slate-50 border border-slate-100 flex-shrink-0 relative">
+      <div className="card p-4">
+        <h3 className="text-sm font-semibold text-display mb-3">Demand vs Supply (× 1000 L/day)</h3>
+        {chartData.length === 0 ? <EmptyState /> : (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
+              <XAxis dataKey="name" tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: '#8896b3' }} />
+              <Bar dataKey="demand" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={24} name="Demand" />
+              <Bar dataKey="supply" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={24} name="Supply" />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {villages.slice(0, 12).map((v, i) => (
+          <div key={v._id || i} className="card p-3 card-hover">
+            <div className="flex justify-between items-start mb-2">
+              <div><p className="text-sm font-medium">{v.name}</p><p className="text-[10px] text-[var(--color-text-muted)]">{v.state}</p></div>
+              <RiskBadge score={v.riskScore} />
             </div>
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-semibold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">{region.name}</h4>
-                  <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/>{region.district} District</p>
-                </div>
-              </div>
-              <div className="mt-2 text-sm space-y-2 text-slate-600">
-                 <div className="flex justify-between items-center border-b border-slate-50 pb-1">
-                    <span>Demand</span>
-                    <span className="font-semibold">{region.demand?.toLocaleString()} L</span>
-                 </div>
-                 <div className="flex justify-between items-center border-b border-slate-50 pb-1">
-                    <span>Supply</span>
-                    <span className="font-semibold">{region.supply?.toLocaleString()} L</span>
-                 </div>
-                 {region.population && (
-                   <div className="flex justify-between items-center border-b border-slate-50 pb-1">
-                      <span>Population</span>
-                      <span className="font-semibold">{region.population?.toLocaleString()}</span>
-                   </div>
-                 )}
-                 <div className="flex justify-between items-center">
-                    <span>Status</span>
-                    {region.supply >= region.demand ? (
-                        <span className="text-green-600 font-semibold px-2 py-0.5 bg-green-50 rounded text-xs border border-green-200">Adequate</span>
-                    ) : (
-                        <span className="text-red-600 font-semibold px-2 py-0.5 bg-red-50 rounded text-xs border border-red-200">Critical Shortage</span>
-                    )}
-                 </div>
-              </div>
+            <div className="grid grid-cols-3 gap-2 text-center mb-3">
+              <div><p className="text-xs font-mono font-bold text-blue-400">{formatNumber(Math.round(v.dailyDemand / 1000))}k</p><p className="text-[9px] text-[var(--color-text-muted)]">Demand</p></div>
+              <div><p className="text-xs font-mono font-bold text-emerald-400">{formatNumber(Math.round(v.dailySupply / 1000))}k</p><p className="text-[9px] text-[var(--color-text-muted)]">Supply</p></div>
+              <div><p className="text-xs font-mono font-bold text-red-400">{v.tankersNeeded}</p><p className="text-[9px] text-[var(--color-text-muted)]">Tankers</p></div>
             </div>
+            {user ? (
+              <button onClick={() => handleDispatch(v)} disabled={dispatching === v._id}
+                className="w-full py-1.5 rounded-md text-xs font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                style={{ backgroundColor: 'rgba(6,182,212,0.1)', color: 'var(--color-cyan)' }}>
+                <Truck className="w-3.5 h-3.5" /> {dispatching === v._id ? 'Dispatching...' : 'Dispatch'}
+              </button>
+            ) : (
+              <LoginPrompt message="Sign in to dispatch" />
+            )}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, unit, color }) {
+  const display = useCountUp(Math.min(value, 99999999), 1000);
+  return (
+    <div className="card p-3 card-hover">
+      <p className="text-xl font-bold font-mono" style={{ color }}>{formatNumber(display)}<span className="text-xs ml-0.5">{unit}</span></p>
+      <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{label}</p>
     </div>
   );
 }

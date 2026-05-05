@@ -1,142 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '../components/ui/Card';
-import { MapPin, Loader2, Wifi, WifiOff, ShieldAlert } from 'lucide-react';
-import { villages } from '../utils/villageData';
-import { calculateDroughtRisk } from '../services/weatherService';
-import DataSourceInfo from '../components/ui/DataSourceInfo';
-import BorderGlow from '../components/ui/BorderGlow';
+import React, { useState, useMemo } from 'react';
+import { Search, Info } from 'lucide-react';
+import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useCountUp } from '../hooks/useCountUp.js';
+import RiskBadge from '../components/ui/RiskBadge.jsx';
+import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
+import { RISK_LEVELS, getRiskLevel } from '../utils/riskLevels.js';
+import { formatNumber } from '../utils/formatters.js';
+
+function CountCard({ label, count, color }) {
+  const val = useCountUp(count, 800);
+  return (
+    <div className="card p-4 text-center card-hover" style={{ borderTop: `3px solid ${color}` }}>
+      <p className="text-3xl font-bold font-mono" style={{ color }}>{val}</p>
+      <p className="text-xs text-[var(--color-text-muted)] mt-1">{label}</p>
+    </div>
+  );
+}
 
 export default function RiskClassification() {
-  const [regions, setRegions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isLive, setIsLive] = useState(false);
+  const { riskData, dataSource } = useVillageData();
+  const [search, setSearch] = useState('');
+  const [filterLevel, setFilterLevel] = useState('all');
+  const [sortField, setSortField] = useState('riskScore');
+  const [sortDir, setSortDir] = useState('desc');
 
-  useEffect(() => {
-    async function fetchRisk() {
-      try {
-        setLoading(true);
-        const riskData = await calculateDroughtRisk();
-        setRegions(riskData.map(r => ({
-          ...r,
-          score: r.riskScore,
-          level: r.riskLevel === 'Critical' ? 'Critical' : r.riskLevel === 'Moderate Risk' ? 'Moderate' : 'Normal'
-        })));
-        setIsLive(true);
-      } catch (error) {
-        console.error('Failed to calculate risk:', error);
-        setRegions(villages.map((v, i) => {
-          let score = 0, level = '';
-          if (i === 0 || i === 1) { score = 85 + i * 5; level = 'Critical'; }
-          else if (i === 2 || i === 4) { score = 45 + i * 5; level = 'Moderate'; }
-          else { score = 12 + i * 2; level = 'Normal'; }
-          return { ...v, score, level };
-        }));
-        setIsLive(false);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchRisk();
-  }, []);
+  const counts = useMemo(() => ({
+    Extreme: riskData.filter(v => v.riskScore > 70).length,
+    Severe: riskData.filter(v => v.riskScore > 50 && v.riskScore <= 70).length,
+    Moderate: riskData.filter(v => v.riskScore > 25 && v.riskScore <= 50).length,
+    Normal: riskData.filter(v => v.riskScore <= 25).length,
+  }), [riskData]);
+
+  const filtered = useMemo(() => {
+    let list = [...riskData];
+    if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
+    if (filterLevel !== 'all') list = list.filter(v => getRiskLevel(v.riskScore).label === filterLevel);
+    list.sort((a, b) => {
+      const av = a[sortField] ?? 0, bv = b[sortField] ?? 0;
+      return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+    });
+    return list;
+  }, [riskData, search, filterLevel, sortField, sortDir]);
+
+  const toggleSort = (field) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir('desc'); }
+  };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <header>
-        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-red-500/20">
-            <ShieldAlert size={24} />
-          </div>
-          Risk Classification
-        </h2>
-        <div className="flex items-center gap-3 mt-1">
-          <p className="text-slate-500 text-sm">Real-time drought risk computed from 90-day rainfall + soil moisture data.</p>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-            {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
-            {isLive ? 'Live Data' : 'Offline'}
-          </span>
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
-        </div>
-        <DataSourceInfo period={90} periodLabel="90-day analysis" lastUpdated={isLive ? new Date() : null} />
-      </header>
+    <div className="space-y-5 animate-fade-in">
+      <DataSourceBanner dataSource={dataSource} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-slide-up">
-        <div className="glass-card relative overflow-hidden p-6 text-center group">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-red-600/5 opacity-50 transition-opacity group-hover:opacity-100" />
-            <h3 className="text-red-700 font-bold tracking-wider uppercase text-xs mb-2 relative z-10">Critical Risk</h3>
-            <p className="text-4xl font-extrabold text-red-600 drop-shadow-sm relative z-10">
-               {loading ? '...' : regions.filter(r => r.level === 'Critical').length}
-            </p>
-            <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-red-400 to-red-600" />
-        </div>
-        <div className="glass-card relative overflow-hidden p-6 text-center group">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-orange-500/5 opacity-50 transition-opacity group-hover:opacity-100" />
-            <h3 className="text-amber-700 font-bold tracking-wider uppercase text-xs mb-2 relative z-10">Moderate Risk</h3>
-            <p className="text-4xl font-extrabold text-amber-600 drop-shadow-sm relative z-10">
-               {loading ? '...' : regions.filter(r => r.level === 'Moderate').length}
-            </p>
-            <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-amber-400 to-orange-500" />
-        </div>
-        <div className="glass-card relative overflow-hidden p-6 text-center group">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-green-500/5 opacity-50 transition-opacity group-hover:opacity-100" />
-            <h3 className="text-emerald-700 font-bold tracking-wider uppercase text-xs mb-2 relative z-10">Normal Operations</h3>
-            <p className="text-4xl font-extrabold text-emerald-600 drop-shadow-sm relative z-10">
-               {loading ? '...' : regions.filter(r => r.level === 'Normal').length}
-            </p>
-            <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-400 to-green-500" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up mb-8" style={{ animationDelay: '100ms' }}>
-        {regions.map((region) => (
-          <BorderGlow key={region.id} backgroundColor="transparent" glowColor="210 80 70" glowIntensity={0.85} borderRadius={16} glowRadius={0}>
-            <div className="glass-card p-5 group hover:shadow-lg transition-all border border-transparent hover:border-slate-300 flex flex-col sm:flex-row gap-4 h-full">
-               <div className="w-full sm:w-8 h-full rounded-lg bg-slate-50 border border-slate-100 flex-shrink-0 relative hidden sm:block">
-               </div>
-              <div className="flex-1 flex flex-col justify-center">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">{region.name}</h4>
-                    <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/>{region.district} District</p>
-                  </div>
-                  <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm border ${
-                      region.level === 'Critical' ? 'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200' :
-                      region.level === 'Moderate' ? 'bg-gradient-to-r from-amber-50 to-orange-100 text-amber-700 border-amber-200' :
-                      'bg-gradient-to-r from-emerald-50 to-green-100 text-emerald-700 border-emerald-200'
-                    }`}>
-                      {region.level}
-                  </span>
-                </div>
-
-                {/* Show real data breakdown when available */}
-                {region.rainfallDeficit !== undefined && (
-                  <div className="flex gap-2 my-2 flex-wrap">
-                    <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full border border-blue-100">
-                      Rain Deficit: {region.rainfallDeficit}%
-                    </span>
-                    <span className="text-[10px] bg-teal-50 text-teal-700 font-semibold px-2 py-0.5 rounded-full border border-teal-100">
-                      Moisture Depletion: {region.moistureDepletion}%
-                    </span>
-                    <span className="text-[10px] bg-slate-50 text-slate-600 font-semibold px-2 py-0.5 rounded-full border border-slate-200">
-                      90d Total: {Math.round(region.totalRainfall90d)} mm
-                    </span>
-                  </div>
-                )}
-
-                <div className="mt-2">
-                   <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                      <span>Risk Score</span>
-                      <span className="font-bold text-slate-700">{region.score}/100</span>
-                   </div>
-                   <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-700 ${region.score > 70 ? 'bg-red-500' : region.score > 40 ? 'bg-amber-500' : 'bg-green-500'}`} style={{width: `${region.score}%`}}></div>
-                   </div>
-                </div>
-              </div>
-            </div>
-          </BorderGlow>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {Object.entries(RISK_LEVELS).map(([key, def]) => (
+          <CountCard key={key} label={def.label} count={counts[key] || 0} color={def.color} />
         ))}
       </div>
 
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search villages..."
+            className="w-full pl-10 pr-4 py-2 rounded-lg text-sm border outline-none focus:border-[var(--color-cyan)] transition-colors"
+            style={{ backgroundColor: 'var(--color-bg-input)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} />
+        </div>
+        <div className="flex gap-1">
+          <button onClick={() => setFilterLevel('all')} className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all`}
+            style={{ backgroundColor: filterLevel === 'all' ? 'var(--color-cyan)' : 'var(--color-bg-card)', color: filterLevel === 'all' ? 'var(--color-bg-base)' : 'var(--color-text-muted)' }}>All</button>
+          {Object.entries(RISK_LEVELS).map(([key, def]) => (
+            <button key={key} onClick={() => setFilterLevel(key)} className="px-3 py-1.5 rounded-md text-xs font-semibold transition-all"
+              style={{ backgroundColor: filterLevel === key ? def.color + '30' : 'var(--color-bg-card)', color: filterLevel === key ? def.color : 'var(--color-text-muted)' }}>{def.label}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3 card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ backgroundColor: 'var(--color-bg-surface)' }}>
+                  {[{ key: 'name', label: 'Village' }, { key: 'state', label: 'State' }, { key: 'population', label: 'Population' }, { key: 'riskScore', label: 'Score' }, { key: 'riskLevel', label: 'Level' }].map(col => (
+                    <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] cursor-pointer select-none hover:text-[var(--color-text-secondary)]"
+                      onClick={() => toggleSort(col.key)}>
+                      {col.label} {sortField === col.key && (sortDir === 'asc' ? '↑' : '↓')}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((v, i) => {
+                  const risk = getRiskLevel(v.riskScore);
+                  return (
+                    <tr key={v._id || i} className="border-t hover:bg-[var(--color-bg-surface)] transition-colors" style={{ borderColor: 'var(--color-border-subtle)', borderLeft: `3px solid ${risk.color}` }}>
+                      <td className="px-4 py-2.5 font-medium">{v.name}</td>
+                      <td className="px-4 py-2.5 text-[var(--color-text-muted)]">{v.state || v.region}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs">{formatNumber(v.population)}</td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-sm" style={{ color: risk.color }}>{v.riskScore}</span>
+                          <div className="flex-1 h-1.5 rounded-full max-w-[60px]" style={{ backgroundColor: 'var(--color-bg-elevated)' }}>
+                            <div className="h-full rounded-full transition-all" style={{ width: `${v.riskScore}%`, backgroundColor: risk.color }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5"><RiskBadge score={v.riskScore} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {filtered.length === 0 && <div className="py-8 text-center text-sm text-[var(--color-text-muted)]">No villages match filters</div>}
+        </div>
+
+        {/* Algorithm Explanation */}
+        <div className="card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Info className="w-4 h-4 text-[var(--color-cyan)]" />
+            <h3 className="text-sm font-semibold text-display">Algorithm</h3>
+          </div>
+          <div className="space-y-3 text-xs text-[var(--color-text-muted)]">
+            <p>The composite risk score (0–100) is calculated server-side using:</p>
+            <div className="space-y-1.5">
+              <WeightRow label="Rainfall Deficit" weight={40} color="#3b82f6" />
+              <WeightRow label="GW Depletion" weight={35} color="#8b5cf6" />
+              <WeightRow label="Population Gap" weight={25} color="#f97316" />
+            </div>
+            <div className="pt-2 border-t space-y-1" style={{ borderColor: 'var(--color-border-subtle)' }}>
+              <p className="font-semibold text-[var(--color-text-secondary)]">Thresholds</p>
+              {Object.entries(RISK_LEVELS).map(([key, def]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: def.color }} />
+                  <span>{def.label}: {def.min}+</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeightRow({ label, weight, color }) {
+  return (
+    <div>
+      <div className="flex justify-between mb-0.5"><span>{label}</span><span className="font-mono font-semibold">{weight}%</span></div>
+      <div className="h-1.5 rounded-full" style={{ backgroundColor: 'var(--color-bg-elevated)' }}>
+        <div className="h-full rounded-full" style={{ width: `${weight}%`, backgroundColor: color }} />
+      </div>
     </div>
   );
 }

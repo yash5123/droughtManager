@@ -10,10 +10,12 @@ import tankerRoutes from './routes/tanker.js';
 import riskRoutes from './routes/risk.js';
 import supplyRoutes from './routes/supply.js';
 import authRoutes from './routes/auth.js';
+import villageRoutes from './routes/villages.js';
+import weatherRoutes from './routes/weather.js';
 
 dotenv.config();
 
-// TASK 2: Fail-fast if JWT_SECRET is not set
+// Fail-fast if JWT_SECRET is not set
 if (!process.env.JWT_SECRET) {
   console.error('FATAL ERROR: JWT_SECRET environment variable is not set. Exiting.');
   process.exit(1);
@@ -22,7 +24,7 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// TASK 4: Restricted CORS configuration
+// Restricted CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'https://aqvasense.vercel.app'
@@ -47,19 +49,23 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Public routes (no auth required)
+// ── Public routes (no auth required) ──
+// Auth endpoints
 app.use('/api/auth', authRoutes);
+// All data-viewing routes are public per spec: drought data is public interest information
+app.use('/api/villages', villageRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/rainfall', rainfallRoutes);
+app.use('/api/groundwater', groundwaterRoutes);
+app.use('/api/risk', riskRoutes);
+app.use('/api/supply', supplyRoutes);
+app.use('/api/weather', weatherRoutes);
 
-// TASK 1: Protected routes (auth required)
-app.use('/api/dashboard', authMiddleware, dashboardRoutes);
-app.use('/api/rainfall', authMiddleware, rainfallRoutes);
-app.use('/api/groundwater', authMiddleware, groundwaterRoutes);
+// ── Protected routes (auth required for write operations) ──
 app.use('/api/tanker', authMiddleware, tankerRoutes);
-app.use('/api/risk', authMiddleware, riskRoutes);
-app.use('/api/supply', authMiddleware, supplyRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Drought Monitoring Backend is running.');
+  res.send('AqvaSense Drought Monitoring Backend is running.');
 });
 
 app.listen(PORT, () => {

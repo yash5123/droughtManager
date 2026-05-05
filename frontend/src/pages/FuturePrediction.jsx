@@ -1,195 +1,112 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '../components/ui/Card';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { TrendingUp, AlertCircle, MapPin, Loader2, Wifi, WifiOff, CloudRain } from 'lucide-react';
-import { villages } from '../utils/villageData';
-import { getAllVillagesForecast } from '../services/weatherService';
-import { ForecastInfo } from '../components/ui/DataSourceInfo';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ComposedChart } from 'recharts';
+import { TrendingUp, AlertTriangle, Truck } from 'lucide-react';
+import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../components/ui/Toast.jsx';
+import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
+import LoginPrompt from '../components/ui/LoginPrompt.jsx';
+import RiskBadge from '../components/ui/RiskBadge.jsx';
+import { fetchForecast } from '../services/weatherService.js';
+import { getRiskLevel } from '../utils/riskLevels.js';
+import api from '../services/api.js';
 
 export default function FuturePrediction() {
-  const [isGenerating, setIsGenerating] = useState({});
-  const [showPlan, setShowPlan] = useState({});
-  const [forecastData, setForecastData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [isLive, setIsLive] = useState(false);
+  const { activeVillages, dataSource } = useVillageData();
+  const { user, openLoginModal } = useAuth();
+  const { addToast } = useToast();
+  const [forecasts, setForecasts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function fetchForecast() {
-      try {
-        setLoading(true);
-        const data = await getAllVillagesForecast();
-        const mapped = {};
-        data.forEach(v => {
-          if (v.forecast?.time) {
-            mapped[v.id] = v.forecast.time.map((date, i) => {
-              const precip = v.forecast.precipitation_sum?.[i] || 0;
-              const et0 = v.forecast.et0_fao_evapotranspiration?.[i] || 0;
-              // Drought probability: higher when evapotranspiration >> precipitation
-              const droughtProb = Math.min(95, Math.max(5, Math.round(
-                50 + ((et0 - precip) / Math.max(et0, 1)) * 50
-              )));
-              return {
-                date: new Date(date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
-                precipitation: Math.round(precip * 10) / 10,
-                evapotranspiration: Math.round(et0 * 10) / 10,
-                droughtProbability: droughtProb,
-              };
-            });
-          }
-        });
-        setForecastData(mapped);
-        setIsLive(true);
-      } catch (error) {
-        console.error('Failed to fetch forecast:', error);
-        setIsLive(false);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchForecast();
-  }, []);
+    if (activeVillages.length === 0) return;
+    setLoading(true);
+    const load = async () => {
+      const results = await Promise.all(
+        activeVillages.slice(0, 10).map(async (v) => {
+          if (!v.location?.lat) return { village: v, chartData: [], summary: null };
+          const { data } = await fetchForecast(v.location.lat, v.location.lng);
+          if (!data?.daily) return { village: v, chartData: [], summary: null };
+          const chartData = data.daily.time.map((t, i) => ({
+            date: t.slice(5),
+            precip: data.daily.precipitation_sum?.[i] || 0,
+            prob: data.daily.precipitation_probability_max?.[i] || 0,
+          }));
+          const totalPrecip = chartData.reduce((s, d) => s + d.precip, 0);
+          const avgProb = chartData.reduce((s, d) => s + d.prob, 0) / chartData.length;
+          const dryDays = chartData.filter(d => d.precip < 0.5).length;
+          return { village: v, chartData, summary: { totalPrecip: Math.round(totalPrecip * 10) / 10, avgProb: Math.round(avgProb), dryDays } };
+        })
+      );
+      setForecasts(results);
+      setLoading(false);
+    };
+    load();
+  }, [activeVillages]);
 
-  const handleGenerate = (id) => {
-    setIsGenerating(prev => ({...prev, [id]: true}));
-    setTimeout(() => {
-      setIsGenerating(prev => ({...prev, [id]: false}));
-      setShowPlan(prev => ({...prev, [id]: true}));
-    }, 2000);
+  const handleDispatch = async (village) => {
+    if (!user) { openLoginModal(); return; }
+    try {
+      await api.post('/tanker', { village: village.name, capacityLiters: 10000, dispatchDate: new Date().toISOString() });
+      addToast(`Tanker dispatched to ${village.name}`, 'success');
+    } catch (err) { addToast(err.response?.data?.error || 'Dispatch failed', 'error'); }
   };
 
-  const getVillageData = (villageId, idx) => {
-    if (forecastData[villageId]) {
-      return forecastData[villageId];
-    }
-    // Fallback mock data
-    return [
-      { date: 'Day 1', droughtProbability: 45 + idx*5, precipitation: 2, evapotranspiration: 5 },
-      { date: 'Day 4', droughtProbability: 50 + idx*3, precipitation: 1, evapotranspiration: 6 },
-      { date: 'Day 8', droughtProbability: 60 + idx*2, precipitation: 0.5, evapotranspiration: 7 },
-      { date: 'Day 12', droughtProbability: 70 - idx*4, precipitation: 3, evapotranspiration: 5 },
-      { date: 'Day 16', droughtProbability: 65 - idx*6, precipitation: 4, evapotranspiration: 4 },
-    ];
-  };
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--color-cyan)', borderTopColor: 'transparent' }} /></div>;
+  }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <header>
-        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center text-white shadow-lg shadow-fuchsia-500/20">
-            <TrendingUp size={24} />
-          </div>
-          Future Drought Prediction
-        </h2>
-        <div className="flex items-center gap-3 mt-1">
-          <p className="text-slate-500 text-sm">16-day forecast from Open-Meteo showing drought probability per village.</p>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isLive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-            {isLive ? <Wifi size={10} /> : <WifiOff size={10} />}
-            {isLive ? '16-Day Forecast' : 'Offline'}
-          </span>
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
-        </div>
-        <ForecastInfo days={16} lastUpdated={isLive ? new Date() : null} />
-      </header>
-
-      <div className="space-y-8 pb-8">
-        {villages.map((village, idx) => {
-          const data = getVillageData(village.id, idx);
-          const maxDrought = Math.max(...data.map(d => d.droughtProbability || 0));
+    <div className="space-y-5 animate-fade-in">
+      <DataSourceBanner dataSource={dataSource} />
+      {forecasts.length === 0 && !loading && (
+        <div className="card p-8 text-center"><p className="text-sm text-[var(--color-text-muted)]">No forecast data available</p></div>
+      )}
+      <div className="space-y-4">
+        {forecasts.map(({ village, chartData, summary }, idx) => {
+          if (!summary) return null;
+          const risk = getRiskLevel(village.riskScore);
           return (
-            <div key={village.id} className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-slate-200/60 first:border-0 first:pt-0">
-              <div className="lg:col-span-2">
-                 <Card className="h-full">
-                   <CardContent>
-                      <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-semibold text-slate-800">
-                          {isLive ? 'Forecast' : 'Drought Probability (%)'} - {village.name}
-                        </h3>
-                        <span className="text-xs font-semibold text-slate-500 px-2 py-1 bg-slate-100 rounded-lg">{village.district} District</span>
-                      </div>
-                      <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                          <AreaChart data={data}>
-                            <defs>
-                               <linearGradient id={`colorPred-${village.id}`} x1="0" y1="0" x2="0" y2="1">
-                                 <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                                 <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                               </linearGradient>
-                               <linearGradient id={`colorRain-${village.id}`} x1="0" y1="0" x2="0" y2="1">
-                                 <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                               </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 11}} />
-                            <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
-                            <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                            <Legend />
-                            {isLive && (
-                              <Area type="monotone" dataKey="precipitation" stroke="#3b82f6" fill={`url(#colorRain-${village.id})`} strokeWidth={2} name="Precipitation (mm)" />
-                            )}
-                            <Area type="monotone" dataKey="droughtProbability" stroke="#8b5cf6" fill={`url(#colorPred-${village.id})`} strokeWidth={3} name="Drought Probability (%)" />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-                   </CardContent>
-                 </Card>
+            <div key={village._id || idx} className="card p-4 animate-slide-up" style={{ animationDelay: `${idx * 50}ms`, borderLeft: `3px solid ${risk.color}` }}>
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-display">{village.name}</h3>
+                    <RiskBadge score={village.riskScore} />
+                  </div>
+                  <p className="text-[10px] text-[var(--color-text-muted)]">{village.district || village.region}, {village.state}</p>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="font-mono"><span className="text-blue-400">{summary.totalPrecip}</span> mm expected</span>
+                  <span className="font-mono"><span className="text-amber-400">{summary.dryDays}</span>/16 dry days</span>
+                </div>
               </div>
-              
-              <div className="lg:col-span-1 flex flex-col gap-4">
-                 <div className="flex-1 border border-purple-100 bg-purple-50/70 rounded-2xl p-6 relative overflow-hidden transition-all duration-500 hover:shadow-lg">
-                   <div className="absolute -right-4 -top-4 text-purple-200/50">
-                     <TrendingUp size={100} />
-                   </div>
-                   
-                   <h3 className="text-purple-900 font-semibold mb-2 relative z-10 flex items-center gap-2">
-                     <AlertCircle size={18} />
-                     Actionable Intelligence
-                   </h3>
-                   <p className="text-purple-800/80 text-sm leading-relaxed mb-6 relative z-10">
-                     {isLive 
-                       ? `Peak drought probability of ${maxDrought}% detected in the 16-day forecast for ${village.name}. ${maxDrought > 70 ? 'Immediate intervention recommended.' : maxDrought > 50 ? 'Monitoring and precautionary measures advised.' : 'Conditions appear manageable.'}`
-                       : `Models indicate a probability of drought in ${village.name} due to persistent rainfall deficiency.`
-                     }
-                   </p>
-
-                   {!isGenerating[village.id] && !showPlan[village.id] && (
-                     <button 
-                       onClick={() => handleGenerate(village.id)}
-                       className="relative z-10 bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-md transition-all w-full flex justify-center cursor-pointer"
-                     >
-                       Generate AI Action Plan
-                     </button>
-                   )}
-
-                   {isGenerating[village.id] && (
-                     <div className="relative z-10 flex flex-col items-center justify-center space-y-3 py-2">
-                       <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
-                       <span className="text-sm font-medium text-purple-700 animate-pulse">AI is analyzing forecasting data...</span>
-                     </div>
-                   )}
-
-                   {showPlan[village.id] && (
-                     <div className="relative z-10 animate-in slide-in-from-bottom-4 duration-500 mt-4 space-y-3 bg-white/60 p-4 rounded-xl backdrop-blur-sm border border-white/50">
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Recommended Protocol</h4>
-                        <div className="space-y-2 text-sm text-slate-600">
-                          <div className="flex gap-2">
-                            <span className="text-purple-600 font-bold">1.</span>
-                            <p>{maxDrought > 70 ? 'Deploy three 10,000L emergency water tankers immediately.' : 'Increase groundwater monitoring frequency to daily.'}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <span className="text-purple-600 font-bold">2.</span>
-                            <p>{maxDrought > 70 ? 'Activate rationing level 2 protocols for local municipalities.' : 'Initiate community water conservation awareness programs.'}</p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => setShowPlan(prev => ({...prev, [village.id]: false}))}
-                          className="w-full mt-3 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                        >
-                          Dismiss Plan
-                        </button>
-                     </div>
-                   )}
-                 </div>
+              <ResponsiveContainer width="100%" height={180}>
+                <ComposedChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
+                  <XAxis dataKey="date" tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} interval={2} />
+                  <YAxis yAxisId="left" tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} label={{ value: 'mm', position: 'insideTopLeft', style: { fill: '#556380', fontSize: 9 } }} />
+                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} label={{ value: '%', position: 'insideTopRight', style: { fill: '#556380', fontSize: 9 } }} />
+                  <Tooltip contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 11 }} />
+                  <ReferenceLine yAxisId="right" y={70} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'Critical', position: 'right', fill: '#ef4444', fontSize: 9 }} />
+                  <Bar yAxisId="left" dataKey="precip" fill="#3b82f6" radius={[3, 3, 0, 0]} maxBarSize={16} name="Precip (mm)" />
+                  <Line yAxisId="right" type="monotone" dataKey="prob" stroke="#f97316" strokeWidth={2} dot={false} name="Prob (%)" />
+                </ComposedChart>
+              </ResponsiveContainer>
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  {summary.dryDays > 10 ? '⚠ Extended dry spell projected — consider preemptive dispatch' :
+                   summary.avgProb < 30 ? '⚠ Low rainfall probability — monitor closely' :
+                   '✓ Moderate rainfall expected'}
+                </p>
+                {user ? (
+                  <button onClick={() => handleDispatch(village)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                    style={{ backgroundColor: 'rgba(6,182,212,0.1)', color: 'var(--color-cyan)' }}>
+                    <Truck className="w-3.5 h-3.5" /> Dispatch
+                  </button>
+                ) : (
+                  <LoginPrompt message="Sign in" />
+                )}
               </div>
             </div>
           );
