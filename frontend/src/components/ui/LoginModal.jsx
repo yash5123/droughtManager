@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
@@ -7,22 +7,14 @@ import { useToast } from './Toast.jsx';
 const hasGoogleClientId = !!(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
 export default function LoginModal() {
-  const { loginModalOpen, closeLoginModal, loginEmail, registerEmail, loginGoogle } = useAuth();
+  const { loginModalOpen, closeLoginModal, loginGoogle } = useAuth();
   const { addToast } = useToast();
-  const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const overlayRef = useRef(null);
-  const firstInputRef = useRef(null);
 
   useEffect(() => {
     if (loginModalOpen) {
       setError('');
-      setForm({ name: '', email: '', password: '' });
-      setMode('login');
-      setTimeout(() => firstInputRef.current?.focus(), 100);
     }
   }, [loginModalOpen]);
 
@@ -31,26 +23,6 @@ export default function LoginModal() {
     if (loginModalOpen) document.addEventListener('keydown', handleEsc);
     return () => document.removeEventListener('keydown', handleEsc);
   }, [loginModalOpen, closeLoginModal]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSubmitting(true);
-    try {
-      if (mode === 'register') {
-        await registerEmail(form.name, form.email, form.password);
-        addToast('Account created successfully', 'success');
-      } else {
-        await loginEmail(form.email, form.password);
-        addToast('Signed in successfully', 'success');
-      }
-      closeLoginModal();
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (!loginModalOpen) return null;
 
@@ -64,7 +36,7 @@ export default function LoginModal() {
       <div className="card w-full max-w-md mx-4 p-8 animate-slide-up" style={{ backgroundColor: 'var(--color-bg-card)' }}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-display">
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
+            Sign In
           </h2>
           <button onClick={closeLoginModal} className="p-1 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors" aria-label="Close">
             <X className="w-5 h-5 text-[var(--color-text-muted)]" />
@@ -81,60 +53,13 @@ export default function LoginModal() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
-              <input ref={firstInputRef} type="text" placeholder="Full Name" value={form.name} onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))} required minLength={3}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border outline-none transition-colors focus:border-[var(--color-cyan)]"
-                style={{ backgroundColor: 'var(--color-bg-input)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
-              />
-            </div>
-          )}
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
-            <input ref={mode === 'login' ? firstInputRef : null} type="email" placeholder="Email Address" value={form.email} onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))} required
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border outline-none transition-colors focus:border-[var(--color-cyan)]"
-              style={{ backgroundColor: 'var(--color-bg-input)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
-            />
+        {hasGoogleClientId ? (
+          <GoogleLoginBtn loginGoogle={loginGoogle} onSuccess={() => { addToast('Signed in with Google', 'success'); closeLoginModal(); }} onError={setError} />
+        ) : (
+          <div className="text-sm text-[var(--color-text-muted)] text-center py-4">
+            Google Sign-In is not configured.
           </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
-            <input type={showPassword ? 'text' : 'password'} placeholder="Password" value={form.password} onChange={(e) => setForm(p => ({ ...p, password: e.target.value }))} required minLength={8}
-              className="w-full pl-10 pr-10 py-2.5 rounded-lg text-sm border outline-none transition-colors focus:border-[var(--color-cyan)]"
-              style={{ backgroundColor: 'var(--color-bg-input)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
-            />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]">
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-
-          <button type="submit" disabled={submitting}
-            className="w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 disabled:opacity-50"
-            style={{ backgroundColor: 'var(--color-cyan)', color: 'var(--color-bg-base)' }}
-          >
-            {submitting ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-          </button>
-        </form>
-
-        {hasGoogleClientId && (
-          <>
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
-              <span className="text-xs text-[var(--color-text-muted)]">or</span>
-              <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
-            </div>
-            <GoogleLoginBtn loginGoogle={loginGoogle} onSuccess={() => { addToast('Signed in with Google', 'success'); closeLoginModal(); }} onError={setError} />
-          </>
         )}
-
-        <p className="mt-5 text-center text-xs text-[var(--color-text-muted)]">
-          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-          <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
-            className="text-[var(--color-cyan)] hover:underline font-medium">
-            {mode === 'login' ? 'Create one' : 'Sign in'}
-          </button>
-        </p>
       </div>
     </div>
   );
