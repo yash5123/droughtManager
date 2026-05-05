@@ -80,6 +80,11 @@ export function VillageDataProvider({ children }) {
     }).sort((a, b) => b.riskScore - a.riskScore);
   }, []);
 
+  const villageCountRef = useRef(villageCount);
+  useEffect(() => {
+    villageCountRef.current = villageCount;
+  }, [villageCount]);
+
   // Full refresh
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -93,7 +98,7 @@ export function VillageDataProvider({ children }) {
 
       // Track which villages were in previous active set
       setPreviousActiveIds(prev => {
-        const currentIds = new Set(ranked.slice(0, villageCount).map(v => v._id));
+        const currentIds = new Set(ranked.slice(0, villageCountRef.current).map(v => v._id));
         return currentIds;
       });
     } catch (err) {
@@ -101,7 +106,7 @@ export function VillageDataProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [fetchVillages, fetchRiskData, buildRankedList, villageCount]);
+  }, [fetchVillages, fetchRiskData, buildRankedList]);
 
   // Initial fetch + auto-refresh
   useEffect(() => {

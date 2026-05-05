@@ -72,7 +72,7 @@ export default function Overview() {
   const severeCount = riskData.filter(v => v.riskScore > 50 && v.riskScore <= 70).length;
   const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + v.riskScore, 0) / riskData.length) : 0;
 
-  const chartData = activeVillages.slice(0, 15).map(v => ({
+  const chartData = activeVillages.map(v => ({
     name: v.name.length > 8 ? v.name.slice(0, 8) + '…' : v.name,
     score: v.riskScore,
     color: getRiskLevel(v.riskScore).color,
@@ -102,19 +102,23 @@ export default function Overview() {
           {chartData.length === 0 ? (
             <EmptyState title="No risk data" description="Run a risk calculation to populate scores." />
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-                <XAxis dataKey="name" tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 12 }}
-                  cursor={{ fill: 'rgba(6,182,212,0.05)' }}
-                />
-                <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={32}>
-                  {chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto hide-scrollbar w-full">
+              <div style={{ minWidth: `${Math.max(chartData.length * 40, 100)}px`, height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
+                    <XAxis dataKey="name" tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
+                    <YAxis domain={[0, 100]} tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 12 }}
+                      cursor={{ fill: 'rgba(6,182,212,0.05)' }}
+                    />
+                    <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                      {chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           )}
         </div>
 
