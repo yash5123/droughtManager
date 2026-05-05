@@ -37,14 +37,25 @@ function KPICard({ icon: Icon, label, value, suffix = '', color, trend }) {
   );
 }
 
-function RiskLeaderboard({ villages, newlyEnteredIds }) {
+function RiskLeaderboard({ villages, newlyEnteredIds, villageCount, setVillageCount }) {
   return (
     <div className="card flex flex-col h-full border-[var(--color-outline-variant)] bg-[var(--color-surface-container)]">
-      <div className="p-4 border-b border-[var(--color-outline-variant)]">
-        <h3 className="text-base font-semibold text-display text-[var(--color-on-surface)]">Critical Regions</h3>
-        <p className="text-xs text-[var(--color-on-surface-variant)]">Villages sorted by risk severity</p>
+      <div className="p-4 border-b border-[var(--color-outline-variant)] flex justify-between items-center">
+        <div>
+          <h3 className="text-base font-semibold text-display text-[var(--color-on-surface)]">Critical Regions</h3>
+          <p className="text-xs text-[var(--color-on-surface-variant)]">Villages sorted by risk severity</p>
+        </div>
+        <div className="flex items-center gap-1 px-1 py-0.5 rounded-lg bg-[var(--color-surface-container-highest)]">
+          {[10, 25, 50].map(c => (
+            <button key={c} onClick={() => setVillageCount(c)}
+              className="px-2 py-1 rounded text-[10px] font-semibold transition-all"
+              style={{ backgroundColor: villageCount===c ? 'var(--color-primary)' : 'transparent', color: villageCount===c ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)' }}>
+              Top {c}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto hide-scrollbar p-2 space-y-1.5" style={{ maxHeight: '400px' }}>
+      <div className="flex-1 overflow-y-auto hide-scrollbar p-2 space-y-1.5">
         {villages.map((v, i) => {
           const risk = getRiskLevel(v.riskScore);
           const isNew = newlyEnteredIds.has(v._id);
@@ -68,7 +79,7 @@ function RiskLeaderboard({ villages, newlyEnteredIds }) {
 }
 
 export default function Overview() {
-  const { activeVillages, riskData, dataSource, loading, newlyEnteredIds } = useVillageData();
+  const { activeVillages, riskData, dataSource, loading, newlyEnteredIds, villageCount, setVillageCount } = useVillageData();
   const [summary, setSummary] = useState({ totalVillagesMonitored: 0, criticalRegions: 0, activeTankers: 0 });
 
   useEffect(() => {
@@ -157,7 +168,7 @@ export default function Overview() {
 
         {/* Right Column: Leaderboard */}
         <div className="lg:col-span-4">
-          <RiskLeaderboard villages={activeVillages} newlyEnteredIds={newlyEnteredIds} />
+          <RiskLeaderboard villages={activeVillages} newlyEnteredIds={newlyEnteredIds} villageCount={villageCount} setVillageCount={setVillageCount} />
         </div>
       </div>
 

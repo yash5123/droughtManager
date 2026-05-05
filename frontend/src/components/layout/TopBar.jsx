@@ -22,15 +22,7 @@ export default function TopBar() {
     <header className="h-14 flex items-center justify-between px-4 border-b flex-shrink-0"
       style={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
       <h1 className="text-base font-semibold text-display">{title}</h1>
-      <div className="hidden sm:flex items-center gap-1 px-1 py-0.5 rounded-lg" style={{ backgroundColor: 'var(--color-bg-card)' }}>
-        {[10,25,50].map(c => (
-          <button key={c} onClick={() => setVillageCount(c)}
-            className="px-3 py-1 rounded-md text-xs font-semibold transition-all"
-            style={{ backgroundColor: villageCount===c ? 'var(--color-cyan)' : 'transparent', color: villageCount===c ? 'var(--color-bg-base)' : 'var(--color-text-muted)' }}>
-            Top {c}
-          </button>
-        ))}
-      </div>
+      <div className="hidden sm:flex items-center gap-1 px-1 py-0.5 rounded-lg" />
       <div className="flex items-center gap-3">
         <div className="hidden lg:flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${dataSource==='backend' ? 'bg-emerald-400 pulse-live' : 'bg-amber-400'}`} />
