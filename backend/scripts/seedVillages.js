@@ -9,7 +9,7 @@ import Village from '../models/Village.js';
 
 dotenv.config();
 
-const villages = [
+export const villages = [
   // ── Rajasthan (10) ──
   { name: 'Barmer', district: 'Barmer', state: 'Rajasthan', region: 'Western Rajasthan', population: 26040, location: { lat: 25.7521, lng: 71.3967 }, avgAnnualRainfall: 277 },
   { name: 'Jaisalmer', district: 'Jaisalmer', state: 'Rajasthan', region: 'Western Rajasthan', population: 65471, location: { lat: 26.9157, lng: 70.9083 }, avgAnnualRainfall: 209 },
@@ -77,25 +77,29 @@ const villages = [
   { name: 'Lalitpur', district: 'Lalitpur', state: 'Uttar Pradesh', region: 'Bundelkhand UP', population: 132931, location: { lat: 24.6900, lng: 78.4164 }, avgAnnualRainfall: 870 },
 ];
 
-async function seed() {
+export async function runSeed() {
+  let created = 0, updated = 0;
+  for (const v of villages) {
+    const result = await Village.updateOne(
+      { name: v.name, state: v.state },
+      { $set: v },
+      { upsert: true }
+    );
+    if (result.upsertedCount > 0) created++;
+    else if (result.modifiedCount > 0) updated++;
+  }
+  return { created, updated, total: villages.length };
+}
+
+async function runSeedCli() {
   try {
     const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/drought-monitoring';
     await mongoose.connect(MONGO_URI);
     console.log('Connected to MongoDB for seeding.');
-
-    // Upsert each village by name + state to avoid duplicates
-    let created = 0, updated = 0;
-    for (const v of villages) {
-      const result = await Village.updateOne(
-        { name: v.name, state: v.state },
-        { $set: v },
-        { upsert: true }
-      );
-      if (result.upsertedCount > 0) created++;
-      else if (result.modifiedCount > 0) updated++;
-    }
-
-    console.log(`Seeding complete: ${created} created, ${updated} updated, ${villages.length} total.`);
+    
+    const result = await runSeed();
+    console.log(`Seeding complete: ${result.created} created, ${result.updated} updated, ${result.total} total.`);
+    
     await mongoose.disconnect();
   } catch (err) {
     console.error('Seeding failed:', err);
@@ -103,4 +107,8 @@ async function seed() {
   }
 }
 
-seed();
+// Check if running directly via CLI (ESM way to check)
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  runSeedCli();
+}

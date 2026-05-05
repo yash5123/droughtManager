@@ -12,6 +12,8 @@ import supplyRoutes from './routes/supply.js';
 import authRoutes from './routes/auth.js';
 import villageRoutes from './routes/villages.js';
 import weatherRoutes from './routes/weather.js';
+import Village from './models/Village.js';
+import { runSeed } from './scripts/seedVillages.js';
 
 dotenv.config();
 
@@ -46,7 +48,19 @@ app.use(express.json());
 // Mongoose Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/drought-monitoring';
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
+  .then(async () => {
+    console.log('MongoDB connected');
+    try {
+      const count = await Village.countDocuments();
+      if (count === 0) {
+        console.log('Database is empty. Automatically seeding initial villages...');
+        const result = await runSeed();
+        console.log(`Auto-seeding complete: ${result.created} created, ${result.updated} updated, ${result.total} total.`);
+      }
+    } catch (seedErr) {
+      console.error('Error during auto-seeding:', seedErr);
+    }
+  })
   .catch(err => console.error('MongoDB connection error:', err));
 
 // ── Public routes (no auth required) ──
