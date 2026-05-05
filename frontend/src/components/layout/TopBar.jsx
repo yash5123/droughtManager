@@ -1,8 +1,9 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bell, RefreshCw } from 'lucide-react';
+import { Bell, RefreshCw, Sun, Moon } from 'lucide-react';
 import { useVillageData } from '../../context/VillageDataContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useToast } from '../ui/Toast.jsx';
 
 const PAGE_TITLES = {
   '/': 'Overview', '/map': 'Risk Map', '/rainfall': 'Rainfall Analysis',
@@ -15,6 +16,26 @@ export default function TopBar() {
   const location = useLocation();
   const { villageCount, setVillageCount, refreshCountdown, dataSource, refresh, loading } = useVillageData();
   const { user, openLoginModal } = useAuth();
+  const { addToast } = useToast();
+  const [theme, setTheme] = React.useState('dark');
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('theme') || 'dark';
+    setTheme(saved);
+    document.documentElement.setAttribute('data-theme', saved);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+  };
+
+  const handleAlerts = () => {
+    addToast('You have no new alerts at this time.', 'info');
+  };
+
   const title = PAGE_TITLES[location.pathname] || 'AqvaSense';
   const fmt = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 
@@ -34,7 +55,10 @@ export default function TopBar() {
         <button onClick={refresh} disabled={loading} className="p-1.5 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors disabled:opacity-50" aria-label="Refresh">
           <RefreshCw className={`w-4 h-4 text-[var(--color-text-muted)] ${loading ? 'animate-spin' : ''}`} />
         </button>
-        <button className="p-1.5 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors" aria-label="Alerts">
+        <button onClick={toggleTheme} className="p-1.5 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors" aria-label="Toggle Theme">
+          {theme === 'dark' ? <Sun className="w-4 h-4 text-[var(--color-text-muted)]" /> : <Moon className="w-4 h-4 text-[var(--color-text-muted)]" />}
+        </button>
+        <button onClick={handleAlerts} className="p-1.5 rounded-lg hover:bg-[var(--color-bg-elevated)] transition-colors" aria-label="Alerts">
           <Bell className="w-4 h-4 text-[var(--color-text-muted)]" />
         </button>
         {user ? (

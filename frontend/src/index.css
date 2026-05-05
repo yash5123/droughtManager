@@ -116,6 +116,65 @@
     background-color: rgba(6, 182, 212, 0.3);
     color: #e8edf5;
   }
+
+  [data-theme="light"] {
+    --color-background: #f8fafc;
+    --color-on-background: #0f172a;
+    
+    --color-surface: #ffffff;
+    --color-surface-dim: #f1f5f9;
+    --color-surface-bright: #ffffff;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f8fafc;
+    --color-surface-container: #f1f5f9;
+    --color-surface-container-high: #e2e8f0;
+    --color-surface-container-highest: #cbd5e1;
+    --color-surface-variant: #e2e8f0;
+    --color-on-surface: #1e293b;
+    --color-on-surface-variant: #475569;
+    
+    --color-primary: #0284c7;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #e0f2fe;
+    --color-on-primary-container: #082f49;
+    
+    --color-secondary: #3b82f6;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #dbeafe;
+    --color-on-secondary-container: #1e3a8a;
+    
+    --color-tertiary: #d97706;
+    --color-on-tertiary: #ffffff;
+    --color-tertiary-container: #fef3c7;
+    --color-on-tertiary-container: #78350f;
+    
+    --color-error: #dc2626;
+    --color-on-error: #ffffff;
+    --color-error-container: #fee2e2;
+    --color-on-error-container: #7f1d1d;
+
+    --color-outline: #94a3b8;
+    --color-outline-variant: #cbd5e1;
+
+    --color-bg-base: var(--color-background);
+    --color-bg-surface: var(--color-surface-container-low);
+    --color-bg-card: var(--color-surface-container);
+    --color-bg-card-hover: var(--color-surface-container-high);
+    --color-bg-elevated: var(--color-surface-container-highest);
+    --color-bg-input: var(--color-surface-container-lowest);
+
+    --color-border: var(--color-outline-variant);
+    --color-border-subtle: var(--color-surface-container-high);
+    --color-border-focus: var(--color-primary);
+
+    --color-text-primary: var(--color-on-surface);
+    --color-text-secondary: var(--color-on-surface-variant);
+    --color-text-muted: var(--color-outline);
+    --color-text-inverse: var(--color-surface);
+
+    --color-cyan: var(--color-primary);
+    --color-cyan-bright: #0369a1;
+  }
 }
 
 /* ─── Utilities ─── */
