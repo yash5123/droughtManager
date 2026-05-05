@@ -34,7 +34,7 @@ function RiskFilter({ active, onToggle }) {
 }
 
 export default function MapPage() {
-  const { activeVillages, dataSource } = useVillageData();
+  const { activeVillages, dataSource, villageCount, setVillageCount } = useVillageData();
   const { user, openLoginModal } = useAuth();
   const [selected, setSelected] = useState(null);
   const [filters, setFilters] = useState(['Extreme', 'Severe', 'Moderate', 'Normal']);
@@ -61,6 +61,16 @@ export default function MapPage() {
         </div>
         <div className="flex items-center gap-4">
           <RiskFilter active={filters} onToggle={toggleFilter} />
+          <div className="h-6 w-px bg-[var(--color-outline-variant)]"></div>
+          <div className="flex items-center gap-1 px-1 py-0.5 rounded-lg bg-[var(--color-surface-container-highest)]">
+            {[10, 25, 50].map(c => (
+              <button key={c} onClick={() => setVillageCount(c)}
+                className="px-2 py-1 rounded text-[10px] font-semibold transition-all"
+                style={{ backgroundColor: villageCount===c ? 'var(--color-primary)' : 'transparent', color: villageCount===c ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)' }}>
+                Top {c}
+              </button>
+            ))}
+          </div>
           <div className="h-6 w-px bg-[var(--color-outline-variant)]"></div>
           <span className="text-xs font-mono text-[var(--color-on-surface-variant)]">{filtered.length} NODES</span>
         </div>
