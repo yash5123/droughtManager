@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { AlertTriangle, Droplets } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { AlertTriangle, Droplets, ArrowRight } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import { getSoilMoistureLevel } from '../utils/riskLevels.js';
-import { formatNumber } from '../utils/formatters.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 
 export default function GroundwaterAnalysis() {
@@ -28,7 +27,9 @@ export default function GroundwaterAnalysis() {
           return { ...v, soilMoisture: avg !== null ? Math.round(avg * 10000) / 100 : null, src: ws };
         })
       );
-      setMoistureData(results.sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999)));
+      const sorted = results.sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999));
+      setMoistureData(sorted);
+      if (!selectedVillage && sorted.length > 0) setSelectedVillage(sorted[0]);
       setLoading(false);
     };
     fetchAll();
@@ -45,87 +46,119 @@ export default function GroundwaterAnalysis() {
     });
   }, [selectedVillage]);
 
-  const chartData = useMemo(() => moistureData.filter(v => v.soilMoisture !== null).map(v => {
-    const level = getSoilMoistureLevel(v.soilMoisture);
-    return { name: v.name.length > 10 ? v.name.slice(0, 9) + '…' : v.name, value: v.soilMoisture, color: level.color };
-  }), [moistureData]);
-
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto flex flex-col h-full">
       <DataSourceBanner dataSource={dataSource} />
 
-      {/* Disclaimer */}
-      <div className="flex items-start gap-3 px-4 py-3 rounded-lg border"
-        style={{ backgroundColor: 'rgba(245, 158, 11, 0.06)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-        <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-amber-400">Soil Moisture ≠ Water Table Depth</p>
-          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-            This page displays satellite-derived soil moisture data (0–7 cm surface layer), not actual groundwater table depth.
-            Real aquifer monitoring requires in-situ piezometer sensors. Soil moisture serves as a supplementary drought indicator only.
+      {/* Header & Disclaimer */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Droplets className="w-6 h-6 text-[var(--color-primary)]" />
+          <div>
+            <h2 className="text-base font-bold text-display text-[var(--color-on-surface)]">Subsurface Hydrology</h2>
+            <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-wider">30-Day Moisture Analysis</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] max-w-xl">
+          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+          <p className="text-[10px] text-amber-400 leading-tight">
+            <strong className="font-semibold">Notice:</strong> Displaying satellite-derived soil moisture (0–7 cm surface layer). Real aquifer monitoring requires in-situ piezometer sensors. Use as a supplementary indicator only.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="card p-4 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-display mb-3">Soil Moisture Comparison (%)</h3>
-          {loading ? (
-            <div className="flex items-center justify-center h-64"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--color-cyan)', borderTopColor: 'transparent' }} /></div>
-          ) : chartData.length === 0 ? (
-            <EmptyState icon={Droplets} title="No soil moisture data" description="Weather proxy may be unavailable." />
-          ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-                <XAxis dataKey="name" tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 12 }} />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28}>
-                  {chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-        <div className="card p-4">
-          <h3 className="text-sm font-semibold text-display mb-3">Trend (30 Days)</h3>
-          {selectedVillage && villageTrend ? (
-            <div className="animate-slide-up">
-              <p className="text-sm font-medium mb-2">{selectedVillage.name}</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={villageTrend}>
-                  <XAxis dataKey="date" tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 11 }} />
-                  <Line type="monotone" dataKey="moisture" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
+      {/* Top Half: Large Chart */}
+      <div className="card p-5 border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] flex-1 min-h-[400px] flex flex-col relative overflow-hidden">
+        <div className="flex items-center justify-between mb-4 relative z-10">
+          <div>
+            <h3 className="text-lg font-bold text-display text-[var(--color-on-surface)]">{selectedVillage?.name || 'Loading...'}</h3>
+            <p className="text-xs text-[var(--color-on-surface-variant)]">Surface Soil Moisture Trend (%)</p>
+          </div>
+          {selectedVillage && selectedVillage.soilMoisture !== null && (
+            <div className="text-right">
+              <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider">Current Avg</p>
+              <p className="text-xl font-mono font-bold" style={{ color: getSoilMoistureLevel(selectedVillage.soilMoisture).color }}>
+                {selectedVillage.soilMoisture.toFixed(1)}%
+              </p>
             </div>
-          ) : (
-            <p className="text-xs text-[var(--color-text-muted)]">Click a village below to see trend</p>
           )}
         </div>
+
+        <div className="flex-1 relative z-10">
+          {villageTrend ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={villageTrend} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: 'var(--color-outline)', fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fill: 'var(--color-outline)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--color-surface-container-highest)', border: '1px solid var(--color-outline-variant)', borderRadius: 8, color: 'var(--color-on-surface)', fontSize: 12 }} 
+                  itemStyle={{ color: 'var(--color-secondary)' }}
+                />
+                <Line type="monotone" dataKey="moisture" stroke="var(--color-secondary)" strokeWidth={3} dot={{ fill: 'var(--color-bg-base)', stroke: 'var(--color-secondary)', strokeWidth: 2, r: 4 }} activeDot={{ r: 7, strokeWidth: 0, fill: 'var(--color-primary)' }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              {loading ? (
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} />
+              ) : (
+                <EmptyState icon={Droplets} title="No trend data" description="Weather proxy may be unavailable." />
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Glow */}
+        <div className="absolute inset-0 bg-[var(--color-secondary)]/5 pointer-events-none blur-[100px] opacity-30 transform scale-90 z-0"></div>
       </div>
 
-      {/* Village Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {moistureData.map((v, i) => {
-          const level = v.soilMoisture !== null ? getSoilMoistureLevel(v.soilMoisture) : null;
-          return (
-            <button key={v._id || i} onClick={() => setSelectedVillage(v)}
-              className={`card p-3 text-left card-hover ${selectedVillage?._id === v._id ? 'border-[var(--color-cyan)]' : ''}`}>
-              <div className="flex justify-between items-start">
-                <div><p className="text-sm font-medium">{v.name}</p><p className="text-[10px] text-[var(--color-text-muted)]">{v.state}</p></div>
-                {level && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: level.color + '20', color: level.color }}>{level.label}</span>}
-              </div>
-              <p className="text-lg font-bold font-mono mt-2">
-                {v.soilMoisture !== null ? `${v.soilMoisture.toFixed(1)}%` : '—'}
-                <span className="text-xs font-normal text-[var(--color-text-muted)] ml-1">surface moisture</span>
-              </p>
-            </button>
-          );
-        })}
+      {/* Bottom Half: Horizontal Scrolling Cards */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-display text-[var(--color-on-surface)]">Regional Comparison</h3>
+          <span className="text-xs text-[var(--color-on-surface-variant)] flex items-center gap-1">Scroll <ArrowRight className="w-3 h-3" /></span>
+        </div>
+        
+        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
+          {moistureData.map((v, i) => {
+            const level = v.soilMoisture !== null ? getSoilMoistureLevel(v.soilMoisture) : null;
+            const isSelected = selectedVillage?._id === v._id;
+            
+            return (
+              <button key={v._id || i} onClick={() => setSelectedVillage(v)}
+                className={`flex-shrink-0 w-64 card p-4 text-left transition-all relative overflow-hidden group snap-start ${isSelected ? 'bg-[var(--color-surface-container-high)] border-[var(--color-secondary)]' : 'bg-[var(--color-surface-container)] hover:bg-[var(--color-surface-container-low)] border-[var(--color-outline-variant)]'}`}
+                style={{ boxShadow: isSelected ? '0 0 15px rgba(187,199,223,0.1)' : 'none' }}>
+                
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <p className="text-sm font-bold text-[var(--color-on-surface)] truncate w-32">{v.name}</p>
+                    <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wide">{v.district || v.region}</p>
+                  </div>
+                  {level && (
+                    <span className="text-[10px] font-bold px-2 py-1 rounded" style={{ backgroundColor: level.color + '15', color: level.color }}>
+                      {level.label}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-1">Avg Moisture</p>
+                    <p className="text-2xl font-mono font-bold text-[var(--color-on-surface)]">
+                      {v.soilMoisture !== null ? v.soilMoisture.toFixed(1) : '—'}
+                      <span className="text-sm font-sans font-normal text-[var(--color-outline)] ml-1">%</span>
+                    </p>
+                  </div>
+                  {isSelected && <div className="w-2 h-2 rounded-full bg-[var(--color-secondary)] shadow-[0_0_8px_var(--color-secondary)]"></div>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
+      
     </div>
   );
 }

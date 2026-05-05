@@ -13,39 +13,79 @@
 /* ─── Theme Variables ─── */
 @theme {
   --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Source Sans 3', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-bg-base: #060a13;
-  --color-bg-surface: #0c1322;
-  --color-bg-card: #111a2e;
-  --color-bg-card-hover: #162036;
-  --color-bg-elevated: #1a2540;
-  --color-bg-input: #0f1729;
+  /* Stitch Command Center Design System Tokens */
+  --color-background: #0e1416;
+  --color-on-background: #dee3e6;
+  
+  --color-surface: #0e1416;
+  --color-surface-dim: #0e1416;
+  --color-surface-bright: #343a3c;
+  --color-surface-container-lowest: #090f11;
+  --color-surface-container-low: #171d1e;
+  --color-surface-container: #1b2122;
+  --color-surface-container-high: #252b2d;
+  --color-surface-container-highest: #303638;
+  --color-surface-variant: #303638;
+  --color-on-surface: #dee3e6;
+  --color-on-surface-variant: #bcc9cd;
+  
+  --color-primary: #4cd7f6;
+  --color-on-primary: #003640;
+  --color-primary-container: #06b6d4;
+  --color-on-primary-container: #00424f;
+  
+  --color-secondary: #bbc7df;
+  --color-on-secondary: #253144;
+  --color-secondary-container: #3e495e;
+  --color-on-secondary-container: #adb9d1;
+  
+  --color-tertiary: #ffb873;
+  --color-on-tertiary: #4b2800;
+  --color-tertiary-container: #e89337;
+  --color-on-tertiary-container: #5b3200;
+  
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
 
-  --color-border: #1e2d4a;
-  --color-border-subtle: #162038;
-  --color-border-focus: #06b6d4;
+  --color-outline: #869397;
+  --color-outline-variant: #3d494c;
 
-  --color-text-primary: #e8edf5;
-  --color-text-secondary: #8896b3;
-  --color-text-muted: #556380;
-  --color-text-inverse: #060a13;
+  /* Legacy aliases to avoid breaking everything before we fix components */
+  --color-bg-base: var(--color-background);
+  --color-bg-surface: var(--color-surface-container-low);
+  --color-bg-card: var(--color-surface-container);
+  --color-bg-card-hover: var(--color-surface-container-high);
+  --color-bg-elevated: var(--color-surface-container-highest);
+  --color-bg-input: var(--color-surface-container-lowest);
 
-  --color-cyan: #06b6d4;
-  --color-cyan-bright: #22d3ee;
+  --color-border: var(--color-outline-variant);
+  --color-border-subtle: var(--color-surface-container-high);
+  --color-border-focus: var(--color-primary);
+
+  --color-text-primary: var(--color-on-surface);
+  --color-text-secondary: var(--color-on-surface-variant);
+  --color-text-muted: var(--color-outline);
+  --color-text-inverse: var(--color-surface);
+
+  --color-cyan: var(--color-primary-container);
+  --color-cyan-bright: var(--color-primary);
   --color-blue: #3b82f6;
   --color-blue-dim: #2563eb;
 
+  /* Semantic Risk Colors */
   --color-risk-extreme: #ef4444;
   --color-risk-severe: #f97316;
-  --color-risk-moderate: #eab308;
+  --color-risk-moderate: #f59e0b;
   --color-risk-normal: #22c55e;
 
   --color-success: #22c55e;
   --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #06b6d4;
+  --color-info: var(--color-primary-container);
 }
 
 /* ─── Base ─── */

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
-import { Download, CloudRain } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { Download, CloudRain, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -20,26 +20,32 @@ export default function RainfallAnalysis() {
 
   useEffect(() => {
     if (activeVillages.length === 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const fetchAll = async () => {
       const results = await Promise.all(
         activeVillages.slice(0, 15).map(async (v) => {
-          if (!v.location?.lat) return { ...v, totalRain: 0, deficit: 0, weatherSource: 'unavailable' };
+          if (!v.location?.lat) return { ...v, totalRain: 0, deficit: 0, expected: 0, weatherSource: 'unavailable' };
           const { data, dataSource: ws } = await fetchHistoricalWeather(v.location.lat, v.location.lng, period);
           const precip = data?.daily?.precipitation_sum || [];
           const total = precip.reduce((s, val) => s + (val || 0), 0);
           const expected = (v.avgAnnualRainfall || 600) * (period / 365);
           const deficit = Math.round(((expected - total) / expected) * 100);
-          return { ...v, totalRain: Math.round(total * 10) / 10, deficit, weatherSource: ws };
+          return { ...v, totalRain: Math.round(total * 10) / 10, expected: Math.round(expected), deficit, weatherSource: ws };
         })
       );
-      setRainfallData(results.sort((a, b) => b.deficit - a.deficit));
+      const sorted = results.sort((a, b) => b.deficit - a.deficit);
+      setRainfallData(sorted);
+      if (!selectedVillage && sorted.length > 0) {
+        setSelectedVillage(sorted[0]);
+      }
       setLoading(false);
     };
     fetchAll();
   }, [activeVillages, period]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!selectedVillage?.location?.lat) { setVillageTimeSeries(null); return; }
     fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, period).then(({ data }) => {
       if (!data?.daily) { setVillageTimeSeries(null); return; }
@@ -51,94 +57,139 @@ export default function RainfallAnalysis() {
     });
   }, [selectedVillage, period]);
 
-  const chartData = useMemo(() => rainfallData.map(v => ({
-    name: v.name.length > 10 ? v.name.slice(0, 9) + '…' : v.name,
-    total: v.totalRain,
-    deficit: v.deficit,
-    color: v.deficit > 50 ? '#ef4444' : v.deficit > 25 ? '#f97316' : v.deficit > 0 ? '#eab308' : '#22c55e',
-  })), [rainfallData]);
-
   const handleExport = () => {
     exportToCSV(rainfallData.map(v => ({ Village: v.name, State: v.state, 'Total Rain (mm)': v.totalRain, 'Deficit %': v.deficit })), `rainfall_${period}d`);
   };
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto h-full flex flex-col">
       <DataSourceBanner dataSource={dataSource} />
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-1 p-0.5 rounded-lg" style={{ backgroundColor: 'var(--color-bg-card)' }}>
-          {PERIODS.map(p => (
-            <button key={p.days} onClick={() => setPeriod(p.days)}
-              className="px-3 py-1.5 rounded-md text-xs font-semibold transition-all"
-              style={{ backgroundColor: period === p.days ? 'var(--color-cyan)' : 'transparent', color: period === p.days ? 'var(--color-bg-base)' : 'var(--color-text-muted)' }}>
-              {p.label}
-            </button>
-          ))}
+      
+      {/* Header Actions */}
+      <div className="flex items-center justify-between flex-wrap gap-4 bg-[var(--color-surface-container)] p-3 rounded-xl border border-[var(--color-outline-variant)]">
+        <div className="flex items-center gap-4">
+          <CloudRain className="w-5 h-5 text-[var(--color-primary)]" />
+          <h2 className="text-sm font-semibold text-display text-[var(--color-on-surface)]">Hydrological Precipitation Tracking</h2>
         </div>
-        <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors hover:border-[var(--color-cyan)]"
-          style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>
-          <Download className="w-3.5 h-3.5" /> Export CSV
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="card p-4 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-display mb-3">Rainfall Deficit by Village</h3>
-          {loading ? (
-            <div className="flex items-center justify-center h-64"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--color-cyan)', borderTopColor: 'transparent' }} /></div>
-          ) : chartData.length === 0 ? (
-            <EmptyState title="No rainfall data" description="Weather proxy may be unavailable." />
-          ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-                <XAxis dataKey="name" tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#556380', fontSize: 10 }} axisLine={false} tickLine={false} label={{ value: 'mm', position: 'insideTopLeft', style: { fill: '#556380', fontSize: 10 } }} />
-                <Tooltip contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 12 }} />
-                <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={28}>
-                  {chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-        <div className="card p-4">
-          <h3 className="text-sm font-semibold text-display mb-3">Village Detail</h3>
-          {selectedVillage && villageTimeSeries ? (
-            <div className="space-y-3 animate-slide-up">
-              <p className="text-sm font-medium">{selectedVillage.name}</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={villageTimeSeries}>
-                  <XAxis dataKey="date" tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fill: '#556380', fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: '#111a2e', border: '1px solid #1e2d4a', borderRadius: 8, color: '#e8edf5', fontSize: 11 }} />
-                  <Line type="monotone" dataKey="rain" stroke="#06b6d4" strokeWidth={1.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <p className="text-xs text-[var(--color-text-muted)]">Click a row below to see time series</p>
-          )}
-        </div>
-      </div>
-
-      {/* Village Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {rainfallData.map((v, i) => (
-          <button key={v._id || i} onClick={() => setSelectedVillage(v)}
-            className={`card p-3 text-left card-hover transition-all ${selectedVillage?._id === v._id ? 'border-[var(--color-cyan)]' : ''}`}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium">{v.name}</p>
-                <p className="text-[10px] text-[var(--color-text-muted)]">{v.state}</p>
-              </div>
-              <span className="text-xs font-mono px-2 py-0.5 rounded"
-                style={{ backgroundColor: v.deficit > 50 ? '#ef444420' : v.deficit > 25 ? '#f9731620' : '#22c55e20', color: v.deficit > 50 ? '#ef4444' : v.deficit > 25 ? '#f97316' : '#22c55e' }}>
-                {v.deficit > 0 ? `-${v.deficit}%` : `+${Math.abs(v.deficit)}%`}
-              </span>
-            </div>
-            <p className="text-lg font-bold font-mono mt-2">{v.totalRain} <span className="text-xs font-normal text-[var(--color-text-muted)]">mm</span></p>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 p-1 rounded-lg bg-[var(--color-surface-container-highest)] border border-[var(--color-outline-variant)]">
+            {PERIODS.map(p => (
+              <button key={p.days} onClick={() => setPeriod(p.days)}
+                className="px-4 py-1.5 rounded text-xs font-semibold transition-all"
+                style={{ 
+                  backgroundColor: period === p.days ? 'var(--color-primary)' : 'transparent', 
+                  color: period === p.days ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)',
+                  boxShadow: period === p.days ? '0 0 10px rgba(76,215,246,0.3)' : 'none'
+                }}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="h-6 w-px bg-[var(--color-outline-variant)]"></div>
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors hover:bg-[var(--color-surface-container-highest)]"
+            style={{ color: 'var(--color-primary)', border: '1px solid var(--color-outline-variant)' }}>
+            <Download className="w-4 h-4" /> Export CSV
           </button>
-        ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+        
+        {/* Left Column: Data Cards */}
+        <div className="lg:col-span-4 flex flex-col gap-3 h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar pb-10">
+          {loading ? (
+            <div className="flex items-center justify-center h-full"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>
+          ) : rainfallData.length === 0 ? (
+             <EmptyState title="No rainfall data" description="Weather proxy may be unavailable." />
+          ) : (
+            rainfallData.map((v, i) => {
+              const isSelected = selectedVillage?._id === v._id;
+              const defColor = v.deficit > 50 ? 'var(--color-error)' : v.deficit > 25 ? 'var(--color-tertiary)' : 'var(--color-success)';
+              const defBg = v.deficit > 50 ? 'rgba(255, 180, 171, 0.1)' : v.deficit > 25 ? 'rgba(255, 184, 115, 0.1)' : 'rgba(34, 197, 94, 0.1)';
+              
+              return (
+                <button key={v._id || i} onClick={() => setSelectedVillage(v)}
+                  className={`card p-4 text-left transition-all relative overflow-hidden group ${isSelected ? 'bg-[var(--color-surface-container-high)] border-[var(--color-primary)]' : 'bg-[var(--color-surface-container)] hover:bg-[var(--color-surface-container-low)] border-[var(--color-outline-variant)]'}`}
+                  style={{ boxShadow: isSelected ? '0 0 15px rgba(76,215,246,0.15)' : 'none' }}>
+                  
+                  {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-primary)] shadow-[0_0_8px_var(--color-primary)]" />}
+                  
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-[var(--color-on-surface)]">{v.name}</h3>
+                      <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wide">{v.state}</p>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono font-bold" style={{ backgroundColor: defBg, color: defColor }}>
+                      {v.deficit > 0 ? <ArrowDownRight className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                      {Math.abs(v.deficit)}%
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-0.5">Accumulation</p>
+                      <p className="text-lg font-mono font-bold text-[var(--color-on-surface)]">{v.totalRain} <span className="text-[10px] font-sans font-normal text-[var(--color-outline)]">mm</span></p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-0.5">Hist. Avg</p>
+                      <p className="text-lg font-mono font-bold text-[var(--color-on-surface-variant)]">{v.expected} <span className="text-[10px] font-sans font-normal text-[var(--color-outline)]">mm</span></p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* Right Column: Large Chart */}
+        <div className="lg:col-span-8 card bg-[var(--color-surface-container)] border-[var(--color-outline-variant)] flex flex-col" style={{ minHeight: '500px' }}>
+          <div className="p-5 border-b border-[var(--color-outline-variant)] flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-display text-[var(--color-on-surface)]">{selectedVillage?.name || 'Select a region'}</h3>
+              <p className="text-xs text-[var(--color-on-surface-variant)]">Time Series Rainfall Data ({period} Days)</p>
+            </div>
+            {selectedVillage && (
+              <div className="px-4 py-2 bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)] rounded-lg">
+                 <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-0.5 text-right">Total Precipitation</p>
+                 <p className="text-xl font-mono font-bold text-[var(--color-primary)]">{selectedVillage.totalRain} mm</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1 p-5 relative">
+            {villageTimeSeries ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={villageTimeSeries} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" tick={{ fill: 'var(--color-outline)', fontSize: 11 }} axisLine={{ stroke: 'var(--color-outline-variant)' }} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fill: 'var(--color-outline)', fontSize: 11 }} axisLine={{ stroke: 'var(--color-outline-variant)' }} tickLine={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--color-surface-container-highest)', border: '1px solid var(--color-outline-variant)', borderRadius: 8, color: 'var(--color-on-surface)', fontSize: 12 }} 
+                    itemStyle={{ color: 'var(--color-primary)' }}
+                  />
+                  <Area type="monotone" dataKey="rain" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorRain)" activeDot={{ r: 6, fill: 'var(--color-primary)', stroke: 'var(--color-bg-base)', strokeWidth: 2 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full">
+                {loading ? (
+                  <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} />
+                ) : (
+                  <p className="text-sm text-[var(--color-on-surface-variant)]">No time series data available.</p>
+                )}
+              </div>
+            )}
+            
+            {/* Ambient background glow for the chart area */}
+            {villageTimeSeries && <div className="absolute inset-0 bg-[var(--color-primary)]/5 pointer-events-none blur-[100px] rounded-full opacity-30 transform scale-75"></div>}
+          </div>
+        </div>
+
       </div>
     </div>
   );

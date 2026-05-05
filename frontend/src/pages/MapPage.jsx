@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { AlertCircle, Users, MapPin, CloudRain, Droplets, Truck, X } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
@@ -14,16 +15,17 @@ const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.pn
 
 function RiskFilter({ active, onToggle }) {
   return (
-    <div className="flex gap-1.5 flex-wrap">
+    <div className="flex gap-2 flex-wrap">
       {Object.entries(RISK_LEVELS).map(([key, def]) => (
         <button key={key} onClick={() => onToggle(key)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold border transition-all"
           style={{
-            borderColor: active.includes(key) ? def.color : 'var(--color-border)',
-            backgroundColor: active.includes(key) ? def.color + '20' : 'transparent',
-            color: active.includes(key) ? def.color : 'var(--color-text-muted)',
+            borderColor: active.includes(key) ? def.color : 'var(--color-outline-variant)',
+            backgroundColor: active.includes(key) ? def.color + '15' : 'var(--color-surface-container-lowest)',
+            color: active.includes(key) ? def.color : 'var(--color-outline)',
+            opacity: active.includes(key) ? 1 : 0.6
           }}>
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: def.color }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: def.color, boxShadow: active.includes(key) ? `0 0 8px ${def.color}` : 'none' }} />
           {def.label}
         </button>
       ))}
@@ -49,74 +51,110 @@ export default function MapPage() {
   }, [activeVillages, filters]);
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-fade-in flex flex-col h-full">
       <DataSourceBanner dataSource={dataSource} />
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <RiskFilter active={filters} onToggle={toggleFilter} />
-        <span className="text-xs text-[var(--color-text-muted)]">{filtered.length} locations</span>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4" style={{ height: 'calc(100vh - 220px)' }}>
-        <div className="lg:col-span-3 card overflow-hidden rounded-xl" style={{ minHeight: 400 }}>
-          <MapContainer center={INDIA_CENTER} zoom={5} className="w-full h-full" style={{ background: 'var(--color-bg-base)' }}
-            zoomControl={true} attributionControl={true}>
-            <TileLayer url={DARK_TILES} attribution='&copy; <a href="https://carto.com">CARTO</a>' />
-            {filtered.map((v, i) => {
-              const risk = getRiskLevel(v.riskScore);
-              const radius = Math.max(6, Math.min(18, v.riskScore / 5));
-              return (
-                <CircleMarker key={v._id || i} center={[v.location.lat, v.location.lng]}
-                  radius={radius}
-                  pathOptions={{ color: risk.color, fillColor: risk.color, fillOpacity: 0.35, weight: 2 }}
-                  eventHandlers={{ click: () => setSelected(v) }}>
-                  <Popup>
-                    <div style={{ color: '#1a1a1a', minWidth: 150 }}>
-                      <strong>{v.name}</strong><br />
-                      <span>Risk: {v.riskScore} ({risk.label})</span><br />
-                      <span>Pop: {formatNumber(v.population)}</span>
-                    </div>
-                  </Popup>
-                </CircleMarker>
-              );
-            })}
-          </MapContainer>
+      
+      <div className="flex items-center justify-between flex-wrap gap-4 bg-[var(--color-surface-container)] p-3 rounded-xl border border-[var(--color-outline-variant)]">
+        <div className="flex items-center gap-4">
+          <MapPin className="w-5 h-5 text-[var(--color-primary)]" />
+          <h2 className="text-sm font-semibold text-display text-[var(--color-on-surface)]">Geospatial Risk Mapping</h2>
         </div>
+        <div className="flex items-center gap-4">
+          <RiskFilter active={filters} onToggle={toggleFilter} />
+          <div className="h-6 w-px bg-[var(--color-outline-variant)]"></div>
+          <span className="text-xs font-mono text-[var(--color-on-surface-variant)]">{filtered.length} NODES</span>
+        </div>
+      </div>
 
-        {/* Side Panel */}
-        <div className="card p-4 overflow-y-auto hide-scrollbar">
-          {selected ? (
-            <div className="space-y-4 animate-slide-up">
-              <div>
-                <h3 className="text-base font-bold text-display">{selected.name}</h3>
-                <p className="text-xs text-[var(--color-text-muted)]">{selected.district}, {selected.state}</p>
+      <div className="relative flex-1 rounded-xl overflow-hidden border border-[var(--color-outline-variant)] shadow-2xl" style={{ minHeight: 'calc(100vh - 240px)' }}>
+        
+        {/* Main Map */}
+        <MapContainer center={INDIA_CENTER} zoom={5} className="w-full h-full bg-[var(--color-background)] z-0"
+          zoomControl={true} attributionControl={false}>
+          <TileLayer url={DARK_TILES} />
+          {filtered.map((v, i) => {
+            const risk = getRiskLevel(v.riskScore);
+            const isSelected = selected?._id === v._id;
+            const radius = Math.max(6, Math.min(18, v.riskScore / 5));
+            return (
+              <CircleMarker key={v._id || i} center={[v.location.lat, v.location.lng]}
+                radius={isSelected ? radius * 1.5 : radius}
+                pathOptions={{ 
+                  color: risk.color, 
+                  fillColor: risk.color, 
+                  fillOpacity: isSelected ? 0.8 : 0.35, 
+                  weight: isSelected ? 3 : 1 
+                }}
+                eventHandlers={{ click: () => setSelected(v) }}>
+                {/* No Popup here, we use the docked side panel instead */}
+              </CircleMarker>
+            );
+          })}
+        </MapContainer>
+
+        {/* Floating/Docked Side Panel */}
+        <div className={`absolute top-0 right-0 bottom-0 w-[350px] bg-[var(--color-surface-container)] border-l border-[var(--color-outline-variant)] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] transition-transform duration-300 z-10 flex flex-col ${selected ? 'translate-x-0' : 'translate-x-full'}`}>
+          {selected && (
+            <>
+              <div className="p-4 border-b border-[var(--color-outline-variant)] flex items-start justify-between bg-[var(--color-surface-container-high)]">
+                <div>
+                  <h3 className="text-lg font-bold text-display text-[var(--color-on-surface)]">{selected.name}</h3>
+                  <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-wider mt-1">{selected.district}, {selected.state}</p>
+                </div>
+                <button onClick={() => setSelected(null)} className="p-1 rounded-md hover:bg-[var(--color-surface-container-highest)] text-[var(--color-on-surface-variant)] transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <RiskBadge score={selected.riskScore} size="md" />
-              <div className="space-y-2">
-                <InfoRow label="Risk Score" value={selected.riskScore} />
-                <InfoRow label="Population" value={formatNumber(selected.population)} />
-                <InfoRow label="Region" value={selected.region} />
-                <InfoRow label="Avg Rainfall" value={`${selected.avgAnnualRainfall || '—'} mm/yr`} />
+              
+              <div className="p-5 flex-1 overflow-y-auto hide-scrollbar space-y-6">
+                {/* Risk Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">Current Risk Level</span>
+                    <AlertCircle className="w-4 h-4 text-[var(--color-outline)]" />
+                  </div>
+                  <RiskBadge score={selected.riskScore} size="lg" />
+                </div>
+
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  <MetricCard icon={Users} label="Population" value={formatNumber(selected.population)} />
+                  <MetricCard icon={MapPin} label="Region Type" value={selected.region} />
+                  <MetricCard icon={CloudRain} label="Avg Rainfall" value={`${selected.avgAnnualRainfall || '—'} mm`} />
+                  <MetricCard icon={Droplets} label="Water Level" value={`${selected.metricsSnapshot?.groundwaterAvg?.toFixed(1) || '—'} m`} />
+                </div>
+
+                {/* Detailed Analysis Placeholder */}
                 {selected.metricsSnapshot && (
-                  <>
-                    <InfoRow label="Rainfall Avg" value={`${selected.metricsSnapshot.rainfallAvg?.toFixed(1) || '—'} mm`} />
-                    <InfoRow label="GW Level" value={`${selected.metricsSnapshot.groundwaterAvg?.toFixed(1) || '—'} m`} />
-                  </>
+                  <div className="p-3 rounded-lg bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]">
+                    <h4 className="text-xs font-bold text-[var(--color-on-surface)] mb-2 uppercase tracking-wide">Local Sensor Data</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[var(--color-on-surface-variant)]">Rainfall 30D Avg</span>
+                        <span className="font-mono text-[var(--color-primary)]">{selected.metricsSnapshot.rainfallAvg?.toFixed(1)} mm</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[var(--color-on-surface-variant)]">Groundwater Depth</span>
+                        <span className="font-mono text-[var(--color-primary)]">{selected.metricsSnapshot.groundwaterAvg?.toFixed(1)} m</span>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="pt-2">
+
+              {/* Action Area */}
+              <div className="p-4 border-t border-[var(--color-outline-variant)] bg-[var(--color-surface-container-high)]">
                 {user ? (
-                  <button className="w-full py-2 rounded-lg text-xs font-semibold transition-all"
-                    style={{ backgroundColor: 'var(--color-cyan)', color: 'var(--color-bg-base)' }}>
-                    Dispatch Tanker
+                  <button className="w-full py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 hover:opacity-90 shadow-[0_0_15px_rgba(76,215,246,0.3)]"
+                    style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}>
+                    <Truck className="w-4 h-4" />
+                    Dispatch Emergency Tanker
                   </button>
                 ) : (
-                  <LoginPrompt message="Sign in to dispatch" />
+                  <LoginPrompt message="Sign in to dispatch logistics" />
                 )}
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-sm text-[var(--color-text-muted)]">Click a marker to view village details</p>
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -124,11 +162,14 @@ export default function MapPage() {
   );
 }
 
-function InfoRow({ label, value }) {
+function MetricCard({ icon: Icon, label, value }) {
   return (
-    <div className="flex justify-between text-xs py-1 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
-      <span className="text-[var(--color-text-muted)]">{label}</span>
-      <span className="font-medium font-mono">{value}</span>
+    <div className="p-3 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]">
+      <div className="flex items-center gap-2 mb-1.5">
+        <Icon className="w-3.5 h-3.5 text-[var(--color-primary)]" />
+        <span className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider">{label}</span>
+      </div>
+      <p className="text-sm font-semibold font-mono text-[var(--color-on-surface)]">{value}</p>
     </div>
   );
 }
