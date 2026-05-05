@@ -39,7 +39,7 @@ function KPICard({ icon: Icon, label, value, suffix = '', color, trend }) {
 
 function RiskLeaderboard({ villages, newlyEnteredIds, villageCount, setVillageCount }) {
   return (
-    <div className="card flex flex-col h-full border-[var(--color-outline-variant)] bg-[var(--color-surface-container)]">
+    <div className="card flex flex-col border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] lg:h-[658px] h-[500px]">
       <div className="p-4 border-b border-[var(--color-outline-variant)] flex justify-between items-center">
         <div>
           <h3 className="text-base font-semibold text-display text-[var(--color-on-surface)]">Critical Regions</h3>
@@ -55,7 +55,7 @@ function RiskLeaderboard({ villages, newlyEnteredIds, villageCount, setVillageCo
           ))}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto hide-scrollbar p-2 space-y-1.5">
+      <div className="flex-1 overflow-y-auto min-h-0 p-2 space-y-1.5 scrollbar-thin scrollbar-thumb-[var(--color-outline-variant)] scrollbar-track-transparent">
         {villages.map((v, i) => {
           const risk = getRiskLevel(v.riskScore);
           const isNew = newlyEnteredIds.has(v._id);
