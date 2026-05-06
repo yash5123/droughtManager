@@ -193,17 +193,17 @@ export default function Overview() {
     color: getRiskLevel(v.riskScore).color,
   }));
 
-  if (loading && riskData.length === 0) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>;
-  }
-
   // Show seeding overlay when database is being built for the first time
-  if (dataSource === 'seeding' && riskData.length === 0) {
+  if (dataSource === 'seeding') {
     return (
       <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto">
         <SeedingOverlay seedingStatus={seedingStatus} />
       </div>
     );
+  }
+
+  if (loading && riskData.length === 0) {
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>;
   }
 
   return (
