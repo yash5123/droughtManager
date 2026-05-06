@@ -171,10 +171,15 @@ function SeedingOverlay({ seedingStatus }) {
 
 export default function Overview() {
   const { activeVillages, riskData, dataSource, seedingStatus, loading, newlyEnteredIds, villageCount, setVillageCount, meta } = useVillageData();
-  const [summary, setSummary] = useState({ totalVillagesMonitored: 0, criticalRegions: 0, activeTankers: 0 });
+  const [activeTankers, setActiveTankers] = useState(0);
 
   useEffect(() => {
-    api.get('/dashboard/summary').then(r => setSummary(r.data)).catch(() => {});
+    api.get('/tanker?limit=1000')
+      .then(r => {
+        const active = (r.data.data || []).filter(t => t.status === 'Pending' || t.status === 'Enroute').length;
+        setActiveTankers(active);
+      })
+      .catch(() => {});
   }, []);
 
   // Compute KPI stats from backend data
@@ -210,7 +215,7 @@ export default function Overview() {
         <KPICard icon={Activity} label="Districts Monitored" value={totalMonitored} color="var(--color-primary)" />
         <KPICard icon={AlertTriangle} label="Extreme Risk" value={extremeCount} color="var(--color-error)" trend={extremeCount > 0 ? 12 : undefined} />
         <KPICard icon={Droplets} label="Avg Risk Score" value={avgScore} color="var(--color-tertiary)" />
-        <KPICard icon={Truck} label="Active Tankers" value={summary.activeTankers} color="var(--color-success)" />
+        <KPICard icon={Truck} label="Active Tankers" value={activeTankers} color="var(--color-success)" />
       </div>
 
       {/* Dual Zone: Map + Chart + Leaderboard */}
