@@ -267,7 +267,7 @@ async function fetchClimateBaselines() {
   
   const pending = await Village.find({
     geocodingStatus: 'complete',
-    climateBaselineStatus: 'pending',
+    climateBaselineStatus: { $in: ['pending', 'failed'] },
     lat: { $ne: null },
     lon: { $ne: null }
   }).lean();
@@ -281,31 +281,31 @@ async function fetchClimateBaselines() {
     seedingProgress.currentDistrict = `${v.name}, ${v.state}`;
     
     try {
-      const url = `https://climate-api.open-meteo.com/v1/climate?latitude=${v.lat}&longitude=${v.lon}&start_date=1991-01-01&end_date=2020-12-31&models=EC_Earth3P_HR&monthly=precipitation_sum`;
+      const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${v.lat}&longitude=${v.lon}&start_date=2013-01-01&end_date=2023-12-31&daily=precipitation_sum`;
       
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`Climate API ${res.status}`);
+      if (!res.ok) throw new Error(`Archive API ${res.status}`);
       
       const data = await res.json();
       
-      if (data.monthly && data.monthly.precipitation_sum) {
-        const monthlyPrecip = data.monthly.precipitation_sum;
+      if (data.daily && data.daily.precipitation_sum && data.daily.time) {
+        const dailyPrecip = data.daily.precipitation_sum;
+        const dailyTime = data.daily.time;
         
-        // Compute 30-year average for each calendar month
-        const monthlyAvg = new Array(12).fill(0);
-        const monthlyCount = new Array(12).fill(0);
+        // Accumulate sum for each calendar month across all 11 years
+        const monthlySumAcrossAllYears = new Array(12).fill(0);
         
-        // The API returns monthly data from 1991-01 to 2020-12 = 360 months
-        for (let i = 0; i < monthlyPrecip.length; i++) {
-          const monthIndex = i % 12;
-          if (monthlyPrecip[i] != null) {
-            monthlyAvg[monthIndex] += monthlyPrecip[i];
-            monthlyCount[monthIndex]++;
-          }
+        for (let i = 0; i < dailyPrecip.length; i++) {
+          if (dailyPrecip[i] == null) continue;
+          // Parse "YYYY-MM-DD" and get the month index (0-11)
+          const monthIndex = parseInt(dailyTime[i].substring(5, 7)) - 1;
+          monthlySumAcrossAllYears[monthIndex] += dailyPrecip[i];
         }
         
+        // Compute the 11-year average for each calendar month
+        const monthlyAvg = new Array(12).fill(0);
         for (let m = 0; m < 12; m++) {
-          monthlyAvg[m] = monthlyCount[m] > 0 ? Math.round((monthlyAvg[m] / monthlyCount[m]) * 10) / 10 : 0;
+          monthlyAvg[m] = Math.round((monthlySumAcrossAllYears[m] / 11) * 10) / 10;
         }
         
         const annualTotal = monthlyAvg.reduce((s, v) => s + v, 0);

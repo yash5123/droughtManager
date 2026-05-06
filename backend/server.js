@@ -56,7 +56,15 @@ mongoose.connect(MONGO_URI)
         runSeedDistricts().catch(err => console.error('Seeding error:', err));
       } else {
         console.log(`Database has ${count} villages. Seeding not needed.`);
-        seedingProgress.phase = 'complete';
+        
+        // Check if there are failed baselines that need retrying
+        const failedBaselines = await Village.countDocuments({ climateBaselineStatus: 'failed' });
+        if (failedBaselines > 50) {
+          console.log(`${failedBaselines} districts have failed baselines. Re-running Phase 3 in background...`);
+          runSeedDistricts().catch(err => console.error('Baseline retry error:', err));
+        } else {
+          seedingProgress.phase = 'complete';
+        }
         
         // Check if daily job has run today
         const DroughtRisk = (await import('./models/DroughtRisk.js')).default;
