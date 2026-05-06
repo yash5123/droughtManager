@@ -1,71 +1,90 @@
 /**
- * Weather Service — Backend-First Architecture
+ * Weather Service — Thin Backend Wrapper
  *
- * ALL weather data requests go through the backend proxy routes:
- *   GET /api/weather/historical?lat=&lon=&days=
- *   GET /api/weather/forecast?lat=&lon=
- *
- * The backend proxies these to Open-Meteo server-side, centralizing
- * rate limit management and preventing direct browser→external API calls.
- *
- * IMPORTANT: If the backend proxy routes return 404 (not yet deployed),
- * the functions below will return { data: null, dataSource: 'unavailable' }.
- * They will NEVER generate fake/random data. Components must handle empty states.
+ * The frontend no longer fetches weather data or calculates risk scores.
+ * All risk computation happens on the backend via the daily weather job.
+ * This service provides wrappers for the remaining frontend-facing endpoints.
  */
 
 import api from './api.js';
 
 /**
- * Fetch historical weather data for a location.
- * @returns {{ data: object|null, dataSource: 'backend-proxy'|'unavailable' }}
+ * Fetch full risk detail for a single village.
+ * Returns village info + latest risk breakdown + precipitation history.
+ */
+export async function fetchVillageDetail(villageId) {
+  try {
+    const res = await api.get(`/villages/${villageId}/detail`);
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch village detail:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Fetch 16-day weather forecast for a village's coordinates.
+ * Used by the Predictions page.
+ */
+export async function fetchVillageForecast(lat, lon) {
+  try {
+    const res = await api.get('/weather/forecast', {
+      params: { lat, lon }
+    });
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch forecast:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Fetch historical weather data for a village's coordinates.
+ * Used by RainfallAnalysis, GroundwaterAnalysis, and RiskCalculator.
+ * Returns { data, dataSource } for backward compatibility.
  */
 export async function fetchHistoricalWeather(lat, lon, days = 30) {
   try {
     const res = await api.get('/weather/historical', {
       params: { lat, lon, days }
     });
-    return { data: res.data, dataSource: 'backend-proxy' };
+    return { data: res.data, dataSource: res.data?.source || 'backend_proxy' };
   } catch (err) {
-    console.warn(`Weather historical fetch failed for (${lat}, ${lon}):`, err.message);
-    return { data: null, dataSource: 'unavailable' };
+    console.error('Failed to fetch historical weather:', err.message);
+    return { data: null, dataSource: 'error' };
   }
 }
 
 /**
- * Fetch 16-day forecast for a location.
- * @returns {{ data: object|null, dataSource: 'backend-proxy'|'unavailable' }}
+ * Backward-compatible alias for FuturePrediction page.
  */
 export async function fetchForecast(lat, lon) {
-  try {
-    const res = await api.get('/weather/forecast', {
-      params: { lat, lon }
-    });
-    return { data: res.data, dataSource: 'backend-proxy' };
-  } catch (err) {
-    console.warn(`Weather forecast fetch failed for (${lat}, ${lon}):`, err.message);
-    return { data: null, dataSource: 'unavailable' };
-  }
+  return fetchVillageForecast(lat, lon);
 }
 
 /**
- * Calculate drought risk metrics from raw weather data.
- * This is a READ-ONLY client-side computation for display purposes.
- * The authoritative risk scores come from the backend POST /api/risk/calculate.
+ * Compute local risk metrics from raw Open-Meteo weather data.
+ * Used by RiskCalculator for on-demand scenario simulation.
  */
-export function computeLocalRiskMetrics(weatherData) {
-  if (!weatherData?.daily) return null;
-
-  const { precipitation_sum = [], soil_moisture_0_to_7cm_mean = [] } = weatherData.daily;
-
-  const totalPrecip = precipitation_sum.reduce((s, v) => s + (v || 0), 0);
-  const avgSoilMoisture = soil_moisture_0_to_7cm_mean.length > 0
-    ? soil_moisture_0_to_7cm_mean.reduce((s, v) => s + (v || 0), 0) / soil_moisture_0_to_7cm_mean.length
-    : null;
-
-  return {
-    totalPrecipitation: Math.round(totalPrecip * 10) / 10,
-    avgSoilMoisture: avgSoilMoisture !== null ? Math.round(avgSoilMoisture * 100) / 100 : null,
-    daysWithRain: precipitation_sum.filter(v => v > 0.1).length,
-    daysTotal: precipitation_sum.length,
-  };
+export function computeLocalRiskMetrics(data) {
+  if (!data?.daily) {
+    return { totalPrecipitation: 0, daysWithRain: 0, daysTotal: 0, avgSoilMoisture: null };
+  }
+  
+  const precip = data.daily.precipitation_sum || [];
+  const totalPrecipitation = Math.round(precip.reduce((s, v) => s + (v || 0), 0) * 10) / 10;
+  const daysWithRain = precip.filter(v => (v || 0) > 0.1).length;
+  const daysTotal = precip.length;
+  
+  // Soil moisture: try daily first, then compute from source
+  const soilMoisture = data.daily.soil_moisture_0_to_7cm_mean || [];
+  let avgSoilMoisture = null;
+  if (soilMoisture.length > 0) {
+    const validValues = soilMoisture.filter(v => v != null);
+    avgSoilMoisture = validValues.length > 0
+      ? Math.round((validValues.reduce((s, v) => s + v, 0) / validValues.length) * 1000) / 1000
+      : null;
+  }
+  
+  return { totalPrecipitation, daysWithRain, daysTotal, avgSoilMoisture };
 }

@@ -10,14 +10,23 @@ const droughtRiskSchema = new mongoose.Schema({
     required: true
   },
   rainfallDeficit: { type: Number, default: 0 },
-  gwDepletion: { type: Number, default: 0 },
+  soilMoistureDepletion: { type: Number, default: 0 },
+  populationDemandGap: { type: Number, default: 0 },
+  totalPrecipitation30d_mm: { type: Number, default: 0 },
+  avgSoilMoisturePct: { type: Number, default: 0 },
+  precipitationArray: { type: [Number], default: [] }, // 30 daily values for charting
   metricsSnapshot: {
-    rainfallAvg: Number,
-    groundwaterAvg: Number
+    historicalMonthlyAvg: Number,
+    actualPrecipitation: Number,
+    soilMoistureFrac: Number,
+    population: Number,
+    demandLitersPerDay: Number,
+    supplyLitersPerDay: Number
   }
 }, { timestamps: true });
 
 droughtRiskSchema.index({ village: 1, date: -1 });
 droughtRiskSchema.index({ riskScore: -1 });
+droughtRiskSchema.index({ date: -1 });
 
 export default mongoose.model('DroughtRisk', droughtRiskSchema);

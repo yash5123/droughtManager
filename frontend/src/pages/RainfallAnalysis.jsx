@@ -4,7 +4,7 @@ import { Download, CloudRain, ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
-import { formatNumber } from '../utils/formatters.js';
+
 import { exportToCSV } from '../utils/csv.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 
@@ -42,7 +42,7 @@ export default function RainfallAnalysis() {
       setLoading(false);
     };
     fetchAll();
-  }, [activeVillages, period]);
+  }, [activeVillages, period, selectedVillage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

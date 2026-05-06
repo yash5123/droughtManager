@@ -20,21 +20,7 @@ async function createIndexes() {
 
   const db = mongoose.connection.db;
 
-  // ── Rainfall ──────────────────────────────────────────────────────────────
-  // Speeds up: village-specific rainfall lookups sorted by date (used in risk
-  // calculation and supply/demand endpoints)
-  await db.collection('rainfalls').createIndex(
-    { village: 1, date: -1 },
-    { name: 'rainfall_village_date', background: true }
-  );
-  console.log('✓ Rainfall(village, date) compound index');
 
-  // ── Groundwater ───────────────────────────────────────────────────────────
-  await db.collection('groundwaters').createIndex(
-    { village: 1, date: -1 },
-    { name: 'groundwater_village_date', background: true }
-  );
-  console.log('✓ Groundwater(village, date) compound index');
 
   // ── DroughtRisk ───────────────────────────────────────────────────────────
   // Speeds up: latest-risk-per-village aggregation in dashboard

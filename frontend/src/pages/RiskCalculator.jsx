@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { getRiskLevel } from '../utils/riskLevels.js';
 import { fetchHistoricalWeather, computeLocalRiskMetrics } from '../services/weatherService.js';

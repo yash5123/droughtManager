@@ -7,7 +7,7 @@ export function useCountUp(end, duration = 1200, startOnMount = true) {
 
   useEffect(() => {
     if (!startOnMount || end === 0) {
-      setValue(end);
+      setTimeout(() => setValue(end), 0);
       return;
     }
 

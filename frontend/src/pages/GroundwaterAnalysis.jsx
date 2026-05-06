@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { AlertTriangle, Droplets, ArrowRight } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
@@ -16,8 +16,8 @@ export default function GroundwaterAnalysis() {
 
   useEffect(() => {
     if (activeVillages.length === 0) return;
-    setLoading(true);
     const fetchAll = async () => {
+      setLoading(true);
       const results = await Promise.all(
         activeVillages.slice(0, 15).map(async (v) => {
           if (!v.location?.lat) return { ...v, soilMoisture: null, src: 'unavailable' };
@@ -29,21 +29,23 @@ export default function GroundwaterAnalysis() {
       );
       const sorted = results.sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999));
       setMoistureData(sorted);
-      if (!selectedVillage && sorted.length > 0) setSelectedVillage(sorted[0]);
+      setSelectedVillage(prev => !prev ? sorted[0] : prev);
       setLoading(false);
     };
     fetchAll();
   }, [activeVillages]);
 
   useEffect(() => {
-    if (!selectedVillage?.location?.lat) { setVillageTrend(null); return; }
-    fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, 30).then(({ data }) => {
+    const fetchTrend = async () => {
+      if (!selectedVillage?.location?.lat) { setVillageTrend(null); return; }
+      const { data } = await fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, 30);
       if (!data?.daily) { setVillageTrend(null); return; }
       setVillageTrend(data.daily.time.map((t, i) => ({
         date: t.slice(5),
         moisture: Math.round((data.daily.soil_moisture_0_to_7cm_mean?.[i] || 0) * 10000) / 100,
       })));
-    });
+    };
+    fetchTrend();
   }, [selectedVillage]);
 
   return (

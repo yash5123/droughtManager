@@ -187,6 +187,7 @@ export default function SupplyDemand() {
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 function MetricCard({ label, value, unit, icon: Icon, color, isAlert }) {
   const display = useCountUp(Math.min(value, 99999999), 1000);
   return (

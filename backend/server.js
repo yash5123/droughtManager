@@ -2,18 +2,16 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cron from 'node-cron';
 import authMiddleware from './middleware/auth.js';
-import dashboardRoutes from './routes/dashboard.js';
-import rainfallRoutes from './routes/rainfall.js';
-import groundwaterRoutes from './routes/groundwater.js';
 import tankerRoutes from './routes/tanker.js';
-import riskRoutes from './routes/risk.js';
-import supplyRoutes from './routes/supply.js';
+
 import authRoutes from './routes/auth.js';
 import villageRoutes from './routes/villages.js';
 import weatherRoutes from './routes/weather.js';
 import Village from './models/Village.js';
-import { runSeed } from './scripts/seedVillages.js';
+import { runSeedDistricts, seedingProgress } from './jobs/seedDistricts.js';
+import { runDailyWeatherJob, dailyJobStatus } from './jobs/dailyWeatherJob.js';
 
 dotenv.config();
 
@@ -52,27 +50,45 @@ mongoose.connect(MONGO_URI)
     console.log('MongoDB connected');
     try {
       const count = await Village.countDocuments();
-      if (count === 0) {
-        console.log('Database is empty. Automatically seeding initial villages...');
-        const result = await runSeed();
-        console.log(`Auto-seeding complete: ${result.created} created, ${result.updated} updated, ${result.total} total.`);
+      if (count < 100) {
+        console.log(`Database has ${count} villages. Starting district seeding in background...`);
+        // Fire and forget — seeding runs in background
+        runSeedDistricts().catch(err => console.error('Seeding error:', err));
+      } else {
+        console.log(`Database has ${count} villages. Seeding not needed.`);
+        seedingProgress.phase = 'complete';
+        
+        // Check if daily job has run today
+        const DroughtRisk = (await import('./models/DroughtRisk.js')).default;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayRiskCount = await DroughtRisk.countDocuments({ date: { $gte: today } });
+        
+        if (todayRiskCount === 0) {
+          console.log('No risk data for today. Triggering daily weather job...');
+          runDailyWeatherJob().catch(err => console.error('Daily job error:', err));
+        } else {
+          console.log(`Found ${todayRiskCount} risk records for today. Daily job not needed.`);
+        }
       }
     } catch (seedErr) {
-      console.error('Error during auto-seeding:', seedErr);
+      console.error('Error during startup check:', seedErr);
     }
   })
   .catch(err => console.error('MongoDB connection error:', err));
+
+// ── Schedule daily weather job at 02:00 UTC ──
+cron.schedule('0 2 * * *', () => {
+  console.log('[Cron] Running daily weather job at 02:00 UTC');
+  runDailyWeatherJob().catch(err => console.error('[Cron] Daily job error:', err));
+}, { timezone: 'UTC' });
 
 // ── Public routes (no auth required) ──
 // Auth endpoints
 app.use('/api/auth', authRoutes);
 // All data-viewing routes are public per spec: drought data is public interest information
 app.use('/api/villages', villageRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/rainfall', rainfallRoutes);
-app.use('/api/groundwater', groundwaterRoutes);
-app.use('/api/risk', riskRoutes);
-app.use('/api/supply', supplyRoutes);
+
 app.use('/api/weather', weatherRoutes);
 
 // ── Protected routes (auth required for write operations) ──

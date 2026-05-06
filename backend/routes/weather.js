@@ -1,5 +1,6 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import { runDailyWeatherJob, dailyJobStatus } from '../jobs/dailyWeatherJob.js';
 
 const router = express.Router();
 
@@ -61,6 +62,33 @@ router.get('/forecast', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+/**
+ * POST /api/weather/trigger-daily-job
+ * Manually triggers the daily weather fetch + risk scoring job.
+ * Returns immediately with job status.
+ */
+router.post('/trigger-daily-job', async (req, res) => {
+  if (dailyJobStatus.running) {
+    return res.json({ message: 'Daily job already running', status: dailyJobStatus });
+  }
+  
+  // Fire and forget — don't block the response
+  runDailyWeatherJob().catch(err => console.error('[API] Daily job trigger error:', err));
+  
+  res.json({
+    message: 'Daily weather job triggered',
+    status: dailyJobStatus
+  });
+});
+
+/**
+ * GET /api/weather/job-status
+ * Returns current status of the daily weather job.
+ */
+router.get('/job-status', (req, res) => {
+  res.json(dailyJobStatus);
 });
 
 export default router;

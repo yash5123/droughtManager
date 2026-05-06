@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, Plus, RefreshCw, Download, CheckCircle, Clock, Navigation, MapPin, Activity, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext.jsx';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
@@ -16,7 +15,6 @@ const STATUS_COLORS = {
 };
 
 export default function TankerManagement() {
-  const { user } = useAuth();
   const { activeVillages } = useVillageData();
   const { addToast } = useToast();
   const [tankers, setTankers] = useState([]);
@@ -31,10 +29,11 @@ export default function TankerManagement() {
     try {
       const res = await api.get('/tanker?limit=100');
       setTankers(res.data.data || []);
-    } catch (error) { addToast('Failed to load tankers', 'error'); }
+    } catch (err) { addToast('Failed to load tankers', 'error'); }
     finally { setLoading(false); }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchTankers(); }, []);
 
   const counts = {
@@ -63,7 +62,7 @@ export default function TankerManagement() {
       await api.patch(`/tanker/${id}`, { status });
       addToast(`Status updated to ${status}`, 'success');
       fetchTankers();
-    } catch (error) { addToast('Update failed', 'error'); }
+    } catch (err) { addToast('Update failed', 'error'); }
   };
 
   const handleExport = () => {
@@ -206,6 +205,7 @@ export default function TankerManagement() {
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 function StatCard({ label, value, icon: Icon, color }) {
   const v = useCountUp(value, 600);
   return (

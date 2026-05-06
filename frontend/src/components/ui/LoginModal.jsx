@@ -14,7 +14,7 @@ export default function LoginModal() {
 
   useEffect(() => {
     if (loginModalOpen) {
-      setError('');
+      setTimeout(() => setError(''), 0);
     }
   }, [loginModalOpen]);
 

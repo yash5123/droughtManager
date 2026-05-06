@@ -20,8 +20,8 @@ export default function FuturePrediction() {
 
   useEffect(() => {
     if (activeVillages.length === 0) return;
-    setLoading(true);
     const load = async () => {
+      setLoading(true);
       const results = await Promise.all(
         activeVillages.slice(0, 10).map(async (v) => {
           if (!v.location?.lat) return { village: v, chartData: [], summary: null };

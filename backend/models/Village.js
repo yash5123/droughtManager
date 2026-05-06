@@ -2,18 +2,37 @@ import mongoose from 'mongoose';
 
 const villageSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  region: { type: String, required: true },
   district: { type: String, default: '' },
-  state: { type: String, default: '' },
-  population: { type: Number, required: true },
-  avgAnnualRainfall: { type: Number, default: 0 },
+  state: { type: String, required: true },
+  population: { type: Number, default: 0 },
+  lat: { type: Number, default: null },
+  lon: { type: Number, default: null },
   location: {
     lat: { type: Number },
     lng: { type: Number }
+  },
+  historicalAvgMonthlyRainfall_mm: {
+    type: [Number],
+    default: []  // 12 monthly values (Jan-Dec)
+  },
+  historicalAvgAnnualRainfall_mm: { type: Number, default: 0 },
+  geocodingStatus: {
+    type: String,
+    enum: ['pending', 'complete', 'failed'],
+    default: 'pending'
+  },
+  climateBaselineStatus: {
+    type: String,
+    enum: ['pending', 'complete', 'failed'],
+    default: 'pending'
   }
 }, { timestamps: true });
 
 villageSchema.index({ state: 1 });
+villageSchema.index({ geocodingStatus: 1 });
+villageSchema.index({ climateBaselineStatus: 1 });
 villageSchema.index({ name: 'text', district: 'text' });
+// Unique constraint: one doc per district+state combo
+villageSchema.index({ name: 1, state: 1 }, { unique: true });
 
 export default mongoose.model('Village', villageSchema);

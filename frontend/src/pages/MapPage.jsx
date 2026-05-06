@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet';
 import { AlertCircle, Users, MapPin, CloudRain, Droplets, Truck, X } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -35,7 +35,7 @@ function RiskFilter({ active, onToggle }) {
 
 export default function MapPage() {
   const { activeVillages, dataSource, villageCount, setVillageCount } = useVillageData();
-  const { user, openLoginModal } = useAuth();
+  const { user } = useAuth();
   const [selected, setSelected] = useState(null);
   const [filters, setFilters] = useState(['Extreme', 'Severe', 'Moderate', 'Normal']);
 
@@ -172,6 +172,7 @@ export default function MapPage() {
   );
 }
 
+// eslint-disable-next-line no-unused-vars
 function MetricCard({ icon: Icon, label, value }) {
   return (
     <div className="p-3 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]">

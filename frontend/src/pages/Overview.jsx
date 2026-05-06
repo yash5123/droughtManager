@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown } from 'lucide-react';
+import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
@@ -43,7 +43,7 @@ function RiskLeaderboard({ villages, newlyEnteredIds, villageCount, setVillageCo
       <div className="p-4 border-b border-[var(--color-outline-variant)] flex justify-between items-center">
         <div>
           <h3 className="text-base font-semibold text-display text-[var(--color-on-surface)]">Critical Regions</h3>
-          <p className="text-xs text-[var(--color-on-surface-variant)]">Villages sorted by risk severity</p>
+          <p className="text-xs text-[var(--color-on-surface-variant)]">Districts sorted by drought risk severity</p>
         </div>
         <div className="flex items-center gap-1 px-1 py-0.5 rounded-lg bg-[var(--color-surface-container-highest)]">
           {[10, 25, 50].map(c => (
@@ -56,19 +56,33 @@ function RiskLeaderboard({ villages, newlyEnteredIds, villageCount, setVillageCo
         </div>
       </div>
       <div className="flex-1 overflow-y-auto min-h-0 p-2 space-y-1.5 scrollbar-thin scrollbar-thumb-[var(--color-outline-variant)] scrollbar-track-transparent">
+        {villages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--color-on-surface-variant)]">
+            <Database className="w-8 h-8 opacity-40" />
+            <p className="text-sm font-medium">No risk data yet</p>
+            <p className="text-xs opacity-60">Waiting for daily weather job to complete</p>
+          </div>
+        )}
         {villages.map((v, i) => {
           const risk = getRiskLevel(v.riskScore);
           const isNew = newlyEnteredIds.has(v._id);
+          const popFormatted = v.population > 0 ? `Pop: ${(v.population / 1000).toFixed(0)}K` : '';
           return (
             <div key={v._id || i} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all bg-[var(--color-surface-container-high)] hover:bg-[var(--color-surface-container-highest)] ${isNew ? 'animate-slide-right' : ''}`}
               style={{ borderLeft: `4px solid ${risk.color}` }}>
               <span className="text-xs font-mono w-6 text-center text-[var(--color-outline)]">#{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate text-[var(--color-on-surface)]">{v.name}</p>
-                <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wide">{v.district || v.region}, {v.state}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wide">{v.state}</p>
+                  {popFormatted && (
+                    <span className="text-[9px] text-[var(--color-outline)] font-mono">{popFormatted}</span>
+                  )}
+                </div>
               </div>
-              <div className="text-right flex items-center gap-3">
+              <div className="text-right flex flex-col items-end gap-0.5">
                 <span className="text-sm font-bold font-mono" style={{ color: risk.color }}>{v.riskScore}</span>
+                <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: risk.color }}>{v.riskLevel}</span>
               </div>
             </div>
           );
@@ -78,25 +92,113 @@ function RiskLeaderboard({ villages, newlyEnteredIds, villageCount, setVillageCo
   );
 }
 
+/**
+ * Seeding Overlay — shown when the backend is still building the district database.
+ */
+function SeedingOverlay({ seedingStatus }) {
+  const phase = seedingStatus?.phase || 'importing';
+  const total = seedingStatus?.totalDistricts || 0;
+  const geocoded = seedingStatus?.geocodedCount || 0;
+  const baselined = seedingStatus?.baselinedCount || 0;
+  const current = seedingStatus?.currentDistrict || '';
+
+  const phases = [
+    { key: 'importing', label: 'Importing Districts', icon: Database },
+    { key: 'geocoding', label: 'Geocoding Coordinates', icon: MapPin },
+    { key: 'baselines', label: 'Climate Baselines', icon: Droplets },
+  ];
+
+  const currentPhaseIdx = phases.findIndex(p => p.key === phase);
+
+  return (
+    <div className="card p-8 border-[var(--color-outline-variant)] bg-[var(--color-surface-container)]">
+      <div className="flex flex-col items-center text-center max-w-md mx-auto">
+        <div className="relative mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center border border-orange-500/30">
+            <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+          </div>
+        </div>
+        <h2 className="text-xl font-bold text-[var(--color-on-surface)] mb-2">
+          Initializing AqvaSense
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          Building the district database for the first time. This takes ~40 minutes and only happens once.
+        </p>
+
+        {/* Phase steps */}
+        <div className="w-full space-y-3 mb-6">
+          {phases.map((p, idx) => {
+            const isActive = p.key === phase;
+            const isDone = idx < currentPhaseIdx;
+            const Icon = p.icon;
+            
+            let detail = '';
+            if (p.key === 'importing') detail = `${seedingStatus?.importedCount || 0} districts`;
+            if (p.key === 'geocoding') detail = `${geocoded} of ${total}`;
+            if (p.key === 'baselines') detail = `${baselined} of ${total}`;
+
+            return (
+              <div key={p.key} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-orange-500/10 border border-orange-500/30' : isDone ? 'bg-emerald-500/5 border border-emerald-500/20' : 'bg-[var(--color-surface-container-high)] border border-transparent'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-orange-500/20' : isDone ? 'bg-emerald-500/20' : 'bg-[var(--color-surface-container-highest)]'}`}>
+                  {isActive ? (
+                    <Loader2 className="w-4 h-4 text-orange-400 animate-spin" />
+                  ) : isDone ? (
+                    <span className="text-emerald-400 text-sm">✓</span>
+                  ) : (
+                    <Icon className="w-4 h-4 text-[var(--color-outline)]" />
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <p className={`text-sm font-medium ${isActive ? 'text-orange-300' : isDone ? 'text-emerald-400' : 'text-[var(--color-on-surface-variant)]'}`}>{p.label}</p>
+                  {(isActive || isDone) && detail && (
+                    <p className="text-[10px] font-mono text-[var(--color-outline)]">{detail}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {current && (
+          <p className="text-xs font-mono text-[var(--color-outline)] truncate max-w-full">
+            Processing: {current}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Overview() {
-  const { activeVillages, riskData, dataSource, loading, newlyEnteredIds, villageCount, setVillageCount } = useVillageData();
+  const { activeVillages, riskData, dataSource, seedingStatus, loading, newlyEnteredIds, villageCount, setVillageCount, meta } = useVillageData();
   const [summary, setSummary] = useState({ totalVillagesMonitored: 0, criticalRegions: 0, activeTankers: 0 });
 
   useEffect(() => {
     api.get('/dashboard/summary').then(r => setSummary(r.data)).catch(() => {});
   }, []);
 
-  const extremeCount = riskData.filter(v => v.riskScore > 70).length;
-  const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + v.riskScore, 0) / riskData.length) : 0;
+  // Compute KPI stats from backend data
+  const extremeCount = riskData.filter(v => v.riskScore >= 76).length;
+  const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + (v.riskScore || 0), 0) / riskData.length) : 0;
+  const totalMonitored = meta?.total || riskData.length;
 
   const chartData = activeVillages.slice(0, 50).map(v => ({
     name: v.name.length > 8 ? v.name.slice(0, 8) + '…' : v.name,
-    score: v.riskScore,
+    score: v.riskScore || 0,
     color: getRiskLevel(v.riskScore).color,
   }));
 
   if (loading && riskData.length === 0) {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} /></div>;
+  }
+
+  // Show seeding overlay when database is being built for the first time
+  if (dataSource === 'seeding' && riskData.length === 0) {
+    return (
+      <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto">
+        <SeedingOverlay seedingStatus={seedingStatus} />
+      </div>
+    );
   }
 
   return (
@@ -105,7 +207,7 @@ export default function Overview() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard icon={Activity} label="Villages Monitored" value={summary.totalVillagesMonitored || riskData.length} color="var(--color-primary)" />
+        <KPICard icon={Activity} label="Districts Monitored" value={totalMonitored} color="var(--color-primary)" />
         <KPICard icon={AlertTriangle} label="Extreme Risk" value={extremeCount} color="var(--color-error)" trend={extremeCount > 0 ? 12 : undefined} />
         <KPICard icon={Droplets} label="Avg Risk Score" value={avgScore} color="var(--color-tertiary)" />
         <KPICard icon={Truck} label="Active Tankers" value={summary.activeTankers} color="var(--color-success)" />
@@ -128,9 +230,11 @@ export default function Overview() {
                 <TileLayer url={DARK_TILES} />
                 {activeVillages.map((v, i) => {
                   const risk = getRiskLevel(v.riskScore);
-                  return v.location ? (
-                    <CircleMarker key={v._id || i} center={[v.location.lat, v.location.lng]}
-                      radius={Math.max(4, v.riskScore / 10)}
+                  const lat = v.lat || v.location?.lat;
+                  const lon = v.lon || v.location?.lng;
+                  return lat && lon ? (
+                    <CircleMarker key={v._id || i} center={[lat, lon]}
+                      radius={Math.max(4, (v.riskScore || 0) / 10)}
                       pathOptions={{ color: risk.color, fillColor: risk.color, fillOpacity: 0.6, weight: 1 }}
                     />
                   ) : null;

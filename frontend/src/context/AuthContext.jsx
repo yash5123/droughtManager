@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     const storedUser = localStorage.getItem('user');
     if (token && storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        setTimeout(() => setUser(JSON.parse(storedUser)), 0);
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -85,6 +85,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
