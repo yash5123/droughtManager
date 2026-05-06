@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet';
-import { AlertCircle, Users, MapPin, CloudRain, Droplets, Truck, X } from 'lucide-react';
+import { AlertCircle, Users, MapPin, CloudRain, Droplets, Truck, X, Radio } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
@@ -43,6 +43,22 @@ export default function MapPage() {
     setFilters(prev => prev.includes(level) ? prev.filter(f => f !== level) : [...prev, level]);
   };
 
+  // RainViewer live radar
+  const [radarUrl, setRadarUrl] = useState(null);
+  const [showRadar, setShowRadar] = useState(false);
+
+  useEffect(() => {
+    fetch('https://api.rainviewer.com/public/weather-maps.json')
+      .then(r => r.json())
+      .then(data => {
+        const latest = data.radar?.past?.slice(-1)[0];
+        if (latest) {
+          setRadarUrl(`https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const filtered = useMemo(() => {
     return activeVillages.filter(v => {
       const level = getRiskLevel(v.riskScore).label;
@@ -73,6 +89,16 @@ export default function MapPage() {
           </div>
           <div className="h-6 w-px bg-[var(--color-outline-variant)]"></div>
           <span className="text-xs font-mono text-[var(--color-on-surface-variant)]">{filtered.length} NODES</span>
+          <div className="h-6 w-px bg-[var(--color-outline-variant)]"></div>
+          <button onClick={() => setShowRadar(p => !p)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider border transition-all"
+            style={{
+              borderColor: showRadar ? 'var(--color-primary)' : 'var(--color-outline-variant)',
+              backgroundColor: showRadar ? 'var(--color-primary)' + '20' : 'transparent',
+              color: showRadar ? 'var(--color-primary)' : 'var(--color-on-surface-variant)'
+            }}>
+            <Radio className="w-3.5 h-3.5" /> Live Radar
+          </button>
         </div>
       </div>
 
@@ -82,6 +108,9 @@ export default function MapPage() {
         <MapContainer center={INDIA_CENTER} zoom={5} className="w-full h-full bg-[var(--color-background)] z-0"
           zoomControl={true} attributionControl={false}>
           <TileLayer url={DARK_TILES} />
+          {showRadar && radarUrl && (
+            <TileLayer url={radarUrl} opacity={0.6} zIndex={10} />
+          )}
           {filtered.map((v, i) => {
             const risk = getRiskLevel(v.riskScore);
             const isSelected = selected?._id === v._id;

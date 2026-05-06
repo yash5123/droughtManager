@@ -59,7 +59,8 @@ export async function fetchHistoricalWeather(lat, lon, days = 30) {
  * Backward-compatible alias for FuturePrediction page.
  */
 export async function fetchForecast(lat, lon) {
-  return fetchVillageForecast(lat, lon);
+  const result = await fetchVillageForecast(lat, lon);
+  return { data: result };
 }
 
 /**
