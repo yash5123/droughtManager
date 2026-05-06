@@ -19,13 +19,7 @@ export default function SupplyDemand() {
   const { activeVillages, dataSource } = useVillageData();
   const { user, openLoginModal } = useAuth();
   const { addToast } = useToast();
-  const [supplyData, setSupplyData] = useState(null);
   const [dispatching, setDispatching] = useState(null);
-
-  // Try backend first, fall back to client-side estimation
-  useEffect(() => {
-    api.get('/supply').then(r => setSupplyData({ source: 'backend', data: r.data })).catch(() => setSupplyData(null));
-  }, []);
 
   const villages = activeVillages.map(v => {
     const dailyDemand = v.population * LITERS_PER_PERSON_DAY;
@@ -63,15 +57,13 @@ export default function SupplyDemand() {
     <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto">
       <DataSourceBanner dataSource={dataSource} />
       
-      {!supplyData && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded border bg-[var(--color-surface-container-high)]" style={{ borderColor: 'var(--color-tertiary)', color: 'var(--color-tertiary)' }}>
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" /> 
-          <div>
-            <p className="text-sm font-bold uppercase tracking-wider">Simulation Mode Active</p>
-            <p className="text-xs opacity-80">Backend supply telemetry unavailable. Generating estimations based on risk factors and population metrics.</p>
-          </div>
+      <div className="flex items-center gap-3 px-4 py-3 rounded border bg-[var(--color-surface-container-high)]" style={{ borderColor: 'var(--color-tertiary)', color: 'var(--color-tertiary)' }}>
+        <AlertTriangle className="w-5 h-5 flex-shrink-0" /> 
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wider">Predictive Mode Active</p>
+          <p className="text-xs opacity-80">Generating supply deficit estimations based on Open-Meteo risk factors and population metrics.</p>
         </div>
-      )}
+      </div>
 
       <div className="flex items-center gap-3 mb-2 border-b border-[var(--color-outline-variant)] pb-3">
         <ArrowRightLeft className="w-6 h-6 text-[var(--color-primary)]" />
