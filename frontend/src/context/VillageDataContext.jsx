@@ -110,11 +110,17 @@ export function VillageDataProvider({ children }) {
     }
   }, [fetchRankedData, fetchSeedingStatus]);
 
+  // Initial fetch on mount or when refresh reference changes
   useEffect(() => {
     refresh();
-    intervalRef.current = setInterval(refresh, REFRESH_INTERVAL);
-    return () => clearInterval(intervalRef.current);
   }, [refresh]);
+
+  // Dynamic polling interval
+  useEffect(() => {
+    const currentInterval = dataSource === 'seeding' || dataSource === 'pending' ? 3000 : REFRESH_INTERVAL;
+    intervalRef.current = setInterval(refresh, currentInterval);
+    return () => clearInterval(intervalRef.current);
+  }, [refresh, dataSource]);
 
   const activeVillages = useMemo(() => {
     return riskData.slice(0, villageCount);
@@ -134,13 +140,14 @@ export function VillageDataProvider({ children }) {
   useEffect(() => {
     const tick = setInterval(() => {
       if (lastRefreshed) {
+        const currentInterval = dataSource === 'seeding' || dataSource === 'pending' ? 3000 : REFRESH_INTERVAL;
         const elapsed = Date.now() - lastRefreshed.getTime();
-        const remaining = Math.max(0, Math.ceil((REFRESH_INTERVAL - elapsed) / 1000));
+        const remaining = Math.max(0, Math.ceil((currentInterval - elapsed) / 1000));
         setRefreshCountdown(remaining);
       }
     }, 1000);
     return () => clearInterval(tick);
-  }, [lastRefreshed]);
+  }, [lastRefreshed, dataSource]);
 
   const value = {
     allVillages: riskData, // All fetched data (up to 200)
