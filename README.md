@@ -207,7 +207,7 @@ The tech stack was carefully chosen to be **modern but practical** - React 19 fo
 
   <br/>
 
-  **Made with ❤️ and lots of ☕ by the developer**
+  **Made with ❤️ and lots of ☕ by the Yash**
 
   *💧 Every drop counts. Every village matters.*
 
