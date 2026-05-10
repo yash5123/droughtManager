@@ -26,7 +26,7 @@ export default function MapPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [selected, setSelected] = useState(null);
-  const [riskFilter, setRiskFilter] = useState('All');
+  const [riskFilter, setRiskFilter] = useState('Extreme');
 
   const [radarUrl, setRadarUrl] = useState(null);
   const [showRadar, setShowRadar] = useState(false);

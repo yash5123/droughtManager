@@ -49,7 +49,7 @@ export default function Overview() {
   const { activeVillages, riskData, dataSource, seedingStatus, loading, setVillageCount, meta, villageCount } = useVillageData();
   const { user } = useAuth();
   const [activeTankers, setActiveTankers] = useState(0);
-  const [riskFilter, setRiskFilter] = useState('All');
+  const [riskFilter, setRiskFilter] = useState('Extreme');
   const { theme } = useTheme();
 
   const displayVillages = React.useMemo(() => {
