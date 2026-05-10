@@ -85,12 +85,67 @@ export default function Overview() {
   };
 
   if (dataSource === 'seeding') {
+    let phaseText = 'Connecting to backend...';
+    let progressText = '';
+    let currentTask = '';
+    let pct = 0;
+    
+    if (seedingStatus) {
+      if (seedingStatus.phase === 'importing') {
+        phaseText = '1/4: Importing Census Data...';
+        progressText = `${seedingStatus.importedCount} / ${seedingStatus.totalDistricts || '?'} regions`;
+        if (seedingStatus.totalDistricts) pct = Math.round((seedingStatus.importedCount / seedingStatus.totalDistricts) * 100);
+      } else if (seedingStatus.phase === 'geocoding') {
+        phaseText = '2/4: Mapping Geospatial Coordinates...';
+        progressText = `${seedingStatus.totalProcessedGeocode} / ${seedingStatus.importedCount} regions`;
+        if (seedingStatus.importedCount) pct = Math.round((seedingStatus.totalProcessedGeocode / seedingStatus.importedCount) * 100);
+      } else if (seedingStatus.phase === 'baselines') {
+        phaseText = '3/4: Fetching 30-Year Climate Baselines...';
+        progressText = `${seedingStatus.totalProcessedBaseline} / ${seedingStatus.geocodedCount} regions`;
+        if (seedingStatus.geocodedCount) pct = Math.round((seedingStatus.totalProcessedBaseline / seedingStatus.geocodedCount) * 100);
+      } else if (seedingStatus.dailyJob && seedingStatus.dailyJob.running) {
+        phaseText = '4/4: Generating AI Risk Forecasts...';
+        progressText = `${seedingStatus.dailyJob.processedCount || 0} / ${seedingStatus.dailyJob.totalToProcess || '?'} models computed`;
+        if (seedingStatus.dailyJob.totalToProcess) pct = Math.round((seedingStatus.dailyJob.processedCount / seedingStatus.dailyJob.totalToProcess) * 100);
+      } else {
+        phaseText = 'Finalizing setup...';
+        pct = 100;
+      }
+      
+      currentTask = seedingStatus.currentDistrict || '';
+    }
+
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <div className="glass-card" style={{ padding: '40px', textAlign: 'center', maxWidth: '400px' }}>
+        <div className="glass-card" style={{ padding: '40px', textAlign: 'center', maxWidth: '450px', width: '100%' }}>
           <Loader2 size={40} className="spinning" style={{ color: 'var(--accent-blue)', margin: '0 auto 20px' }} />
-          <h2 className="title" style={{ fontSize: '24px', marginBottom: '8px' }}>Initializing System</h2>
-          <p className="body-text" style={{ color: 'var(--text-secondary)' }}>Building district database...</p>
+          <h2 className="title" style={{ fontSize: '24px', marginBottom: '24px' }}>System Initialization</h2>
+          
+          <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{phaseText}</span>
+              <span style={{ color: 'var(--accent-blue)', fontWeight: 600, fontSize: '14px' }}>{pct}%</span>
+            </div>
+            
+            {/* Progress Bar Container */}
+            <div style={{ height: '6px', background: 'var(--glass-bg)', borderRadius: '3px', overflow: 'hidden', marginBottom: '16px' }}>
+              <div style={{ height: '100%', background: 'var(--accent-blue)', width: `${pct}%`, transition: 'width 0.3s ease' }}></div>
+            </div>
+            
+            {progressText && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                <span>Progress:</span>
+                <span style={{ fontFamily: 'monospace' }}>{progressText}</span>
+              </div>
+            )}
+            
+            {currentTask && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-tertiary)', fontSize: '12px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
+                <span>Processing:</span>
+                <span style={{ fontStyle: 'italic' }}>{currentTask}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
