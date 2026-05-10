@@ -68,7 +68,7 @@ export default function Overview() {
 
   const { user } = useAuth();
   const [activeTankers, setActiveTankers] = useState(0);
-  const [riskFilter, setRiskFilter] = useState('Extreme');
+  const [riskFilter, setRiskFilter] = useState('All');
   const { theme } = useTheme();
 
   const displayVillages = React.useMemo(() => {
@@ -238,8 +238,8 @@ export default function Overview() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 className="section-header">Live Geospatial Overview</h3>
             <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
-              {['Extreme', 'Severe', 'Moderate', 'Normal'].map(level => (
-                <button key={level} onClick={() => setRiskFilter(riskFilter === level ? 'All' : level)}
+              {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => (
+                <button key={level} onClick={() => setRiskFilter(level)}
                   style={{
                     padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
                     background: riskFilter === level ? 'rgba(59,130,246,0.15)' : 'transparent',

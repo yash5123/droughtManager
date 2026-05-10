@@ -37,7 +37,7 @@ export default function MapPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [selected, setSelected] = useState(null);
-  const [riskFilter, setRiskFilter] = useState('Extreme');
+  const [riskFilter, setRiskFilter] = useState('All');
 
   const [radarUrl, setRadarUrl] = useState(null);
   const [showRadar, setShowRadar] = useState(false);
@@ -77,12 +77,13 @@ export default function MapPage() {
         }}>
           {/* Severity Filters */}
           <div style={{ display: 'flex', gap: '8px' }}>
-            {Object.entries(RISK_LEVELS).map(([key, def]) => {
+            {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(key => {
+              const def = RISK_LEVELS[key] || { label: 'All', color: '#3b82f6' };
               const isActive = riskFilter === key;
               const baseColor = def.color;
               
               return (
-                <button key={key} onClick={() => setRiskFilter(isActive ? 'All' : key)}
+                <button key={key} onClick={() => setRiskFilter(key)}
                   style={{
                     padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${isActive ? baseColor : 'transparent'}`, cursor: 'pointer',
                     fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',

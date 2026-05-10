@@ -564,19 +564,6 @@ body {
   color: var(--text-tertiary);
 }
 
-.notification-btn {
-  position: relative;
-}
-
-.notification-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6px;
-  height: 6px;
-  background-color: var(--accent-red);
-  border-radius: 50%;
-}
 
 .spinning {
   animation: spin 1s linear infinite;

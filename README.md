@@ -137,7 +137,6 @@ Here's the full user journey - from login to action:
 - 🪟 **Glassmorphism Everywhere** - Semi-transparent cards with `backdrop-blur`, subtle borders, and layered depth effects across the entire app.
 - 🌑 **Dark Mode Auth Gateway** - The login screen uses a fully dark theme with slate-900 backgrounds, glowing blue accents, and a top-edge gradient shimmer.
 - 📱 **Fully Mobile Responsive** - A hamburger menu triggers a sliding-drawer sidebar with backdrop blur on mobile. The map, charts, and cards all reflow beautifully.
-- 🔔 **Live Alerts System** - A notification bell with an unread badge count. Click it to see a dropdown of critical updates (groundwater drops, tanker deliveries, rainfall forecasts).
 - 👤 **User Profile in Sidebar** - Shows your name initial in a blue avatar circle, plus your email below. Logout button at the bottom.
 - ✨ **Micro-Animations** - Fade-in page transitions, slide-up card animations, hover lift effects on stat cards, and scale transforms on background blobs.
 
@@ -177,7 +176,7 @@ Here's the full user journey - from login to action:
 | ![Recharts](https://img.shields.io/badge/Recharts_3-ff69b4?style=for-the-badge&logo=chart.js&logoColor=white) | Creates every chart - area, bar, composed, pie/donut - all with gradient fills and custom tooltips |
 | ![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white) | One-tap Google Sign-In on the frontend verified with `google-auth-library` on the backend |
 | ![JWT](https://img.shields.io/badge/JWT_Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) | 7-day token-based sessions with bcrypt-hashed passwords stored in MongoDB |
-| ![Lucide](https://img.shields.io/badge/Lucide_Icons-f56565?style=for-the-badge&logo=lucide&logoColor=white) | 15+ beautifully consistent icons (Droplet, Truck, CloudRain, MapPin, Bell, etc.) across every page |
+| ![Lucide](https://img.shields.io/badge/Lucide_Icons-f56565?style=for-the-badge&logo=lucide&logoColor=white) | 15+ beautifully consistent icons (Droplet, Truck, CloudRain, MapPin, etc.) across every page |
 | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) | Hosts the production frontend with zero-config deployment |
 
 The tech stack was carefully chosen to be **modern but practical** - React 19 for the latest hooks and concurrent features, Tailwind v4 for next-gen CSS, and Express 5 on the backend. Everything from auth to charts to maps is wired up end-to-end.
