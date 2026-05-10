@@ -133,7 +133,7 @@ export default function GroundwaterAnalysis() {
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', paddingBottom: '2px' }}>
             {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
               const color = getFilterColor(f);
               return (
