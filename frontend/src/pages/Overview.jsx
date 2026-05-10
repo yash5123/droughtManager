@@ -49,7 +49,22 @@ export default function Overview() {
   const { activeVillages, riskData, dataSource, seedingStatus, loading, setVillageCount, meta, villageCount } = useVillageData();
   const { user } = useAuth();
   const [activeTankers, setActiveTankers] = useState(0);
+  const [riskFilter, setRiskFilter] = useState('All');
   const { theme } = useTheme();
+
+  const displayVillages = React.useMemo(() => {
+    let filtered = riskData;
+    if (riskFilter !== 'All') {
+      filtered = riskData.filter(v => {
+        if (riskFilter === 'Extreme') return v.riskScore >= 76;
+        if (riskFilter === 'Severe') return v.riskScore >= 51 && v.riskScore < 76;
+        if (riskFilter === 'Moderate') return v.riskScore >= 26 && v.riskScore < 51;
+        if (riskFilter === 'Low') return v.riskScore < 26;
+        return true;
+      });
+    }
+    return filtered.slice(0, villageCount);
+  }, [riskData, riskFilter, villageCount]);
 
   useEffect(() => {
     if (!user) return;
@@ -65,7 +80,7 @@ export default function Overview() {
   const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + (v.riskScore || 0), 0) / riskData.length) : 0;
   const totalMonitored = meta?.total || riskData.length;
 
-  const chartData = activeVillages.slice(0, 50).map(v => {
+  const chartData = displayVillages.slice(0, 50).map(v => {
     const risk = getRiskLevel(v.riskScore);
     let color = 'var(--accent-green)';
     if (v.riskScore >= 76) color = 'var(--accent-red)';
@@ -208,12 +223,27 @@ export default function Overview() {
       <div style={{ display: 'flex', gap: '20px', height: '400px' }}>
         {/* Left Col: Map */}
         <div className="glass-card" style={{ flex: '0 0 65%', padding: '20px', display: 'flex', flexDirection: 'column' }}>
-          <h3 className="section-header" style={{ marginBottom: '16px' }}>Live Geospatial Overview</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 className="section-header">Live Geospatial Overview</h3>
+            <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
+              {['All', 'Extreme', 'Severe', 'Moderate', 'Low'].map(level => (
+                <button key={level} onClick={() => setRiskFilter(level)}
+                  style={{
+                    padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+                    background: riskFilter === level ? 'rgba(59,130,246,0.15)' : 'transparent',
+                    color: riskFilter === level ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                    transition: 'all 0.2s'
+                  }}>
+                  {level}
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ flex: 1, minHeight: '340px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
             <MapContainer center={INDIA_CENTER} zoom={4} zoomControl={false} scrollWheelZoom={false} doubleClickZoom={false} dragging={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
               <MapUpdater theme={theme} />
               <TileLayer url={OSM_TILES} noWrap={true} />
-              {activeVillages.map((v, i) => {
+              {displayVillages.map((v, i) => {
                 const lat = v.lat || v.location?.lat;
                 const lon = v.lon || v.location?.lng;
                 let color = '#10b981';
@@ -252,10 +282,10 @@ export default function Overview() {
           </div>
           
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {activeVillages.length === 0 && (
+            {displayVillages.length === 0 && (
               <EmptyState title="No risk data" description="Waiting for processing..." />
             )}
-            {activeVillages.map((v, i) => {
+            {displayVillages.map((v, i) => {
               let color = 'var(--accent-green)';
               let bgTint = 'var(--risk-normal-tint)';
               if (v.riskScore >= 76) { color = 'var(--accent-red)'; bgTint = 'var(--risk-extreme-tint)'; }
