@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bell, RefreshCw, Sun, Moon } from 'lucide-react';
+import { RefreshCw, Sun, Moon } from 'lucide-react';
 import { useVillageData } from '../../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../../hooks/useRiskData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -33,10 +33,6 @@ export default function TopBar() {
   const { addToast } = useToast();
   const { theme, toggleTheme } = useTheme();
 
-  const handleAlerts = () => {
-    addToast('You have no new alerts at this time.', 'info');
-  };
-
   const title = PAGE_TITLES[location.pathname] || 'AqvaSense';
 
   const formatTime = (date) => {
@@ -68,11 +64,6 @@ export default function TopBar() {
 
         <button className="icon-btn" onClick={refresh} disabled={loading} aria-label="Refresh">
           <RefreshCw size={18} className={loading ? 'spinning' : ''} />
-        </button>
-
-        <button className="icon-btn notification-btn" onClick={handleAlerts} aria-label="Alerts">
-          <Bell size={18} />
-          <span className="notification-badge" />
         </button>
 
         {user ? (
