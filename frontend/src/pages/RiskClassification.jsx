@@ -131,27 +131,31 @@ export default function RiskClassification() {
             </div>
 
             {/* Table Container with scroll bounds */}
-            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'rgba(0,0,0,0.2)' }}>
+            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'var(--card-bg)' }}>
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
-                <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                  <tr style={{ background: '#1e293b', boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                <thead>
+                  <tr>
                     {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: '_demand', label: 'WATER DEMAND' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
                       <th key={col.key} onClick={() => toggleSort(col.key)}
                         style={{ 
-                          padding: '18px 16px', 
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 20,
+                          padding: '20px 16px', 
                           cursor: 'pointer', 
                           fontSize: '11px', 
                           fontWeight: 800, 
-                          color: 'var(--text-secondary)', 
+                          color: '#fff', 
                           textTransform: 'uppercase', 
-                          letterSpacing: '1px', 
-                          background: '#1e293b', 
-                          borderBottom: '2px solid var(--divider)',
-                          whiteSpace: 'nowrap' 
+                          letterSpacing: '1.2px', 
+                          background: '#0f172a', // Solid, dark, non-transparent background
+                          borderBottom: '2px solid var(--accent-blue)',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
                         }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: idx === 0 ? '16px' : '0' }}>
                           {col.label}
-                          <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'var(--text-tertiary)', opacity: sortField === col.key ? 1 : 0.3 }}>
+                          <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'var(--text-tertiary)', opacity: sortField === col.key ? 1 : 0.4 }}>
                             {sortField === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}
                           </span>
                         </div>
