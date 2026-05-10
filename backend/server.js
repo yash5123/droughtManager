@@ -11,7 +11,7 @@ import villageRoutes from './routes/villages.js';
 import weatherRoutes from './routes/weather.js';
 import Village from './models/Village.js';
 import { runSeedDistricts, seedingProgress } from './jobs/seedDistricts.js';
-import { runDailyWeatherJob, dailyJobStatus } from './jobs/dailyWeatherJob.js';
+import { runDailyWeatherJob, dailyJobStatus, backfillScores } from './jobs/dailyWeatherJob.js';
 
 dotenv.config();
 
@@ -78,6 +78,12 @@ mongoose.connect(MONGO_URI)
         } else {
           console.log(`Found ${todayRiskCount} risk records for today. Daily job not needed.`);
         }
+        
+        // ONE-TIME BACKFILL: recompute last 30 days with corrected piecewise compression
+        // Safe to run multiple times — it overwrites scores idempotently.
+        // Remove this block after the first successful deploy.
+        console.log('[Startup] Triggering one-time score backfill with corrected compression...');
+        backfillScores().catch(err => console.error('[Startup] Backfill error:', err));
       }
     } catch (seedErr) {
       console.error('Error during startup check:', seedErr);
