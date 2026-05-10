@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin } from 'lucide-react';
+import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin, CheckCircle, Circle } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -85,67 +85,102 @@ export default function Overview() {
   };
 
   if (dataSource === 'seeding') {
-    let phaseText = 'Connecting to backend...';
-    let progressText = '';
-    let currentTask = '';
-    let pct = 0;
+    const s = seedingStatus || {};
+    const currentPhase = s.dailyJob?.running ? 'dailyJob' : s.phase || 'connecting';
+    const total = s.totalDistricts || s.importedCount || 0;
     
-    if (seedingStatus) {
-      if (seedingStatus.phase === 'importing') {
-        phaseText = '1/4: Importing Census Data...';
-        progressText = `${seedingStatus.importedCount} / ${seedingStatus.totalDistricts || '?'} regions`;
-        if (seedingStatus.totalDistricts) pct = Math.round((seedingStatus.importedCount / seedingStatus.totalDistricts) * 100);
-      } else if (seedingStatus.phase === 'geocoding') {
-        phaseText = '2/4: Mapping Geospatial Coordinates...';
-        progressText = `${seedingStatus.totalProcessedGeocode} / ${seedingStatus.importedCount} regions`;
-        if (seedingStatus.importedCount) pct = Math.round((seedingStatus.totalProcessedGeocode / seedingStatus.importedCount) * 100);
-      } else if (seedingStatus.phase === 'baselines') {
-        phaseText = '3/4: Fetching 30-Year Climate Baselines...';
-        progressText = `${seedingStatus.totalProcessedBaseline} / ${seedingStatus.geocodedCount} regions`;
-        if (seedingStatus.geocodedCount) pct = Math.round((seedingStatus.totalProcessedBaseline / seedingStatus.geocodedCount) * 100);
-      } else if (seedingStatus.dailyJob && seedingStatus.dailyJob.running) {
-        phaseText = '4/4: Generating AI Risk Forecasts...';
-        progressText = `${seedingStatus.dailyJob.processedCount || 0} / ${seedingStatus.dailyJob.totalToProcess || '?'} models computed`;
-        if (seedingStatus.dailyJob.totalToProcess) pct = Math.round((seedingStatus.dailyJob.processedCount / seedingStatus.dailyJob.totalToProcess) * 100);
-      } else {
-        phaseText = 'Finalizing setup...';
-        pct = 100;
+    // Status helpers
+    const getPhaseState = (phaseName) => {
+      if (currentPhase === phaseName) return 'active';
+      const order = ['connecting', 'importing', 'geocoding', 'baselines', 'dailyJob', 'complete'];
+      if (order.indexOf(currentPhase) > order.indexOf(phaseName)) return 'complete';
+      return 'pending';
+    };
+
+    const renderPhaseItem = (id, title, desc, progressStr, pct) => {
+      const state = getPhaseState(id);
+      
+      let Icon = Circle;
+      let color = 'var(--text-tertiary)';
+      if (state === 'active') {
+        Icon = Loader2;
+        color = 'var(--accent-blue)';
+      } else if (state === 'complete') {
+        Icon = CheckCircle;
+        color = 'var(--accent-green, #10b981)';
       }
       
-      currentTask = seedingStatus.currentDistrict || '';
-    }
-
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <div className="glass-card" style={{ padding: '40px', textAlign: 'center', maxWidth: '450px', width: '100%' }}>
-          <Loader2 size={40} className="spinning" style={{ color: 'var(--accent-blue)', margin: '0 auto 20px' }} />
-          <h2 className="title" style={{ fontSize: '24px', marginBottom: '24px' }}>System Initialization</h2>
-          
-          <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '20px', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{phaseText}</span>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 600, fontSize: '14px' }}>{pct}%</span>
+      return (
+        <div key={id} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '16px', opacity: state === 'pending' ? 0.4 : 1 }}>
+          <div style={{ marginTop: '2px' }}>
+            <Icon size={20} className={state === 'active' ? 'spinning' : ''} style={{ color }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ fontWeight: 600, color: state === 'active' ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{title}</span>
+              {state === 'active' && <span style={{ color: 'var(--accent-blue)', fontWeight: 600, fontSize: '12px' }}>{pct}%</span>}
+              {state === 'complete' && <span style={{ color: 'var(--accent-green, #10b981)', fontSize: '12px', fontWeight: 600 }}>Done</span>}
             </div>
-            
-            {/* Progress Bar Container */}
-            <div style={{ height: '6px', background: 'var(--glass-bg)', borderRadius: '3px', overflow: 'hidden', marginBottom: '16px' }}>
-              <div style={{ height: '100%', background: 'var(--accent-blue)', width: `${pct}%`, transition: 'width 0.3s ease' }}></div>
-            </div>
-            
-            {progressText && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                <span>Progress:</span>
-                <span style={{ fontFamily: 'monospace' }}>{progressText}</span>
-              </div>
+            {state === 'active' && (
+              <>
+                <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden', marginBottom: '8px' }}>
+                  <div style={{ height: '100%', background: 'var(--accent-blue)', width: `${pct}%`, transition: 'width 0.3s ease' }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  <span>{desc}</span>
+                  <span style={{ fontFamily: 'monospace' }}>{progressStr}</span>
+                </div>
+              </>
             )}
-            
-            {currentTask && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-tertiary)', fontSize: '12px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-color)' }}>
-                <span>Processing:</span>
-                <span style={{ fontStyle: 'italic' }}>{currentTask}</span>
-              </div>
+            {state === 'complete' && (
+              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{desc} - Completed successfully</div>
+            )}
+            {state === 'pending' && (
+              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{desc}</div>
             )}
           </div>
+        </div>
+      );
+    };
+
+    // Calculate metrics and fallback denominators to prevent division by zero
+    const importPct = total ? Math.round(((s.importedCount || 0) / total) * 100) : 0;
+    
+    const geocodeTotal = s.importedCount || total;
+    const geocodePct = geocodeTotal ? Math.round(((s.totalProcessedGeocode || 0) / geocodeTotal) * 100) : 0;
+    
+    const baselineTotal = s.geocodedCount || geocodeTotal;
+    const baselinePct = baselineTotal ? Math.round(((s.totalProcessedBaseline || 0) / baselineTotal) * 100) : 0;
+    
+    const aiTotal = s.dailyJob?.totalToProcess || baselineTotal;
+    const aiPct = aiTotal ? Math.round(((s.dailyJob?.processedCount || 0) / aiTotal) * 100) : 0;
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '20px' }}>
+        <div className="glass-card" style={{ padding: '32px', maxWidth: '500px', width: '100%' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h2 className="title" style={{ fontSize: '24px', marginBottom: '8px' }}>System Initialization</h2>
+            <p className="body-text" style={{ color: 'var(--text-secondary)' }}>
+              Building the foundational database for predictive analytics.
+            </p>
+          </div>
+          
+          <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '24px 20px 8px', marginBottom: '24px' }}>
+            {renderPhaseItem('importing', 'Importing Census Data', 'Fetching administrative boundaries', `${s.importedCount || 0} / ${total || '?'}`, importPct)}
+            {renderPhaseItem('geocoding', 'Mapping Coordinates', 'Resolving geospatial vectors', `${s.totalProcessedGeocode || 0} / ${geocodeTotal || '?'}`, geocodePct)}
+            {renderPhaseItem('baselines', 'Fetching Climate Baselines', 'Downloading 30-year histories', `${s.totalProcessedBaseline || 0} / ${baselineTotal || '?'}`, baselinePct)}
+            {renderPhaseItem('dailyJob', 'Generating AI Forecasts', 'Running predictive risk models', `${s.dailyJob?.processedCount || 0} / ${aiTotal || '?'}`, aiPct)}
+          </div>
+
+          {s.currentDistrict && currentPhase !== 'complete' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '8px' }}>
+              <Activity size={18} style={{ color: 'var(--accent-blue)' }} className="spinning" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Currently Processing</span>
+                <span style={{ fontSize: '14px', color: 'var(--accent-blue)', fontWeight: 500 }}>{s.currentDistrict}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
