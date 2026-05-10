@@ -66,21 +66,12 @@ export default function MapPage() {
         }}>
           {/* Severity Filters */}
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setRiskFilter('All')}
-              style={{
-                padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${riskFilter === 'All' ? 'var(--accent-blue)' : 'transparent'}`, cursor: 'pointer',
-                fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
-                background: riskFilter === 'All' ? 'rgba(59,130,246,0.15)' : 'transparent',
-                color: riskFilter === 'All' ? 'var(--accent-blue)' : 'var(--text-secondary)'
-              }}>
-              All
-            </button>
             {Object.entries(RISK_LEVELS).map(([key, def]) => {
               const isActive = riskFilter === key;
               const baseColor = def.color;
               
               return (
-                <button key={key} onClick={() => setRiskFilter(key)}
+                <button key={key} onClick={() => setRiskFilter(isActive ? 'All' : key)}
                   style={{
                     padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${isActive ? baseColor : 'transparent'}`, cursor: 'pointer',
                     fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
