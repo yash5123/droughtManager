@@ -17,8 +17,7 @@ const STATUS_COLORS = {
 };
 
 const INDIA_CENTER = [22.5, 78.5];
-const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-const LIGHT_TILES = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function MapUpdater({ theme }) {
   const map = useMap();
@@ -176,7 +175,7 @@ export default function TankerManagement() {
         <div className="glass-card" style={{ flex: '1 1 50%', overflow: 'hidden', position: 'relative' }}>
           <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
             <MapUpdater theme={theme} />
-            <TileLayer url={theme === 'dark' ? DARK_TILES : LIGHT_TILES} />
+            <TileLayer url={OSM_TILES} noWrap={true} />
             {filteredTankers.map(t => {
               const village = activeVillages.find(v => v.name === t.village);
               if (!village || !village.location) return null;

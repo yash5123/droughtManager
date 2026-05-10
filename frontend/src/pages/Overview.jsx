@@ -13,8 +13,7 @@ import api from '../services/api.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
 const INDIA_CENTER = [22.5, 78.5];
-const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-const LIGHT_TILES = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function KPICard({ icon: Icon, label, value, suffix = '', accentColor, tintColor, trend }) {
   const animatedValue = useCountUp(value, 1000);
@@ -118,14 +117,14 @@ export default function Overview() {
       </div>
 
       {/* Main 2-Column */}
-      <div style={{ display: 'flex', gap: '20px' }}>
+      <div style={{ display: 'flex', gap: '20px', height: '400px' }}>
         {/* Left Col: Map */}
         <div className="glass-card" style={{ flex: '0 0 65%', padding: '20px', display: 'flex', flexDirection: 'column' }}>
           <h3 className="section-header" style={{ marginBottom: '16px' }}>Live Geospatial Overview</h3>
           <div style={{ flex: 1, minHeight: '340px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
             <MapContainer center={INDIA_CENTER} zoom={4} zoomControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
               <MapUpdater theme={theme} />
-              <TileLayer url={theme === 'dark' ? DARK_TILES : LIGHT_TILES} />
+              <TileLayer url={OSM_TILES} noWrap={true} />
               {activeVillages.map((v, i) => {
                 const lat = v.lat || v.location?.lat;
                 const lon = v.lon || v.location?.lng;
@@ -200,8 +199,9 @@ export default function Overview() {
       {/* Chart */}
       <div className="glass-card" style={{ padding: '20px', width: '100%' }}>
         <h3 className="section-header" style={{ marginBottom: '20px' }}>Risk Distribution</h3>
-        <div style={{ width: '100%', height: '200px' }}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div style={{ width: '100%', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px' }}>
+          <div style={{ minWidth: `${Math.max(100, chartData.length * 40)}px`, height: '200px' }}>
+            <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
               <XAxis dataKey="name" tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -214,6 +214,7 @@ export default function Overview() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

@@ -585,3 +585,7 @@ body {
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
+
+[data-theme='dark'] .leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}

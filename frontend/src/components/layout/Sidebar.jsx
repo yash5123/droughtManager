@@ -99,18 +99,6 @@ export default function Sidebar() {
             {!collapsed && <span style={{ marginLeft: '8px' }}>Sign In</span>}
           </button>
         )}
-
-        {/* Theme Toggle */}
-        <div className="theme-toggle-container">
-          <button className="theme-toggle-btn glass-pill" onClick={toggleTheme}>
-            <div className={`theme-icon ${theme === 'light' ? 'active' : ''}`}>
-              <Sun size={14} />
-            </div>
-            <div className={`theme-icon ${theme === 'dark' ? 'active' : ''}`}>
-              <Moon size={14} />
-            </div>
-          </button>
-        </div>
       </div>
     </aside>
   );

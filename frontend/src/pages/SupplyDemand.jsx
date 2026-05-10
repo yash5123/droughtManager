@@ -92,8 +92,9 @@ export default function SupplyDemand() {
         <div className="glass-card" style={{ flex: '1 1 60%', padding: '24px', display: 'flex', flexDirection: 'column' }}>
           <h3 className="section-header" style={{ marginBottom: '24px' }}>Volume Differential (× 1000 L/day)</h3>
           
-          <div style={{ flex: 1, minHeight: '200px', position: 'relative' }}>
-            {chartData.length === 0 ? <EmptyState /> : (
+          <div style={{ flex: 1, overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px' }}>
+            <div style={{ minWidth: `${Math.max(100, chartData.length * 60)}px`, height: '100%', minHeight: '200px' }}>
+              {chartData.length === 0 ? <EmptyState /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }} barGap={0} barCategoryGap="25%">
                   <XAxis dataKey="name" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -111,7 +112,8 @@ export default function SupplyDemand() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            )}
+              )}
+            </div>
           </div>
         </div>
 

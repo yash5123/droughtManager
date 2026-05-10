@@ -11,8 +11,7 @@ import { formatNumber } from '../utils/formatters.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
 const INDIA_CENTER = [22.5, 78.5];
-const DARK_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-const LIGHT_TILES = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function MapUpdater({ theme }) {
   const map = useMap();
@@ -129,7 +128,7 @@ export default function MapPage() {
         {/* Main Map */}
         <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
           <MapUpdater theme={theme} />
-          <TileLayer url={theme === 'dark' ? DARK_TILES : LIGHT_TILES} />
+          <TileLayer url={OSM_TILES} noWrap={true} />
           {showRadar && radarUrl && (
             <TileLayer url={radarUrl} opacity={0.6} zIndex={10} />
           )}
