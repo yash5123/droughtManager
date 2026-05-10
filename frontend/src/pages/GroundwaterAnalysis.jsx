@@ -80,7 +80,7 @@ export default function GroundwaterAnalysis() {
           )}
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div style={{ flex: 1, minHeight: '200px', position: 'relative' }}>
           {villageTrend ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={villageTrend} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>

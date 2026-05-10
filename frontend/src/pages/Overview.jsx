@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -47,18 +48,20 @@ function MapUpdater({ theme }) {
 
 export default function Overview() {
   const { activeVillages, riskData, dataSource, seedingStatus, loading, setVillageCount, meta } = useVillageData();
+  const { user } = useAuth();
   const [activeTankers, setActiveTankers] = useState(0);
   const [activeFilter, setActiveFilter] = useState(10);
   const { theme } = useTheme();
 
   useEffect(() => {
+    if (!user) return;
     api.get('/tanker?limit=1000')
       .then(r => {
         const active = (r.data.data || []).filter(t => t.status === 'Pending' || t.status === 'Enroute').length;
         setActiveTankers(active);
       })
       .catch(() => {});
-  }, []);
+  }, [user]);
 
   const extremeCount = riskData.filter(v => v.riskScore >= 76).length;
   const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + (v.riskScore || 0), 0) / riskData.length) : 0;

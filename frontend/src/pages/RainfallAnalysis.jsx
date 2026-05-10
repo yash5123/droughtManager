@@ -148,7 +148,7 @@ export default function RainfallAnalysis() {
             )}
           </div>
           
-          <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+          <div style={{ flex: 1, minHeight: '200px', position: 'relative' }}>
             {villageTimeSeries ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={villageTimeSeries} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
