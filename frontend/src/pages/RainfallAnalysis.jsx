@@ -99,11 +99,11 @@ export default function RainfallAnalysis() {
 
   const getRiskColor = (level) => {
     switch(level) {
-      case 'Extreme': return 'var(--accent-red)';
-      case 'Severe': return 'var(--accent-amber)';
+      case 'Extreme': return '#ef4444';
+      case 'Severe': return '#f97316';
       case 'Moderate': return '#eab308';
-      case 'Normal': return 'var(--accent-green)';
-      default: return 'var(--accent-blue)';
+      case 'Normal': return '#22c55e';
+      default: return '#3b82f6';
     }
   };
 
@@ -150,7 +150,7 @@ export default function RainfallAnalysis() {
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', paddingBottom: '2px' }}>
             {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
               const color = getRiskColor(f);
               return (
