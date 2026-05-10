@@ -26,9 +26,18 @@ router.get('/ranked', async (req, res) => {
         soilMoistureDepletion: { $first: '$soilMoistureDepletion' },
         populationDemandGap: { $first: '$populationDemandGap' },
         totalPrecipitation30d_mm: { $first: '$totalPrecipitation30d_mm' },
-        avgSoilMoisturePct: { $first: { $multiply: ['$metricsSnapshot.soilMoistureFrac', 100] } },
+        avgSoilMoisturePct: { $first: '$avgSoilMoisturePct' },
         date: { $first: '$date' },
         metricsSnapshot: { $first: '$metricsSnapshot' }
+      }},
+      { $addFields: {
+        avgSoilMoisturePct: {
+          $cond: {
+            if: { $isNumber: '$metricsSnapshot.soilMoistureFrac' },
+            then: { $multiply: ['$metricsSnapshot.soilMoistureFrac', 100] },
+            else: { $ifNull: ['$avgSoilMoisturePct', 0] }
+          }
+        }
       }},
       { $sort: { riskScore: -1, _id: 1 } },
       { $limit: limit },

@@ -123,16 +123,7 @@ export default function GroundwaterAnalysis() {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ 
-        padding: '12px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px',
-        background: 'var(--risk-severe-tint)', borderLeft: '3px solid var(--accent-amber)', borderRight: 'none', borderTop: 'none', borderBottom: 'none'
-      }}>
-        <AlertTriangle size={20} style={{ color: 'var(--accent-amber)' }} />
-        <div>
-          <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>Satellite Estimation Mode</h4>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Displaying satellite-derived soil moisture (0–7 cm surface layer). Real aquifer monitoring requires in-situ piezometer sensors.</p>
-        </div>
-      </div>
+
 
       <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
         {/* LEFT PANEL */}
