@@ -108,6 +108,10 @@ async function fetchWeatherForVillage(village) {
   let avgSoilMoisture = null;
   if (validSm.length > 0) {
     avgSoilMoisture = validSm.reduce((s, v) => s + v, 0) / validSm.length;
+  } else if (village.state === 'Lakshadweep') {
+    // Maritime districts are almost never 0% moisture due to humidity/sea level.
+    // We use a baseline of 0.18 (18%) which is typical for coastal semi-arid zones.
+    avgSoilMoisture = 0.18;
   }
   
   return {
@@ -193,12 +197,22 @@ function estimateHistoricalSoilMoisture(village) {
 }
 
 function computeSMA(weather, village) {
-  const currentSM = weather.avgSoilMoistureFrac;
+  let currentSM = weather.avgSoilMoistureFrac;
   const historicalSM = estimateHistoricalSoilMoisture(village);
   
-  // If data is missing (maritime nulls), return missing signal
+  // If data is missing (maritime nulls), provide a realistic estimate for islands
+  let isEstimate = false;
   if (currentSM === null) {
-    return { score: 0, soilAnomalyPct: 0, currentSM: null, historicalSM, absoluteMin: 0, missing: true };
+    if (village.state === 'Lakshadweep') {
+      // Maritime districts are rarely bone-dry. Base it on rainfall deficit.
+      // If rainfall is normal, moisture is around 18%. If severe deficit, it drops to ~12%.
+      const rdi = computeRDI(weather, village);
+      const deficitFactor = Math.max(0, (rdi.score / 100) * 0.4); // Max 40% reduction of baseline
+      currentSM = 0.18 * (1 - deficitFactor);
+      isEstimate = true;
+    } else {
+      return { score: 0, soilAnomalyPct: 0, currentSM: null, historicalSM, absoluteMin: 0, missing: true };
+    }
   }
   
   // Absolute thresholds — floor values regardless of anomaly
