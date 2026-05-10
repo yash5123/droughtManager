@@ -105,7 +105,7 @@ async function fetchWeatherForVillage(village) {
   const smDaily = data.daily?.soil_moisture_0_to_7cm_mean || [];
   const validSm = smDaily.filter(v => v != null);
   
-  let avgSoilMoisture = 0;
+  let avgSoilMoisture = null;
   if (validSm.length > 0) {
     avgSoilMoisture = validSm.reduce((s, v) => s + v, 0) / validSm.length;
   }
@@ -113,8 +113,8 @@ async function fetchWeatherForVillage(village) {
   return {
     precipitationArray: precip.map(v => v || 0),
     totalPrecipitation_mm: Math.round(totalPrecip * 10) / 10,
-    avgSoilMoistureFrac: avgSoilMoisture, // 0 to ~0.5 volumetric fraction
-    avgSoilMoisturePct: Math.round(avgSoilMoisture * 100)
+    avgSoilMoistureFrac: avgSoilMoisture, // 0 to ~0.5 volumetric fraction or null
+    avgSoilMoisturePct: avgSoilMoisture !== null ? Math.round(avgSoilMoisture * 100) : null
   };
 }
 
