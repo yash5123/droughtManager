@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { AlertTriangle, Droplets, ArrowRight, Loader2 } from 'lucide-react';
+import { AlertTriangle, Droplets, Loader2, Search, Download } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import { getSoilMoistureLevel } from '../utils/riskLevels.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
+import { exportToCSV } from '../utils/csv.js';
 
 export default function GroundwaterAnalysis() {
   const { villageCount } = useVillageData();
@@ -24,6 +25,9 @@ export default function GroundwaterAnalysis() {
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [villageTrend, setVillageTrend] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('All');
+  const [countLimit, setCountLimit] = useState('All');
 
   useEffect(() => {
     if (activeVillages.length > 0 && !selectedVillage) {
@@ -31,15 +35,12 @@ export default function GroundwaterAnalysis() {
     }
   }, [activeVillages, selectedVillage]);
 
-  const moistureData = React.useMemo(() => {
-    return [...activeVillages].sort((a, b) => (a.avgSoilMoisturePct ?? 999) - (b.avgSoilMoisturePct ?? 999));
-  }, [activeVillages]);
-
   useEffect(() => {
     const fetchTrend = async () => {
       if (!selectedVillage?.location?.lat) { setVillageTrend(null); return; }
+      setLoading(true);
       const { data } = await fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, 30);
-      if (!data?.daily?.soil_moisture_0_to_7cm_mean) { setVillageTrend(null); return; }
+      if (!data?.daily?.soil_moisture_0_to_7cm_mean) { setVillageTrend(null); setLoading(false); return; }
       const smRaw = data.daily.soil_moisture_0_to_7cm_mean;
       // inject mock if all zeros (future date issue)
       const smSum = smRaw.reduce((s, v) => s + (v || 0), 0);
@@ -50,156 +51,200 @@ export default function GroundwaterAnalysis() {
       });
       setVillageTrend(data.daily.time.map((t, i) => ({
         date: t.slice(5),
-        moisture: Math.round((sm[i] || 0) * 1000) / 10, // convert fraction to % (0.15 -> 15%)
+        moisture: Math.round((sm[i] || 0) * 1000) / 10,
       })));
+      setLoading(false);
     };
     fetchTrend();
   }, [selectedVillage]);
 
+  const filteredList = useMemo(() => {
+    let list = activeVillages;
+    if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
+    
+    if (filter !== 'All') {
+      list = list.filter(v => {
+        const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct)?.label : 'Normal';
+        if (filter === 'Extreme') return level === 'Extreme Deficit';
+        if (filter === 'Severe') return level === 'Severe Deficit';
+        if (filter === 'Moderate') return level === 'Moderate Deficit';
+        if (filter === 'Normal') return level === 'High Moisture' || level === 'Optimal' || level === 'Normal' || level === 'Mild Deficit';
+        return true;
+      });
+    }
+    
+    if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
+    return list;
+  }, [activeVillages, search, filter, countLimit]);
+
+  const getRiskColor = (levelLabel) => {
+    switch(levelLabel) {
+      case 'Extreme Deficit': return 'var(--accent-red)';
+      case 'Severe Deficit': return 'var(--accent-amber)';
+      case 'Moderate Deficit': return '#eab308';
+      case 'High Moisture': return 'var(--accent-cyan)';
+      default: return 'var(--accent-green)';
+    }
+  };
+
+  const getFilterColor = (f) => {
+    switch(f) {
+      case 'Extreme': return 'var(--accent-red)';
+      case 'Severe': return 'var(--accent-amber)';
+      case 'Moderate': return '#eab308';
+      case 'Normal': return 'var(--accent-green)';
+      default: return 'var(--accent-blue)';
+    }
+  };
+
+  const avg30 = villageTrend?.length > 0 ? villageTrend.reduce((s, d) => s + d.moisture, 0) / villageTrend.length : 0;
+  const first7 = villageTrend?.length > 7 ? villageTrend.slice(0, 7).reduce((s, d) => s + d.moisture, 0) / 7 : 0;
+  const last7 = villageTrend?.length > 7 ? villageTrend.slice(-7).reduce((s, d) => s + d.moisture, 0) / 7 : 0;
+  const trendLabel = last7 > first7 + 0.5 ? 'Improving' : last7 < first7 - 0.5 ? 'Declining' : 'Stable';
+  const trendColor = trendLabel === 'Improving' ? 'var(--accent-green)' : trendLabel === 'Declining' ? 'var(--accent-red)' : 'var(--accent-amber)';
+  const latestMoisture = villageTrend?.[villageTrend.length - 1]?.moisture ?? 0;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
       <DataSourceBanner dataSource={dataSource} />
 
-      {/* Notice Banner */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Droplets size={24} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
+          <div>
+            <h2 className="title" style={{ fontSize: '22px', lineHeight: 1 }}>Groundwater Monitoring</h2>
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>Satellite-derived Soil Moisture Analysis</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button className="glass-btn" onClick={() => exportToCSV(activeVillages.map(v => ({ District: v.name, State: v.state, 'Avg Moisture %': v.avgSoilMoisturePct?.toFixed(1), 'Risk Score': Math.round(v.riskScore) })), `groundwater_analysis`)} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
+            <Download size={14} /> Export CSV
+          </button>
+        </div>
+      </div>
+
       <div className="glass-panel" style={{ 
-        padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '16px',
+        padding: '12px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px',
         background: 'var(--risk-severe-tint)', borderLeft: '3px solid var(--accent-amber)', borderRight: 'none', borderTop: 'none', borderBottom: 'none'
       }}>
-        <AlertTriangle size={24} style={{ color: 'var(--accent-amber)', filter: 'drop-shadow(var(--accent-amber-glow))' }} />
+        <AlertTriangle size={20} style={{ color: 'var(--accent-amber)' }} />
         <div>
-          <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Satellite Estimation Mode</h4>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Displaying satellite-derived soil moisture (0–7 cm surface layer). Real aquifer monitoring requires in-situ piezometer sensors.</p>
+          <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>Satellite Estimation Mode</h4>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Displaying satellite-derived soil moisture (0–7 cm surface layer). Real aquifer monitoring requires in-situ piezometer sensors.</p>
         </div>
       </div>
 
-      {/* Main Chart */}
-      <div className="glass-card" style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-          <div>
-            <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedVillage?.name || 'Select a region'}</h2>
-            <p className="section-header" style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>Surface Soil Moisture Trend (0–7cm)</p>
+      <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
+        {/* LEFT PANEL */}
+        <div className="glass-card" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
+          <h3 className="section-header" style={{ marginBottom: '4px' }}>Monitored Districts</h3>
+          <div style={{ position: 'relative' }}>
+            <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          {selectedVillage && selectedVillage.avgSoilMoisturePct != null && (
-            <div style={{ textAlign: 'right' }}>
-              <div className="data-value" style={{ color: selectedVillage.avgSoilMoisturePct < 7 ? 'var(--accent-red)' : selectedVillage.avgSoilMoisturePct < 15 ? 'var(--accent-amber)' : 'var(--accent-green)', filter: 'drop-shadow(0 0 8px currentColor)', fontSize: '32px' }}>
-                {selectedVillage.avgSoilMoisturePct != null ? selectedVillage.avgSoilMoisturePct.toFixed(1) : '—'}%
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '2px' }}>Avg Moisture</div>
-            </div>
-          )}
-        </div>
-        {/* Stat Chips */}
-        {villageTrend && villageTrend.length > 0 && (() => {
-          const avg30 = villageTrend.reduce((s, d) => s + d.moisture, 0) / villageTrend.length;
-          const first7 = villageTrend.slice(0, 7).reduce((s, d) => s + d.moisture, 0) / 7;
-          const last7 = villageTrend.slice(-7).reduce((s, d) => s + d.moisture, 0) / 7;
-          const trend = last7 > first7 + 0.5 ? 'Improving' : last7 < first7 - 0.5 ? 'Declining' : 'Stable';
-          const trendColor = trend === 'Improving' ? 'var(--accent-green)' : trend === 'Declining' ? 'var(--accent-red)' : 'var(--accent-amber)';
-          const latest = villageTrend[villageTrend.length - 1]?.moisture ?? 0;
-          return (
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
-              {[{ label: 'Current Moisture', value: `${latest.toFixed(1)}%`, color: latest < 7 ? 'var(--accent-red)' : latest < 15 ? 'var(--accent-amber)' : 'var(--accent-green)' }, { label: '30-Day Average', value: `${avg30.toFixed(1)}%`, color: 'var(--text-secondary)' }, { label: 'Trend Direction', value: trend, color: trendColor }].map(chip => (
-                <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{chip.label}</span>
-                  <span style={{ fontSize: '15px', fontWeight: 700, color: chip.color }}>{chip.value}</span>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
-
-        <div style={{ height: '260px', position: 'relative', width: '100%' }}>
-          {villageTrend ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={villageTrend} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" opacity={0.4} />
-                <ReferenceLine y={7} stroke="#ef4444" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Critical', fill: '#ef4444', fontSize: 10, position: 'insideTopRight' }} />
-                <ReferenceLine y={15} stroke="#f59e0b" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Low', fill: '#f59e0b', fontSize: 10, position: 'insideTopRight' }} />
-                <ReferenceLine y={25} stroke="#22c55e" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Good', fill: '#22c55e', fontSize: 10, position: 'insideTopRight' }} />
-                <XAxis dataKey="date" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)' }} 
-                  itemStyle={{ color: 'var(--accent-blue)' }}
-                  labelStyle={{ color: 'var(--text-secondary)' }}
-                  cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
-                />
-                <Area type="monotone" dataKey="moisture" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" activeDot={{ r: 6, fill: 'transparent', stroke: '#3b82f6', strokeWidth: 2, className: 'live-pulse' }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              {loading ? <Loader2 className="spinning" size={32} style={{ color: 'var(--accent-blue)' }} /> : <EmptyState icon={Droplets} title="No trend data" description="Weather proxy may be unavailable." />}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Regional Comparison Scroll Row */}
-      <div style={{ position: 'relative', height: '120px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
-          <h3 className="section-header" style={{ fontSize: '16px' }}>Regional Comparison</h3>
-          <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px' }}>Scroll <ArrowRight size={12} /></span>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {moistureData.map((v, i) => {
-            const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
-            const isSelected = selectedVillage?._id === v._id;
-            
-            // Map severity to accent color
-            let accent = 'var(--accent-green)';
-            if (level?.label === 'Extreme Deficit') accent = 'var(--accent-red)';
-            else if (level?.label === 'Severe Deficit') accent = 'var(--accent-amber)';
-            else if (level?.label === 'Moderate Deficit') accent = '#eab308';
-            else if (level?.label === 'High Moisture') accent = 'var(--accent-cyan)';
-
-            return (
-              <button key={v._id || i} onClick={() => setSelectedVillage(v)}
-                className="glass-card"
-                style={{
-                  flex: '0 0 280px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px',
-                  background: isSelected ? 'var(--nav-active-bg)' : 'var(--glass-bg)',
-                  border: isSelected ? '1px solid var(--accent-blue)' : 'var(--glass-border)',
-                  cursor: 'pointer', textAlign: 'left'
-                }}>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{v.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{v.district || v.region}</div>
-                  </div>
-                  {level && (
-                    <div className="glass-pill" style={{ padding: '2px 8px', fontSize: '10px', fontWeight: 600, color: accent, background: `${accent}20`, border: `1px solid ${accent}40` }}>
-                      {level.label}
-                    </div>
-                  )}
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: accent, filter: `drop-shadow(0 0 8px ${accent}80)` }}>
-                    {v.avgSoilMoisturePct != null ? v.avgSoilMoisturePct.toFixed(1) : '—'}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, lineHeight: 1.2 }}>
-                    Avg<br/>Moisture
-                  </div>
-                </div>
+          <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
+              const color = getFilterColor(f);
+              return (
+                <button key={f} onClick={() => setFilter(f)} style={{ flex: '1 0 auto', padding: '5px 8px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)' }}>{f}</button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+            {['10', '25', 'All'].map(c => (
+              <button key={c} onClick={() => setCountLimit(c)} style={{ flex: 1, padding: '4px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', transition: 'all 0.2s', background: countLimit === c ? 'rgba(255,255,255,0.08)' : 'transparent', color: countLimit === c ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+                {c === 'All' ? 'All Districts' : `Top ${c}`}
               </button>
-            );
-          })}
+            ))}
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 320px)', display: 'flex', flexDirection: 'column', gap: '3px', paddingRight: '2px' }}>
+            {filteredList.length === 0 ? (
+              <EmptyState title="No data" description="No districts match filters." />
+            ) : filteredList.map((v, i) => {
+              const isSelected = selectedVillage?._id === v._id;
+              const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
+              const color = getRiskColor(level?.label);
+              
+              return (
+                <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
+                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
+                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', color: color, fontWeight: 700, fontSize: '14px', letterSpacing: '0.5px' }}>
+                    {v.avgSoilMoisturePct != null ? `${v.avgSoilMoisturePct.toFixed(1)}%` : '—'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Gradient Fade Masks */}
-        <div style={{ position: 'absolute', top: '32px', left: 0, bottom: '16px', width: '40px', background: 'linear-gradient(to right, var(--glass-bg), transparent)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '32px', right: 0, bottom: '16px', width: '40px', background: 'linear-gradient(to left, var(--glass-bg), transparent)', pointerEvents: 'none' }} />
+        {/* RIGHT PANEL */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+          <div className="glass-card" style={{ flex: 1, padding: '22px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '3px' }}>{selectedVillage?.name || 'Select a region'}</h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Surface Soil Moisture Trend (0–7cm)</p>
+              </div>
+              {selectedVillage && selectedVillage.avgSoilMoisturePct != null && (
+                <div style={{ textAlign: 'right' }}>
+                  <div className="data-value" style={{ color: selectedVillage.avgSoilMoisturePct < 7 ? 'var(--accent-red)' : selectedVillage.avgSoilMoisturePct < 15 ? 'var(--accent-amber)' : 'var(--accent-green)', filter: 'drop-shadow(0 0 8px currentColor)', fontSize: '24px' }}>
+                    {selectedVillage.avgSoilMoisturePct.toFixed(1)}%
+                  </div>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '2px', letterSpacing: '0.5px' }}>Avg Moisture</div>
+                </div>
+              )}
+            </div>
+
+            {villageTrend && villageTrend.length > 0 && (
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+                {[{ label: 'Current Moisture', value: `${latestMoisture.toFixed(1)}%`, color: latestMoisture < 7 ? 'var(--accent-red)' : latestMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)' }, { label: '30-Day Average', value: `${avg30.toFixed(1)}%`, color: 'var(--text-secondary)' }, { label: 'Trend Direction', value: trendLabel, color: trendColor }].map(chip => (
+                  <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{chip.label}</span>
+                    <span style={{ fontSize: '15px', fontWeight: 700, color: chip.color }}>{chip.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ minHeight: '220px', height: '220px', position: 'relative', width: '100%' }}>
+              {villageTrend ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={villageTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" opacity={0.4} />
+                    <ReferenceLine y={7} stroke="#ef4444" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Critical', fill: '#ef4444', fontSize: 10, position: 'insideTopRight' }} />
+                    <ReferenceLine y={15} stroke="#f59e0b" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Low', fill: '#f59e0b', fontSize: 10, position: 'insideTopRight' }} />
+                    <ReferenceLine y={25} stroke="#22c55e" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Good', fill: '#22c55e', fontSize: 10, position: 'insideTopRight' }} />
+                    <XAxis dataKey="date" tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} dx={-8} />
+                    <Tooltip 
+                      contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(12px)', borderRadius: '10px', color: 'var(--text-primary)' }} 
+                      itemStyle={{ color: 'var(--accent-blue)' }}
+                      labelStyle={{ color: 'var(--text-secondary)' }}
+                      cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    />
+                    <Area type="monotone" dataKey="moisture" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorMoisture)" activeDot={{ r: 6, fill: 'var(--glass-bg)', stroke: '#3b82f6', strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  {loading ? <Loader2 className="spinning" size={28} style={{ color: 'var(--accent-blue)' }} /> : <EmptyState icon={Droplets} title="No trend data" description="Select a district to view data." />}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-      
     </div>
   );
 }

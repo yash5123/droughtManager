@@ -26,7 +26,7 @@ router.get('/ranked', async (req, res) => {
         soilMoistureDepletion: { $first: '$soilMoistureDepletion' },
         populationDemandGap: { $first: '$populationDemandGap' },
         totalPrecipitation30d_mm: { $first: '$totalPrecipitation30d_mm' },
-        avgSoilMoisturePct: { $first: '$avgSoilMoisturePct' },
+        avgSoilMoisturePct: { $first: { $multiply: ['$metricsSnapshot.soilMoistureFrac', 100] } },
         date: { $first: '$date' },
         metricsSnapshot: { $first: '$metricsSnapshot' }
       }},
