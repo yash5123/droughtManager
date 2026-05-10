@@ -45,6 +45,11 @@ export default function RainfallAnalysis() {
   else if (seedingStatus) dataSource = 'seeding';
 
   const [period, setPeriod] = useState(30);
+  const [selectedVillage, setSelectedVillage] = useState(null);
+  const [villageTimeSeries, setVillageTimeSeries] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
   const [selectedVillageMetrics, setSelectedVillageMetrics] = useState(null);
 
   useEffect(() => {
