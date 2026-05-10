@@ -13,13 +13,12 @@ export default function GroundwaterAnalysis() {
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
-  const riskData = rankedData?.data || [];
-  const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+  const activeVillages = rankedData?.data || [];
 
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
-  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
-  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (activeVillages.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && activeVillages.length === 0) dataSource = 'stale';
   else if (seedingStatus) dataSource = 'seeding';
 
   const [selectedVillage, setSelectedVillage] = useState(null);
