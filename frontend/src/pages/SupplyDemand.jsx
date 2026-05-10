@@ -128,7 +128,7 @@ export default function SupplyDemand() {
                   <XAxis dataKey="name" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ background: 'rgba(15,23,42,0.9)', border: 'var(--glass-border)', borderRadius: '10px', color: 'var(--text-primary)' }}
+                    contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', borderRadius: '10px', color: 'var(--text-primary)' }}
                     itemStyle={{ color: 'var(--text-primary)' }}
                     labelStyle={{ color: 'var(--text-secondary)' }}
                     formatter={(val) => [`${(val/1000).toFixed(1)}k L`, '']}
