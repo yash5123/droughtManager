@@ -128,19 +128,16 @@ export default function RiskClassification() {
             </div>
           </div>
 
-          {/* Table */}
-          <div style={{ flex: 1, overflowX: 'auto', borderRadius: '12px', border: 'var(--glass-border)' }}>
+          <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 360px)', borderRadius: '12px', border: 'var(--glass-border)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: 'var(--nav-hover-bg)' }}>
-                  {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                <tr style={{ background: 'var(--nav-hover-bg)', boxShadow: '0 1px 0 var(--divider)' }}>
+                  {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: '_demand', label: 'WATER DEMAND' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
                     <th key={col.key} onClick={() => toggleSort(col.key)}
-                      style={{ padding: '16px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      style={{ padding: '16px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', background: 'var(--nav-hover-bg)', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: idx === 0 ? '16px' : '0' }}>
-                        {col.label} 
-                        <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'transparent' }}>
-                          {sortDir === 'asc' ? '▲' : '▼'}
-                        </span>
+                        {col.label}
+                        <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'transparent' }}>{sortDir === 'asc' ? '▲' : '▼'}</span>
                       </div>
                     </th>
                   ))}
@@ -153,32 +150,33 @@ export default function RiskClassification() {
                   if (v.riskScore >= 76) color = 'var(--accent-red)';
                   else if (v.riskScore >= 51) color = 'var(--accent-amber)';
                   else if (v.riskScore >= 26) color = '#eab308';
+                  const pop = (v.population && v.population > 0) ? v.population : 50000;
+                  const isEst = !v.population || v.population === 0;
+                  const waterDemandKL = Math.round(pop * 55 / 1000);
 
                   return (
-                    <tr key={v._id || i} style={{ 
-                      height: '52px', borderBottom: '1px solid var(--divider)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
-                      transition: 'var(--transition-default)', cursor: 'default'
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--nav-hover-bg)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--glass-shadow-elevated)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+                    <tr key={v._id || i} style={{ height: '52px', borderBottom: '1px solid var(--divider)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)', transition: 'background 0.15s', cursor: 'default' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'; }}
                     >
                       <td style={{ padding: '0 16px', position: 'relative' }}>
                         <div style={{ position: 'absolute', left: 0, top: '4px', bottom: '4px', width: '3px', background: color, borderRadius: '0 4px 4px 0' }} />
                         <div style={{ paddingLeft: '16px', fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{v.name}</div>
                       </td>
                       <td style={{ padding: '0 16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{v.state || v.region}</td>
-                      <td style={{ padding: '0 16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{formatNumber(v.population)}</td>
+                      <td style={{ padding: '0 16px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                        {isEst ? <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>~50K est.</span> : formatNumber(v.population)}
+                      </td>
+                      <td style={{ padding: '0 16px', color: color, fontSize: '13px', fontWeight: 600 }}>{formatNumber(waterDemandKL)} kL/d</td>
                       <td style={{ padding: '0 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontWeight: 700, fontSize: '14px', color: color, width: '24px' }}>{v.riskScore}</span>
+                          <span style={{ fontWeight: 700, fontSize: '14px', color, width: '24px' }}>{v.riskScore}</span>
                           <div style={{ height: '4px', flex: 1, background: 'var(--glass-border)', borderRadius: '2px', overflow: 'hidden' }}>
                             <div style={{ width: `${Math.min(v.riskScore, 100)}%`, height: '100%', background: color, boxShadow: `0 0 8px ${color}` }} />
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '0 16px' }}>
-                        <RiskBadge score={v.riskScore} />
-                      </td>
+                      <td style={{ padding: '0 16px' }}><RiskBadge score={v.riskScore} /></td>
                     </tr>
                   );
                 })}
@@ -186,7 +184,7 @@ export default function RiskClassification() {
             </table>
             {filtered.length === 0 && (
               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <Search size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                <Search size={32} style={{ margin: '0 auto 12px', opacity: 0.5, display: 'block' }} />
                 No records match current parameters
               </div>
             )}

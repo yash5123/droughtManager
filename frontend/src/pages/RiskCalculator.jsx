@@ -30,6 +30,15 @@ export default function RiskCalculator() {
 
   const lat = customLat || selectedVillage?.location?.lat || '';
   const lon = customLon || selectedVillage?.location?.lng || '';
+  const weightSum = Object.values(weights).reduce((s, v) => s + v, 0);
+
+  const recommendations = [
+    { maxScore: 25, text: 'Low risk. Maintain monitoring frequency and prepare seasonal contingency plans.' },
+    { maxScore: 50, text: 'Moderate risk. Increase water hauling frequency and activate conservation advisories.' },
+    { maxScore: 75, text: 'Severe drought conditions. Deploy tanker fleet and issue public rationing directives.' },
+    { maxScore: 100, text: 'Extreme emergency. Immediate state-level intervention required. Activate disaster relief protocol.' },
+  ];
+  const recommendation = result?.score != null ? recommendations.find(r => result.score <= r.maxScore)?.text : null;
 
   const adjustWeight = (key, val) => {
     const newVal = Math.max(0, Math.min(100, val));
@@ -130,20 +139,21 @@ export default function RiskCalculator() {
                 </div>
               </div>
 
-              {!selectedId && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Latitude</label>
-                    <input type="number" step="0.0001" value={customLat} onChange={e => setCustomLat(e.target.value)} placeholder="e.g. 26.92"
-                      className="glass-input" style={{ width: '100%', fontSize: '14px', background: 'var(--glass-bg)' }} />
-                  </div>
-                  <div>
-                    <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Longitude</label>
-                    <input type="number" step="0.0001" value={customLon} onChange={e => setCustomLon(e.target.value)} placeholder="e.g. 70.91"
-                      className="glass-input" style={{ width: '100%', fontSize: '14px', background: 'var(--glass-bg)' }} />
-                  </div>
+              {/* Lat/Lon always visible — read-only when village selected, editable for custom */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Latitude</label>
+                  <input type="number" step="0.0001" value={customLat || (selectedVillage?.location?.lat ?? '')} onChange={e => { if (!selectedVillage) setCustomLat(e.target.value); }}
+                    placeholder="e.g. 26.92" readOnly={!!selectedVillage}
+                    className="glass-input" style={{ width: '100%', fontSize: '14px', background: 'var(--glass-bg)', opacity: selectedVillage ? 0.7 : 1 }} />
                 </div>
-              )}
+                <div>
+                  <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Longitude</label>
+                  <input type="number" step="0.0001" value={customLon || (selectedVillage?.location?.lng ?? '')} onChange={e => { if (!selectedVillage) setCustomLon(e.target.value); }}
+                    placeholder="e.g. 70.91" readOnly={!!selectedVillage}
+                    className="glass-input" style={{ width: '100%', fontSize: '14px', background: 'var(--glass-bg)', opacity: selectedVillage ? 0.7 : 1 }} />
+                </div>
+              </div>
             </div>
 
             <div style={{ height: '1px', background: 'var(--divider)' }} />
@@ -187,6 +197,11 @@ export default function RiskCalculator() {
                     </div>
                   );
                 })}
+                {/* Weight Sum Indicator */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '10px', background: weightSum === 100 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${weightSum === 100 ? 'var(--accent-green)' : 'var(--accent-red)'}30`, transition: 'all 0.3s' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Weight Total</span>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: weightSum === 100 ? 'var(--accent-green)' : 'var(--accent-red)', fontFamily: 'monospace' }}>{weightSum}%</span>
+                </div>
               </div>
             </div>
 
@@ -249,7 +264,7 @@ export default function RiskCalculator() {
               </div>
 
               {result.metrics && (
-                <div style={{ width: '100%', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--divider)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ width: '100%', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--divider)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <p className="card-label" style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Precipitation</p>
                     <p className="data-value" style={{ fontSize: '18px' }}>{result.metrics.totalPrecipitation} <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>mm</span></p>
@@ -258,6 +273,13 @@ export default function RiskCalculator() {
                     <p className="card-label" style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Rain Events</p>
                     <p className="data-value" style={{ fontSize: '18px' }}>{result.metrics.daysWithRain} <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>/ {result.metrics.daysTotal}d</span></p>
                   </div>
+                </div>
+              )}
+
+              {recommendation && (
+                <div style={{ width: '100%', marginTop: '20px', padding: '14px 16px', borderRadius: '12px', background: `${result.level.color}12`, border: `1px solid ${result.level.color}30` }}>
+                  <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: result.level.color, marginBottom: '6px' }}>Recommended Action</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{recommendation}</p>
                 </div>
               )}
             </div>

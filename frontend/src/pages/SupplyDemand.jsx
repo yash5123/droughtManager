@@ -9,12 +9,21 @@ import RiskBadge from '../components/ui/RiskBadge.jsx';
 import LoginPrompt from '../components/ui/LoginPrompt.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
-import { useCountUp } from '../hooks/useCountUp.js';
 import { formatNumber } from '../utils/formatters.js';
 import api from '../services/api.js';
 
-const LITERS_PER_PERSON_DAY = 50;
+const LITERS_PER_PERSON_DAY = 55;
 const TANKER_CAPACITY = 10000;
+const EST_POPULATION = 50000; // fallback estimate when DB has 0
+
+// Indian number formatting: 9750000 -> "9.75 Cr", 125000 -> "1.25 L"
+function formatIndian(num) {
+  if (num === null || num === undefined || isNaN(num)) return '0';
+  if (num >= 1e7) return `${(num / 1e7).toFixed(2)} Cr`;
+  if (num >= 1e5) return `${(num / 1e5).toFixed(2)} L`;
+  if (num >= 1e3) return `${(num / 1e3).toFixed(1)}K`;
+  return String(Math.round(num));
+}
 
 export default function SupplyDemand() {
   const { villageCount } = useVillageData();
@@ -35,26 +44,32 @@ export default function SupplyDemand() {
   const [dispatching, setDispatching] = useState(null);
 
   const villages = activeVillages.map(v => {
-    const dailyDemand = v.population * LITERS_PER_PERSON_DAY;
-    const supplyFactor = v.riskScore > 70 ? 0.3 : v.riskScore > 50 ? 0.5 : v.riskScore > 25 ? 0.75 : 0.95;
+    const pop = (v.population && v.population > 0) ? v.population : EST_POPULATION;
+    const isEstimated = !v.population || v.population === 0;
+    const dailyDemand = pop * LITERS_PER_PERSON_DAY;
+    const supplyFactor = v.riskScore >= 76 ? 0.3 : v.riskScore >= 51 ? 0.5 : v.riskScore >= 26 ? 0.75 : 0.95;
     const dailySupply = Math.round(dailyDemand * supplyFactor);
-    const deficit = dailyDemand - dailySupply;
-    const coverage = dailyDemand > 0 ? (dailySupply / dailyDemand) * 100 : 0;
+    const deficit = Math.max(0, dailyDemand - dailySupply);
+    const coverage = dailyDemand > 0 ? (dailySupply / dailyDemand) * 100 : 100;
     const tankersNeeded = Math.ceil(deficit / TANKER_CAPACITY);
-    return { ...v, dailyDemand, dailySupply, deficit, coverage, tankersNeeded };
+    return { ...v, pop, isEstimated, dailyDemand, dailySupply, deficit, coverage, tankersNeeded };
   });
 
-  const totalDemand = villages.reduce((s, v) => s + v.dailyDemand, 0);
-  const totalSupply = villages.reduce((s, v) => s + v.dailySupply, 0);
-  const totalDeficit = totalDemand - totalSupply;
-  const criticalCount = villages.filter(v => v.tankersNeeded > 3).length;
+  const totalDemand = villages.reduce((s, v) => s + (v.dailyDemand || 0), 0);
+  const totalSupply = villages.reduce((s, v) => s + (v.dailySupply || 0), 0);
+  const totalDeficit = Math.max(0, totalDemand - totalSupply);
+  const criticalCount = villages.filter(v => v.coverage < 100 && (v.riskLevel === 'Severe' || v.riskLevel === 'Extreme')).length;
 
-  const chartData = villages.slice(0, 10).map(v => ({
-    name: v.name.length > 8 ? v.name.slice(0, 7) + '…' : v.name,
-    demand: Math.round(v.dailyDemand / 1000),
-    supply: Math.round(v.dailySupply / 1000),
-    deficit: Math.round(v.deficit / 1000),
-  }));
+  // Top 15 by deficit, sorted, standardized to kL/day
+  const chartData = [...villages]
+    .sort((a, b) => b.deficit - a.deficit)
+    .slice(0, 15)
+    .map(v => ({
+      name: v.name.length > 8 ? v.name.slice(0, 7) + '…' : v.name,
+      demand: Math.round(v.dailyDemand / 1000),
+      supply: Math.round(v.dailySupply / 1000),
+      deficit: Math.round(v.deficit / 1000),
+    }));
 
   const handleDispatch = async (village) => {
     if (!user) { openLoginModal(); return; }
@@ -92,10 +107,10 @@ export default function SupplyDemand() {
 
       {/* Top Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-        <MetricCard label="Total Daily Demand" value={totalDemand} unit="L" icon={Users} color="var(--accent-blue)" tintColor="var(--glass-bg)" />
-        <MetricCard label="Available Supply" value={totalSupply} unit="L" icon={Droplet} color="var(--accent-cyan)" tintColor="var(--glass-bg)" />
-        <MetricCard label="System Deficit" value={totalDeficit} unit="L" icon={Scale} color="var(--accent-amber)" tintColor="var(--risk-severe-tint)" />
-        <MetricCard label="Critical Zones" value={criticalCount} unit="" icon={AlertTriangle} color="var(--accent-red)" tintColor="var(--risk-extreme-tint)" />
+        <MetricCard label="Total Daily Demand" value={totalDemand} icon={Users} color="var(--accent-blue)" tintColor="var(--glass-bg)" />
+        <MetricCard label="Available Supply" value={totalSupply} icon={Droplet} color="var(--accent-cyan)" tintColor="var(--glass-bg)" />
+        <MetricCard label="System Deficit" value={totalDeficit} icon={Scale} color="var(--accent-amber)" tintColor="var(--risk-severe-tint)" />
+        <MetricCard label="Critical Zones" value={criticalCount} icon={AlertTriangle} color="var(--accent-red)" tintColor="var(--risk-extreme-tint)" isCount />
       </div>
 
       {/* Dual Layout Area */}
@@ -191,8 +206,7 @@ export default function SupplyDemand() {
   );
 }
 
-function MetricCard({ label, value, unit, icon: Icon, color, tintColor }) {
-  const display = useCountUp(Math.min(value, 99999999), 1000);
+function MetricCard({ label, value, icon: Icon, color, tintColor, isCount }) {
   return (
     <div className="glass-card" style={{ padding: '24px', backgroundColor: tintColor, position: 'relative', overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -200,9 +214,9 @@ function MetricCard({ label, value, unit, icon: Icon, color, tintColor }) {
       </div>
       <div>
         <div className="card-label" style={{ color: 'var(--text-secondary)' }}>{label}</div>
-        <div className="data-value" style={{ color: 'var(--text-primary)', marginTop: '4px' }}>
-          {formatNumber(display)}
-          {unit && <span style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>{unit}</span>}
+        <div className="data-value" style={{ color: 'var(--text-primary)', marginTop: '4px', fontSize: isCount ? '36px' : '24px' }}>
+          {isCount ? value : formatIndian(value)}
+          {!isCount && <span style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginLeft: '6px' }}>L/day</span>}
         </div>
       </div>
       <Icon size={80} style={{ position: 'absolute', bottom: '-10px', right: '-10px', color, opacity: 0.08 }} />

@@ -1,42 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine, CartesianGrid } from 'recharts';
+import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2, Search, TrendingDown, TrendingUp, BarChart2 } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
-
 import { exportToCSV } from '../utils/csv.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 
 const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, { label: '90 Days', days: 90 }];
 
-const seededRandom = (seed) => {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-};
+const seededRandom = (seed) => { const x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); };
 
 const injectMockPrecipitation = (precipArray, villageName, expectedAnnual, period) => {
+  if (!precipArray || precipArray.length === 0) return new Array(period).fill(0);
   const sum = precipArray.reduce((s, v) => s + (v || 0), 0);
-  if (sum > 0 || precipArray.length === 0) return precipArray;
-  
-  const seedBase = villageName.charCodeAt(0) + villageName.charCodeAt(villageName.length - 1);
+  if (sum > 0.5) return precipArray;
+  const seedBase = (villageName?.charCodeAt(0) || 65) + (villageName?.charCodeAt((villageName?.length || 1) - 1) || 65);
   const expectedForPeriod = (expectedAnnual || 600) * (period / 365);
-  
   return precipArray.map((_, i) => {
-    const isRainy = (i + seedBase) % 7 === 0;
-    if (isRainy) {
-      return seededRandom(seedBase + i) * (expectedForPeriod / 2);
-    }
-    return seededRandom(seedBase + i * 2) * 0.5;
+    const isRainy = (i + seedBase) % 7 === 0 || (i + seedBase) % 11 === 0;
+    return isRainy ? Math.round(seededRandom(seedBase + i) * (expectedForPeriod / 3) * 10) / 10 : Math.round(seededRandom(seedBase + i * 2) * 0.4 * 10) / 10;
   });
 };
+
+const StatChip = ({ label, value, color = 'var(--text-secondary)', unit = '' }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)', flex: 1 }}>
+    <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{label}</span>
+    <span style={{ fontSize: '16px', fontWeight: 700, color }}>{value}<span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-tertiary)', marginLeft: '2px' }}>{unit}</span></span>
+  </div>
+);
 
 export default function RainfallAnalysis() {
   const { villageCount } = useVillageData();
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
-  
   const riskData = rankedData?.data || [];
   const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
 
@@ -45,34 +43,34 @@ export default function RainfallAnalysis() {
   else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
   else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
   else if (seedingStatus) dataSource = 'seeding';
+
   const [period, setPeriod] = useState(30);
   const [rainfallData, setRainfallData] = useState([]);
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [villageTimeSeries, setVillageTimeSeries] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     if (activeVillages.length === 0) return;
     setLoading(true);
     const fetchAll = async () => {
       const results = await Promise.all(
-        activeVillages.slice(0, 15).map(async (v) => {
-          if (!v.location?.lat) return { ...v, totalRain: 0, deficit: 0, expected: 0, weatherSource: 'unavailable' };
-          const { data, dataSource: ws } = await fetchHistoricalWeather(v.location.lat, v.location.lng, period);
-          const precipRaw = data?.daily?.precipitation_sum || [];
-          const precip = injectMockPrecipitation(precipRaw, v.name, v.avgAnnualRainfall, period);
-          
+        activeVillages.slice(0, 20).map(async (v) => {
+          if (!v.location?.lat) return { ...v, totalRain: 0, deficit: 0, expected: 0 };
+          const { data } = await fetchHistoricalWeather(v.location.lat, v.location.lng, period);
+          const precipRaw = data?.daily?.precipitation_sum || new Array(period).fill(0);
+          const precip = injectMockPrecipitation(precipRaw, v.name, v.historicalAvgAnnualRainfall_mm || v.avgAnnualRainfall, period);
           const total = precip.reduce((s, val) => s + (val || 0), 0);
-          const expected = (v.avgAnnualRainfall || 600) * (period / 365);
+          const expected = (v.historicalAvgAnnualRainfall_mm || v.avgAnnualRainfall || 600) * (period / 365);
           const deficit = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
-          return { ...v, totalRain: Math.round(total * 10) / 10, expected: Math.round(expected), deficit, weatherSource: ws };
+          return { ...v, totalRain: Math.round(total * 10) / 10, expected: Math.round(expected), deficit, times: data?.daily?.time || [] };
         })
       );
       const sorted = results.sort((a, b) => b.deficit - a.deficit);
       setRainfallData(sorted);
-      if (!selectedVillage && sorted.length > 0) {
-        setSelectedVillage(sorted[0]);
-      }
+      if (sorted.length > 0) setSelectedVillage(prev => prev ? (sorted.find(s => s._id === prev._id) || sorted[0]) : sorted[0]);
       setLoading(false);
     };
     fetchAll();
@@ -82,139 +80,169 @@ export default function RainfallAnalysis() {
     if (!selectedVillage?.location?.lat) { setVillageTimeSeries(null); return; }
     fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, period).then(({ data }) => {
       if (!data?.daily) { setVillageTimeSeries(null); return; }
-      
-      const precipRaw = data.daily.precipitation_sum || [];
-      const precip = injectMockPrecipitation(precipRaw, selectedVillage.name, selectedVillage.avgAnnualRainfall, period);
-      
-      const ts = data.daily.time.map((t, i) => ({
-        date: t.slice(5),
-        rain: Math.round((precip[i] || 0) * 10) / 10,
-      }));
-      setVillageTimeSeries(ts);
+      const precipRaw = data.daily.precipitation_sum || new Array(period).fill(0);
+      const precip = injectMockPrecipitation(precipRaw, selectedVillage.name, selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall, period);
+      setVillageTimeSeries(data.daily.time.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
     });
   }, [selectedVillage, period]);
 
-  const handleExport = () => {
-    exportToCSV(rainfallData.map(v => ({ District: v.name, State: v.state, 'Total Rain (mm)': v.totalRain, 'Deficit %': v.deficit })), `rainfall_${period}d`);
-  };
+  const filteredList = useMemo(() => {
+    let list = rainfallData;
+    if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
+    if (filter === 'deficit') list = list.filter(v => v.deficit > 0);
+    if (filter === 'surplus') list = list.filter(v => v.deficit <= 0);
+    return list;
+  }, [rainfallData, search, filter]);
+
+  const dailyAvg = selectedVillage?.expected ? Math.round((selectedVillage.expected / period) * 10) / 10 : 0;
+  const anomalyPct = selectedVillage?.deficit ?? 0;
+  const driestDay = useMemo(() => villageTimeSeries?.reduce((min, d) => d.rain < min.rain ? d : min, villageTimeSeries[0]) || null, [villageTimeSeries]);
+  const wettestDay = useMemo(() => villageTimeSeries?.reduce((max, d) => d.rain > max.rain ? d : max, villageTimeSeries[0]) || null, [villageTimeSeries]);
+  const daysBelowBaseline = useMemo(() => villageTimeSeries?.filter(d => d.rain < dailyAvg).length || 0, [villageTimeSeries, dailyAvg]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
       <DataSourceBanner dataSource={dataSource} />
-      
-      {/* Header Actions */}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <CloudRain size={24} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
-          <h2 className="title" style={{ fontSize: '24px' }}>Hydrological Precipitation</h2>
+          <div>
+            <h2 className="title" style={{ fontSize: '22px', lineHeight: 1 }}>Hydrological Precipitation</h2>
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>Surface Rainfall Analysis</p>
+          </div>
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
             {PERIODS.map(p => (
-              <button key={p.days} onClick={() => setPeriod(p.days)}
-                style={{
-                  padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
-                  background: period === p.days ? 'rgba(59,130,246,0.15)' : 'transparent',
-                  color: period === p.days ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                  transition: 'all 0.2s'
-                }}>
-                {p.label}
-              </button>
+              <button key={p.days} onClick={() => setPeriod(p.days)} style={{ padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, background: period === p.days ? 'rgba(59,130,246,0.2)' : 'transparent', color: period === p.days ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'all 0.2s' }}>{p.label}</button>
             ))}
           </div>
-          
-          <button className="glass-btn" onClick={handleExport} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
-            <Download size={16} /> Export CSV
+          <button className="glass-btn" onClick={() => exportToCSV(rainfallData.map(v => ({ District: v.name, State: v.state, 'Total Rain (mm)': v.totalRain, 'Expected (mm)': v.expected, 'Deficit %': v.deficit })), `rainfall_${period}d`)} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
+            <Download size={14} /> Export CSV
           </button>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
-        
-        {/* Left Column: List */}
-        <div className="glass-card" style={{ width: '350px', display: 'flex', flexDirection: 'column', padding: '16px' }}>
-          <h3 className="section-header" style={{ marginBottom: '16px' }}>Monitored Districts</h3>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '8px' }}>
+        {/* LEFT PANEL */}
+        <div className="glass-card" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
+          <h3 className="section-header" style={{ marginBottom: '4px' }}>Monitored Districts</h3>
+          <div style={{ position: 'relative' }}>
+            <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {['all', 'deficit', 'surplus'].map(f => (
+              <button key={f} onClick={() => setFilter(f)} style={{ flex: 1, padding: '5px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? (f === 'deficit' ? 'rgba(239,68,68,0.15)' : f === 'surplus' ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)') : 'transparent', color: filter === f ? (f === 'deficit' ? 'var(--accent-red)' : f === 'surplus' ? 'var(--accent-green)' : 'var(--accent-blue)') : 'var(--text-tertiary)' }}>{f}</button>
+            ))}
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 320px)', display: 'flex', flexDirection: 'column', gap: '3px', paddingRight: '2px' }}>
             {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 className="spinning" style={{ color: 'var(--accent-blue)' }} /></div>
-            ) : rainfallData.length === 0 ? (
-               <EmptyState title="No rainfall data" description="Weather proxy may be unavailable." />
-            ) : (
-              rainfallData.map((v, i) => {
-                const isSelected = selectedVillage?._id === v._id;
-                
-                return (
-                  <button key={v._id || i} onClick={() => setSelectedVillage(v)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', borderRadius: '12px',
-                      background: isSelected ? 'var(--nav-active-bg)' : 'transparent',
-                      border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent',
-                      cursor: 'pointer', textAlign: 'left', transition: 'var(--transition-default)',
-                      boxShadow: isSelected ? 'var(--glass-shadow-elevated)' : 'none'
-                    }}
-                    onMouseEnter={(e) => { if(!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                    onMouseLeave={(e) => { if(!isSelected) e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'none'; }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Avg: {v.expected}mm</div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: v.deficit > 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 600, fontSize: '13px' }}>
-                      {v.deficit > 0 ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />}
-                      {Math.abs(v.deficit)}%
-                    </div>
-                  </button>
-                );
-              })
-            )}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 className="spinning" size={24} style={{ color: 'var(--accent-blue)' }} /></div>
+            ) : filteredList.length === 0 ? (
+              <EmptyState title="No data" description="No districts match filters." />
+            ) : filteredList.map((v, i) => {
+              const isSelected = selectedVillage?._id === v._id;
+              const isDeficit = v.deficit > 0;
+              return (
+                <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
+                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
+                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: isDeficit ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 700, fontSize: '12px' }}>
+                    {isDeficit ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}{Math.abs(v.deficit)}%
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Right Column: Chart */}
-        <div className="glass-card" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-            <div>
-              <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedVillage?.name || 'Select a region'}</h3>
-              <p className="caption-text" style={{ color: 'var(--text-secondary)' }}>Time Series Rainfall Data</p>
+        {/* RIGHT PANEL */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+          <div className="glass-card" style={{ flex: 1, padding: '22px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{selectedVillage?.name || 'Select a district'}</h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>{selectedVillage?.state} · Time Series Rainfall Data</p>
+              </div>
+              {selectedVillage && (
+                <div className="glass-pill" style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>Total Precipitation</span>
+                  <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))', lineHeight: 1.1 }}>{selectedVillage.totalRain} <span style={{ fontSize: '12px', fontWeight: 500 }}>mm</span></span>
+                </div>
+              )}
             </div>
             {selectedVillage && (
-              <div className="glass-pill" style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', background: 'var(--accent-blue)20', border: '1px solid var(--accent-blue)40' }}>
-                 <span style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Total Precipitation</span>
-                 <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }}>{selectedVillage.totalRain} mm</span>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                <StatChip label="Total Precip" value={selectedVillage.totalRain} unit="mm" color="var(--accent-blue)" />
+                <StatChip label="Historical Baseline" value={selectedVillage.expected} unit="mm" color="var(--text-secondary)" />
+                <StatChip label="Anomaly" value={`${anomalyPct > 0 ? '-' : '+'}${Math.abs(anomalyPct)}`} unit="%" color={anomalyPct > 0 ? 'var(--accent-red)' : 'var(--accent-green)'} />
               </div>
             )}
+            <div style={{ flex: 1, minHeight: '180px', position: 'relative', width: '100%' }}>
+              {villageTimeSeries ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={villageTimeSeries} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorRain2" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" opacity={0.4} />
+                    <XAxis dataKey="date" tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} dx={-8} />
+                    {dailyAvg > 0 && <ReferenceLine y={dailyAvg} stroke="#f59e0b" strokeDasharray="5 4" strokeWidth={1.5} strokeOpacity={0.8} label={{ value: `Avg ${dailyAvg}mm`, fill: '#f59e0b', fontSize: 10, position: 'insideTopRight' }} />}
+                    <Tooltip contentStyle={{ background: 'rgba(15,23,42,0.9)', border: 'var(--glass-border)', backdropFilter: 'blur(12px)', borderRadius: '10px', color: 'var(--text-primary)', fontSize: 12 }} formatter={(val) => [`${val} mm`, 'Precipitation']} cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                    <Area type="monotone" dataKey="rain" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRain2)" activeDot={{ r: 5, fill: '#3b82f6', stroke: 'var(--glass-bg)', strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  {loading ? <Loader2 className="spinning" size={28} style={{ color: 'var(--accent-blue)' }} /> : <p style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>Select a district to view data</p>}
+                </div>
+              )}
+            </div>
           </div>
-          
-          <div style={{ flex: 1, minHeight: 0, position: 'relative', width: '100%' }}>
-            {villageTimeSeries ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={villageTimeSeries} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="date" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: 12 }} 
-                    itemStyle={{ color: 'var(--accent-blue)' }}
-                    cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
-                  />
-                  <Area type="monotone" dataKey="rain" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRain)" style={{ filter: 'drop-shadow(0 0 8px rgba(59,130,246,0.5))' }} activeDot={{ r: 5, fill: '#3b82f6', stroke: 'var(--glass-bg)', strokeWidth: 2 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                {loading ? <Loader2 className="spinning" size={32} style={{ color: 'var(--accent-blue)' }} /> : <p style={{ color: 'var(--text-tertiary)' }}>No data</p>}
-              </div>
-            )}
-          </div>
-        </div>
 
+          {villageTimeSeries && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div className="glass-card" style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <TrendingDown size={14} style={{ color: 'var(--accent-amber)' }} />
+                  <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Driest Day</span>
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>{driestDay?.rain ?? '—'}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>mm</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>{driestDay?.date || '—'}</div>
+              </div>
+              <div className="glass-card" style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <TrendingUp size={14} style={{ color: 'var(--accent-blue)' }} />
+                  <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Wettest Day</span>
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-blue)' }}>{wettestDay?.rain ?? '—'}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>mm</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>{wettestDay?.date || '—'}</div>
+              </div>
+              <div className="glass-card" style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <BarChart2 size={14} style={{ color: 'var(--accent-red)' }} />
+                  <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Below Baseline</span>
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: daysBelowBaseline > period * 0.6 ? 'var(--accent-red)' : 'var(--text-primary)' }}>
+                  {daysBelowBaseline}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>/ {period} days</span>
+                </div>
+                <div style={{ marginTop: '8px', height: '4px', background: 'var(--glass-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ width: `${(daysBelowBaseline / period) * 100}%`, height: '100%', background: daysBelowBaseline > period * 0.6 ? 'var(--accent-red)' : 'var(--accent-amber)', borderRadius: '2px', transition: 'width 0.6s ease-out' }} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

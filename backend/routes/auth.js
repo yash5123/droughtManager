@@ -18,10 +18,11 @@ const authLimiter = rateLimit({
 
 const setTokenCookie = (res, userId) => {
   const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax', // 'none' required for cross-origin (Render <-> Vercel)
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
   return token;
@@ -140,10 +141,11 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 // Logout (clear cookie)
 router.post('/logout', (req, res) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
   });
   res.json({ message: 'Logged out successfully' });
 });
