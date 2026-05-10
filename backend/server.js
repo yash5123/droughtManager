@@ -78,12 +78,6 @@ mongoose.connect(MONGO_URI)
         } else {
           console.log(`Found ${todayRiskCount} risk records for today. Daily job not needed.`);
         }
-        
-        // ONE-TIME BACKFILL: recompute last 30 days with corrected piecewise compression
-        // Safe to run multiple times — it overwrites scores idempotently.
-        // Remove this block after the first successful deploy.
-        console.log('[Startup] Triggering one-time score backfill with corrected compression...');
-        backfillScores().catch(err => console.error('[Startup] Backfill error:', err));
       }
     } catch (seedErr) {
       console.error('Error during startup check:', seedErr);
