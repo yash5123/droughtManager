@@ -154,7 +154,7 @@ export default function RainfallAnalysis() {
             {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
               const color = getRiskColor(f);
               return (
-                <button key={f} onClick={() => setFilter(f)} style={{ flex: '1 0 auto', padding: '5px 8px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)' }}>{f}</button>
+                <button key={f} onClick={() => setFilter(f)} style={{ flex: f === 'All' ? '1 0 100%' : '1 0 auto', padding: '5px 8px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)' }}>{f}</button>
               );
             })}
           </div>
