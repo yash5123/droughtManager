@@ -159,9 +159,10 @@ export default function GroundwaterAnalysis() {
                 textTransform: 'uppercase', 
                 letterSpacing: '0.5px', 
                 transition: 'all 0.2s', 
-                background: filter === 'All' ? 'rgba(255,255,255,0.08)' : 'transparent', 
-                color: filter === 'All' ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                border: filter === 'All' ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent'
+                background: filter === 'All' ? 'rgba(59,130,246,0.15)' : 'transparent', 
+                color: filter === 'All' ? '#3b82f6' : 'var(--text-tertiary)',
+                border: filter === 'All' ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
+                boxShadow: filter === 'All' ? '0 0 15px rgba(59,130,246,0.2)' : 'none'
               }}
             >
               Show All Districts
