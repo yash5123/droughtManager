@@ -4,16 +4,16 @@
  */
 
 export const RISK_LEVELS = {
-  Extreme: { label: 'Extreme', color: '#ef4444', bgClass: 'bg-red-500', textClass: 'text-red-400', borderClass: 'risk-border-extreme', min: 71 },
-  Severe:  { label: 'Severe',  color: '#f97316', bgClass: 'bg-orange-500', textClass: 'text-orange-400', borderClass: 'risk-border-severe', min: 51 },
-  Moderate:{ label: 'Moderate',color: '#eab308', bgClass: 'bg-yellow-500', textClass: 'text-yellow-400', borderClass: 'risk-border-moderate', min: 26 },
+  Extreme: { label: 'Extreme', color: '#ef4444', bgClass: 'bg-red-500', textClass: 'text-red-400', borderClass: 'risk-border-extreme', min: 70 },
+  Severe:  { label: 'Severe',  color: '#f97316', bgClass: 'bg-orange-500', textClass: 'text-orange-400', borderClass: 'risk-border-severe', min: 50 },
+  Moderate:{ label: 'Moderate',color: '#eab308', bgClass: 'bg-yellow-500', textClass: 'text-yellow-400', borderClass: 'risk-border-moderate', min: 25 },
   Normal:  { label: 'Normal',  color: '#22c55e', bgClass: 'bg-emerald-500', textClass: 'text-emerald-400', borderClass: 'risk-border-normal', min: 0 },
 };
 
 export function getRiskLevel(score) {
-  if (score > 70) return RISK_LEVELS.Extreme;
-  if (score > 50) return RISK_LEVELS.Severe;
-  if (score > 25) return RISK_LEVELS.Moderate;
+  if (score >= 70) return RISK_LEVELS.Extreme;
+  if (score >= 50) return RISK_LEVELS.Severe;
+  if (score >= 25) return RISK_LEVELS.Moderate;
   return RISK_LEVELS.Normal;
 }
 
