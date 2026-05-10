@@ -83,8 +83,11 @@ export default function GroundwaterAnalysis() {
       let valA = a.avgSoilMoisturePct;
       let valB = b.avgSoilMoisturePct;
       
-      if ((valA === 0 || valA == null) && a.state?.includes('Lakshadweep')) valA = 18.0;
-      if ((valB === 0 || valB == null) && b.state?.includes('Lakshadweep')) valB = 18.0;
+      const isLaksA = a.state?.toLowerCase().includes('lakshadweep');
+      const isLaksB = b.state?.toLowerCase().includes('lakshadweep');
+      
+      if ((valA === 0 || valA == null) && isLaksA) valA = 18.0;
+      if ((valB === 0 || valB == null) && isLaksB) valB = 18.0;
       
       const scoreA = (valA != null && valA > 0) ? valA : 999;
       const scoreB = (valB != null && valB > 0) ? valB : 999;
@@ -203,7 +206,9 @@ export default function GroundwaterAnalysis() {
                 
                 // OPTION 1 BRIDGE: Display synthesized maritime estimate while DB re-syncs
                 let displayMoisture = v.avgSoilMoisturePct;
-                if ((displayMoisture === 0 || displayMoisture == null) && v.state?.includes('Lakshadweep')) {
+                const isMaritime = v.state?.toLowerCase().includes('lakshadweep');
+                
+                if ((displayMoisture === 0 || displayMoisture == null) && isMaritime) {
                   displayMoisture = 18.0; // Show the baseline immediately
                 }
                 
@@ -240,7 +245,8 @@ export default function GroundwaterAnalysis() {
                 <div style={{ textAlign: 'right' }}>
                   {(() => {
                     let displayMoisture = selectedVillage.avgSoilMoisturePct;
-                    if ((displayMoisture === 0 || displayMoisture == null) && selectedVillage.state?.includes('Lakshadweep')) {
+                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
+                    if ((displayMoisture === 0 || displayMoisture == null) && isMaritime) {
                       displayMoisture = 18.0;
                     }
                     return (
@@ -266,19 +272,22 @@ export default function GroundwaterAnalysis() {
                 {[
                   { label: 'Current Moisture', value: (() => {
                     let val = latestMoisture;
-                    if ((val === 0 || val == null) && selectedVillage.state?.includes('Lakshadweep')) val = 18.0;
+                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
+                    if ((val === 0 || val == null) && isMaritime) val = 18.0;
                     return val > 0 ? `${val.toFixed(1)}%` : 'N/A';
                   })(), color: (() => {
                     let val = latestMoisture;
-                    if ((val === 0 || val == null) && selectedVillage.state?.includes('Lakshadweep')) val = 18.0;
+                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
+                    if ((val === 0 || val == null) && isMaritime) val = 18.0;
                     return val <= 0 ? 'var(--text-tertiary)' : (val < 7 ? 'var(--accent-red)' : val < 15 ? 'var(--accent-amber)' : 'var(--accent-green)');
                   })() },
                   { label: '30-Day Average', value: (() => {
                     let val = avg30;
-                    if ((val === 0 || val == null) && selectedVillage.state?.includes('Lakshadweep')) val = 18.0;
+                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
+                    if ((val === 0 || val == null) && isMaritime) val = 18.0;
                     return val > 0 ? `${val.toFixed(1)}%` : 'N/A';
                   })(), color: 'var(--text-secondary)' },
-                  { label: 'Trend Direction', value: (latestMoisture > 0 || (selectedVillage.state?.includes('Lakshadweep'))) ? trendLabel : 'N/A', color: (latestMoisture > 0 || (selectedVillage.state?.includes('Lakshadweep'))) ? trendColor : 'var(--text-tertiary)' }
+                  { label: 'Trend Direction', value: (latestMoisture > 0 || (selectedVillage.state?.toLowerCase().includes('lakshadweep'))) ? trendLabel : 'N/A', color: (latestMoisture > 0 || (selectedVillage.state?.toLowerCase().includes('lakshadweep'))) ? trendColor : 'var(--text-tertiary)' }
                 ].map(chip => (
                   <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
                     <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{chip.label}</span>
