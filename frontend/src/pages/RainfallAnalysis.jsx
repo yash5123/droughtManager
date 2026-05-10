@@ -49,7 +49,8 @@ export default function RainfallAnalysis() {
   const [villageTimeSeries, setVillageTimeSeries] = useState(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('All');
+  const [countLimit, setCountLimit] = useState('All');
   const [selectedVillageMetrics, setSelectedVillageMetrics] = useState(null);
 
   useEffect(() => {
@@ -83,10 +84,10 @@ export default function RainfallAnalysis() {
   const filteredList = useMemo(() => {
     let list = activeVillages;
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
-    if (filter === 'deficit') list = list.filter(v => v.riskLevel && v.riskLevel !== 'Normal');
-    if (filter === 'surplus') list = list.filter(v => v.riskLevel === 'Normal');
+    if (filter !== 'All') list = list.filter(v => v.riskLevel === filter);
+    if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
     return list;
-  }, [activeVillages, search, filter]);
+  }, [activeVillages, search, filter, countLimit]);
 
   const getRiskColor = (level) => {
     switch(level) {
@@ -94,7 +95,7 @@ export default function RainfallAnalysis() {
       case 'Severe': return 'var(--accent-amber)';
       case 'Moderate': return '#eab308';
       case 'Normal': return 'var(--accent-green)';
-      default: return 'var(--text-tertiary)';
+      default: return 'var(--accent-blue)';
     }
   };
 
@@ -136,9 +137,19 @@ export default function RainfallAnalysis() {
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {['all', 'deficit', 'surplus'].map(f => (
-              <button key={f} onClick={() => setFilter(f)} style={{ flex: 1, padding: '5px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? (f === 'deficit' ? 'rgba(239,68,68,0.15)' : f === 'surplus' ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)') : 'transparent', color: filter === f ? (f === 'deficit' ? 'var(--accent-red)' : f === 'surplus' ? 'var(--accent-green)' : 'var(--accent-blue)') : 'var(--text-tertiary)' }}>{f}</button>
+          <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
+              const color = getRiskColor(f);
+              return (
+                <button key={f} onClick={() => setFilter(f)} style={{ flex: '1 0 auto', padding: '5px 8px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)' }}>{f}</button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
+            {['10', '25', 'All'].map(c => (
+              <button key={c} onClick={() => setCountLimit(c)} style={{ flex: 1, padding: '4px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', transition: 'all 0.2s', background: countLimit === c ? 'rgba(255,255,255,0.08)' : 'transparent', color: countLimit === c ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+                {c === 'All' ? 'All Districts' : `Top ${c}`}
+              </button>
             ))}
           </div>
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 320px)', display: 'flex', flexDirection: 'column', gap: '3px', paddingRight: '2px' }}>
