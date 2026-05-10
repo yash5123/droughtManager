@@ -133,6 +133,8 @@ export default function Overview() {
     else if (v.riskScore >= 51) gradientId = 'colorSevere';
     else if (v.riskScore >= 26) gradientId = 'colorModerate';
     
+    // UI BRIDGE: For display only, if moisture is 0 and it's maritime, 
+    // it shouldn't be at the top of the risk chart anyway due to our new sorting.
     return {
       name: v.name.length > 10 ? v.name.slice(0, 10) + '…' : v.name,
       score: v.riskScore || 0,

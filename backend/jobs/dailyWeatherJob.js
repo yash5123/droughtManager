@@ -108,13 +108,23 @@ async function fetchWeatherForVillage(village) {
   let avgSoilMoisture = null;
   if (validSm.length > 0) {
     avgSoilMoisture = validSm.reduce((s, v) => s + v, 0) / validSm.length;
+  } else if (village.state?.includes('Lakshadweep') || village.lat < 12) {
+    // MARITIME ESTIMATE (Option 1): 
+    // Small islands (Lakshadweep) or deep maritime coastal points often return null soil moisture.
+    // We synthesize a realistic value based on the Rainfall Deficit logic.
+    const historical30 = (village.historicalAvgMonthlyRainfall_mm && village.historicalAvgMonthlyRainfall_mm[new Date().getMonth()]) || 30;
+    const ratio = totalPrecip / Math.max(1, historical30);
+    
+    // Baseline 18%. Heavy rain pushes it to ~25%. Severe drought drops it to ~12%.
+    avgSoilMoisture = 0.18 + (Math.min(2, ratio) - 1) * 0.07;
+    avgSoilMoisture = Math.max(0.12, Math.min(0.25, avgSoilMoisture));
   }
   
   return {
     precipitationArray: precip.map(v => v || 0),
     totalPrecipitation_mm: Math.round(totalPrecip * 10) / 10,
     avgSoilMoistureFrac: avgSoilMoisture, // 0 to ~0.5 volumetric fraction or null
-    avgSoilMoisturePct: avgSoilMoisture !== null ? Math.round(avgSoilMoisture * 100) : null
+    avgSoilMoisturePct: avgSoilMoisture !== null ? Math.round(avgSoilMoisture * 1000) / 10 : null
   };
 }
 

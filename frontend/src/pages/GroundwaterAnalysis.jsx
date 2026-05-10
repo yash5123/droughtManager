@@ -79,10 +79,17 @@ export default function GroundwaterAnalysis() {
     
     // Sort by moisture (lowest moisture first)
     list.sort((a, b) => {
-      // Treat null or 0 (likely maritime data gap) as 999 to push them to the bottom of risk sorting
-      const valA = (a.avgSoilMoisturePct != null && a.avgSoilMoisturePct > 0) ? a.avgSoilMoisturePct : 999;
-      const valB = (b.avgSoilMoisturePct != null && b.avgSoilMoisturePct > 0) ? b.avgSoilMoisturePct : 999;
-      return sortAscending ? valA - valB : valB - valA;
+      // For sorting, also apply the maritime baseline if data is missing
+      let valA = a.avgSoilMoisturePct;
+      let valB = b.avgSoilMoisturePct;
+      
+      if ((valA === 0 || valA == null) && a.state?.includes('Lakshadweep')) valA = 18.0;
+      if ((valB === 0 || valB == null) && b.state?.includes('Lakshadweep')) valB = 18.0;
+      
+      const scoreA = (valA != null && valA > 0) ? valA : 999;
+      const scoreB = (valB != null && valB > 0) ? valB : 999;
+      
+      return sortAscending ? scoreA - scoreB : scoreB - scoreA;
     });
     
     if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
@@ -193,7 +200,14 @@ export default function GroundwaterAnalysis() {
             ) : (
               filteredList.map((v, i) => {
                 const isSelected = selectedVillage?._id === v._id;
-                const level = v.avgSoilMoisturePct != null && v.avgSoilMoisturePct > 0 ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
+                
+                // OPTION 1 BRIDGE: Display synthesized maritime estimate while DB re-syncs
+                let displayMoisture = v.avgSoilMoisturePct;
+                if ((displayMoisture === 0 || displayMoisture == null) && v.state?.includes('Lakshadweep')) {
+                  displayMoisture = 18.0; // Show the baseline immediately
+                }
+                
+                const level = displayMoisture != null && displayMoisture > 0 ? getSoilMoistureLevel(displayMoisture) : null;
                 const color = level?.color || 'var(--text-tertiary)';
                 
                 return (
@@ -205,7 +219,7 @@ export default function GroundwaterAnalysis() {
                       <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', color: color, fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>
-                      {v.avgSoilMoisturePct != null && v.avgSoilMoisturePct > 0 ? `${v.avgSoilMoisturePct.toFixed(1)}%` : 'N/A'}
+                      {displayMoisture != null && displayMoisture > 0 ? `${displayMoisture.toFixed(1)}%` : 'N/A'}
                     </div>
                   </button>
                 );
@@ -222,12 +236,26 @@ export default function GroundwaterAnalysis() {
                 <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '3px' }}>{selectedVillage?.name || 'Select a region'}</h2>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Surface Soil Moisture Trend (0–7cm)</p>
               </div>
-              {selectedVillage && selectedVillage.avgSoilMoisturePct != null && (
+              {selectedVillage && (
                 <div style={{ textAlign: 'right' }}>
-                  <div className="data-value" style={{ color: selectedVillage.avgSoilMoisturePct <= 0 ? 'var(--text-tertiary)' : (selectedVillage.avgSoilMoisturePct < 7 ? 'var(--accent-red)' : selectedVillage.avgSoilMoisturePct < 15 ? 'var(--accent-amber)' : 'var(--accent-green)'), filter: selectedVillage.avgSoilMoisturePct <= 0 ? 'none' : 'drop-shadow(0 0 8px currentColor)', fontSize: '24px' }}>
-                    {selectedVillage.avgSoilMoisturePct > 0 ? `${selectedVillage.avgSoilMoisturePct.toFixed(1)}%` : 'N/A'}
-                  </div>
-                  <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '2px', letterSpacing: '0.5px' }}>Avg Moisture</div>
+                  {(() => {
+                    let displayMoisture = selectedVillage.avgSoilMoisturePct;
+                    if ((displayMoisture === 0 || displayMoisture == null) && selectedVillage.state?.includes('Lakshadweep')) {
+                      displayMoisture = 18.0;
+                    }
+                    return (
+                      <>
+                        <div className="data-value" style={{ 
+                          color: displayMoisture <= 0 ? 'var(--text-tertiary)' : (displayMoisture < 7 ? 'var(--accent-red)' : displayMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)'), 
+                          filter: displayMoisture <= 0 ? 'none' : 'drop-shadow(0 0 8px currentColor)', 
+                          fontSize: '24px' 
+                        }}>
+                          {displayMoisture > 0 ? `${displayMoisture.toFixed(1)}%` : 'N/A'}
+                        </div>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '2px', letterSpacing: '0.5px' }}>Avg Moisture</div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -235,9 +263,22 @@ export default function GroundwaterAnalysis() {
             {villageTrend && villageTrend.length > 0 && (
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                 {[
-                  { label: 'Current Moisture', value: latestMoisture > 0 ? `${latestMoisture.toFixed(1)}%` : 'N/A', color: latestMoisture <= 0 ? 'var(--text-tertiary)' : (latestMoisture < 7 ? 'var(--accent-red)' : latestMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)') },
-                  { label: '30-Day Average', value: avg30 > 0 ? `${avg30.toFixed(1)}%` : 'N/A', color: 'var(--text-secondary)' },
-                  { label: 'Trend Direction', value: latestMoisture > 0 ? trendLabel : 'N/A', color: latestMoisture > 0 ? trendColor : 'var(--text-tertiary)' }
+                {[
+                  { label: 'Current Moisture', value: (() => {
+                    let val = latestMoisture;
+                    if ((val === 0 || val == null) && selectedVillage.state?.includes('Lakshadweep')) val = 18.0;
+                    return val > 0 ? `${val.toFixed(1)}%` : 'N/A';
+                  })(), color: (() => {
+                    let val = latestMoisture;
+                    if ((val === 0 || val == null) && selectedVillage.state?.includes('Lakshadweep')) val = 18.0;
+                    return val <= 0 ? 'var(--text-tertiary)' : (val < 7 ? 'var(--accent-red)' : val < 15 ? 'var(--accent-amber)' : 'var(--accent-green)');
+                  })() },
+                  { label: '30-Day Average', value: (() => {
+                    let val = avg30;
+                    if ((val === 0 || val == null) && selectedVillage.state?.includes('Lakshadweep')) val = 18.0;
+                    return val > 0 ? `${val.toFixed(1)}%` : 'N/A';
+                  })(), color: 'var(--text-secondary)' },
+                  { label: 'Trend Direction', value: (latestMoisture > 0 || (selectedVillage.state?.includes('Lakshadweep'))) ? trendLabel : 'N/A', color: (latestMoisture > 0 || (selectedVillage.state?.includes('Lakshadweep'))) ? trendColor : 'var(--text-tertiary)' }
                 ].map(chip => (
                   <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
                     <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{chip.label}</span>
