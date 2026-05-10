@@ -192,9 +192,15 @@ export default function FuturePrediction() {
                   {alertText}
                 </div>
                 
-                <button className="glass-btn" onClick={() => handleDispatch(village)} style={{ padding: '6px 12px', fontSize: '11px', gap: '6px', color: 'var(--text-primary)' }}>
-                  <Truck size={12} /> Preemptive Dispatch
-                </button>
+                {user ? (
+                  <button className="glass-btn" onClick={() => handleDispatch(village)} style={{ padding: '6px 12px', fontSize: '11px', gap: '6px', color: 'var(--text-primary)' }}>
+                    <Truck size={12} /> Preemptive Dispatch
+                  </button>
+                ) : (
+                  <button className="glass-btn" onClick={() => openLoginModal()} style={{ padding: '6px 12px', fontSize: '11px', gap: '6px', color: 'var(--text-tertiary)' }}>
+                    <Truck size={12} /> Sign in to Dispatch
+                  </button>
+                )}
               </div>
             </div>
           );
