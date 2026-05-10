@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin, CheckCircle, Circle } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
@@ -15,6 +15,23 @@ import { useTheme } from '../context/ThemeContext.jsx';
 
 const INDIA_CENTER = [22.5, 78.5];
 const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="glass-card" style={{ padding: '12px 16px', borderRadius: '12px', border: 'var(--glass-border)', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(12px)' }}>
+        <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: data.color, boxShadow: `0 0 10px ${data.color}` }} />
+          <span style={{ fontSize: '20px', fontWeight: 700, color: '#fff', lineHeight: 1 }}>{data.score}</span>
+          <span style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 500 }}>Risk Score</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 function KPICard({ icon: Icon, label, value, suffix = '', accentColor, tintColor, trend }) {
   const animatedValue = useCountUp(value, 1000);
@@ -98,9 +115,15 @@ export default function Overview() {
 
   const chartData = displayVillages.map(v => {
     const risk = getRiskLevel(v.riskScore);
+    let gradientId = 'colorNormal';
+    if (v.riskScore >= 76) gradientId = 'colorExtreme';
+    else if (v.riskScore >= 51) gradientId = 'colorSevere';
+    else if (v.riskScore >= 26) gradientId = 'colorModerate';
+    
     return {
       name: v.name.length > 10 ? v.name.slice(0, 10) + '…' : v.name,
       score: v.riskScore || 0,
+      gradient: `url(#${gradientId})`,
       color: risk.color,
     };
   });
@@ -327,27 +350,58 @@ export default function Overview() {
       </div>
 
       {/* Chart */}
-      <div className="glass-card" style={{ padding: '20px', width: '100%' }}>
-        <h3 className="section-header" style={{ marginBottom: '20px' }}>Risk Distribution</h3>
+      <div className="glass-card" style={{ padding: '24px', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <h3 className="section-header" style={{ margin: 0 }}>Risk Distribution</h3>
+          <div className="glass-pill" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px' }}>
+            <Activity size={14} style={{ color: 'var(--accent-blue)' }} />
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Live Analytics</span>
+          </div>
+        </div>
         <div style={{ width: '100%', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px' }}>
-          <div style={{ minWidth: `max(100%, ${chartData.length * 35}px)`, height: '240px' }}>
+          <div style={{ minWidth: `max(100%, ${chartData.length * 35}px)`, height: '260px' }}>
             <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 40, left: -20 }}>
+              <defs>
+                <linearGradient id="colorExtreme" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={1}/>
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.2}/>
+                </linearGradient>
+                <linearGradient id="colorSevere" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={1}/>
+                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                </linearGradient>
+                <linearGradient id="colorModerate" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#eab308" stopOpacity={1}/>
+                  <stop offset="95%" stopColor="#eab308" stopOpacity={0.2}/>
+                </linearGradient>
+                <linearGradient id="colorNormal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={1}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" opacity={0.6} />
               <XAxis 
                 dataKey="name" 
-                tick={{ fill: 'var(--text-tertiary)', fontSize: 11, angle: -45, textAnchor: 'end' }} 
-                axisLine={false} 
+                tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 500 }} 
+                axisLine={{ stroke: 'var(--border-color)', opacity: 0.5 }} 
                 tickLine={false} 
                 interval={0}
+                angle={-45}
+                textAnchor="end"
                 height={60}
+                dy={10}
               />
-              <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)' }}
-                cursor={{ fill: 'var(--text-tertiary)', opacity: 0.1 }}
+              <YAxis 
+                domain={[0, 100]} 
+                tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 500 }} 
+                axisLine={false} 
+                tickLine={false} 
+                dx={-10}
               />
-              <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={30}>
-                {chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--text-tertiary)', opacity: 0.05 }} />
+              <Bar dataKey="score" radius={[6, 6, 0, 0]} maxBarSize={32} animationDuration={1500} animationEasing="ease-out">
+                {chartData.map((d, i) => <Cell key={i} fill={d.gradient} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
