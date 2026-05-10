@@ -77,10 +77,11 @@ export default function GroundwaterAnalysis() {
       });
     }
     
-    // Sort by moisture
+    // Sort by moisture (lowest moisture first)
     list.sort((a, b) => {
-      const valA = a.avgSoilMoisturePct != null ? a.avgSoilMoisturePct : 999;
-      const valB = b.avgSoilMoisturePct != null ? b.avgSoilMoisturePct : 999;
+      // Treat null or 0 (likely maritime data gap) as 999 to push them to the bottom of risk sorting
+      const valA = (a.avgSoilMoisturePct != null && a.avgSoilMoisturePct > 0) ? a.avgSoilMoisturePct : 999;
+      const valB = (b.avgSoilMoisturePct != null && b.avgSoilMoisturePct > 0) ? b.avgSoilMoisturePct : 999;
       return sortAscending ? valA - valB : valB - valA;
     });
     

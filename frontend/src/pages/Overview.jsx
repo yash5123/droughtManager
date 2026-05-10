@@ -89,9 +89,22 @@ export default function Overview() {
   const { theme } = useTheme();
 
   const displayVillages = React.useMemo(() => {
-    let filtered = riskData;
+    let filtered = [...riskData];
+    
+    // DATA BRIDGE: Deprioritize districts that have 0% moisture in maritime regions (Lakshadweep)
+    // because they currently have incorrectly high risk scores in the database.
+    filtered.sort((a, b) => {
+      const isMissingA = a.avgSoilMoisturePct === 0 && a.state?.includes('Lakshadweep');
+      const isMissingB = b.avgSoilMoisturePct === 0 && b.state?.includes('Lakshadweep');
+      
+      if (isMissingA && !isMissingB) return 1;
+      if (!isMissingA && isMissingB) return -1;
+      
+      return (b.riskScore || 0) - (a.riskScore || 0);
+    });
+
     if (riskFilter !== 'All') {
-      filtered = riskData.filter(v => {
+      filtered = filtered.filter(v => {
         if (riskFilter === 'Low') return getRiskLevel(v.riskScore).label === 'Normal'; // Low is essentially Normal
         return getRiskLevel(v.riskScore).label === riskFilter;
       });
