@@ -64,7 +64,7 @@ export default function MapPage() {
         {/* Map Controls Overlay */}
         <div className="glass-panel" style={{ 
           position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)', 
-          zIndex: 400, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
+          zIndex: 1000, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
           boxShadow: 'var(--glass-shadow-elevated)'
         }}>
           {/* Severity Filters */}
@@ -128,7 +128,7 @@ export default function MapPage() {
         </div>
 
         {/* Main Map */}
-        <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} scrollWheelZoom={false} doubleClickZoom={false} dragging={false} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
+        <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} scrollWheelZoom={true} doubleClickZoom={true} dragging={true} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
           <MapUpdater theme={theme} />
           <TileLayer url={OSM_TILES} noWrap={true} />
           {showRadar && radarUrl && (
@@ -153,10 +153,9 @@ export default function MapPage() {
           })}
         </MapContainer>
 
-        {/* Floating/Docked Side Panel */}
         {selected && (
           <div className="glass-panel" style={{
-            position: 'absolute', top: '24px', right: '24px', width: '340px', bottom: '24px', zIndex: 400,
+            position: 'absolute', top: '24px', right: '24px', width: '340px', bottom: '24px', zIndex: 1000,
             borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column',
             boxShadow: 'var(--glass-shadow-elevated)'
           }}>
