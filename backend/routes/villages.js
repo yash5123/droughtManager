@@ -63,6 +63,7 @@ router.get('/ranked', async (req, res) => {
     ];
     
     const results = await DroughtRisk.aggregate(pipeline);
+    const totalVillages = await Village.countDocuments();
     
     // Include metadata about data freshness
     const latestDate = results.length > 0 ? results[0].date : null;
@@ -71,7 +72,7 @@ router.get('/ranked', async (req, res) => {
     res.json({
       data: results,
       meta: {
-        total: results.length,
+        total: totalVillages,
         latestDate,
         hoursOld: hoursOld ? Math.round(hoursOld * 10) / 10 : null,
         isStale: hoursOld ? hoursOld > 48 : true,
