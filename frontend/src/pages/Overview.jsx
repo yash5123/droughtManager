@@ -56,11 +56,8 @@ export default function Overview() {
     let filtered = riskData;
     if (riskFilter !== 'All') {
       filtered = riskData.filter(v => {
-        if (riskFilter === 'Extreme') return v.riskScore >= 76;
-        if (riskFilter === 'Severe') return v.riskScore >= 51 && v.riskScore < 76;
-        if (riskFilter === 'Moderate') return v.riskScore >= 26 && v.riskScore < 51;
-        if (riskFilter === 'Low') return v.riskScore < 26;
-        return true;
+        if (riskFilter === 'Low') return getRiskLevel(v.riskScore).label === 'Normal'; // Low is essentially Normal
+        return getRiskLevel(v.riskScore).label === riskFilter;
       });
     }
     return filtered.slice(0, villageCount);
@@ -76,20 +73,16 @@ export default function Overview() {
       .catch(() => {});
   }, [user]);
 
-  const extremeCount = riskData.filter(v => v.riskScore >= 76).length;
+  const extremeCount = riskData.filter(v => getRiskLevel(v.riskScore).label === 'Extreme').length;
   const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + (v.riskScore || 0), 0) / riskData.length) : 0;
-  const totalMonitored = meta?.total || riskData.length;
+  const totalMonitored = riskData.length;
 
   const chartData = displayVillages.slice(0, 50).map(v => {
     const risk = getRiskLevel(v.riskScore);
-    let color = 'var(--accent-green)';
-    if (v.riskScore >= 76) color = 'var(--accent-red)';
-    else if (v.riskScore >= 51) color = 'var(--accent-amber)';
-    else if (v.riskScore >= 26) color = 'var(--accent-amber)'; // Moderate
     return {
       name: v.name.length > 8 ? v.name.slice(0, 8) + '…' : v.name,
       score: v.riskScore || 0,
-      color: color,
+      color: risk.color,
     };
   });
 
