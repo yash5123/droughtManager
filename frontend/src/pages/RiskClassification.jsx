@@ -41,10 +41,10 @@ export default function RiskClassification() {
   const [sortDir, setSortDir] = useState('desc');
 
   const counts = useMemo(() => ({
-    Extreme: riskData.filter(v => v.riskScore >= 76).length,
-    Severe: riskData.filter(v => v.riskScore >= 51 && v.riskScore < 76).length,
-    Moderate: riskData.filter(v => v.riskScore >= 26 && v.riskScore < 51).length,
-    Normal: riskData.filter(v => v.riskScore < 26).length,
+    Extreme: riskData.filter(v => v.riskScore >= 70).length,
+    Severe: riskData.filter(v => v.riskScore >= 50 && v.riskScore < 70).length,
+    Moderate: riskData.filter(v => v.riskScore >= 25 && v.riskScore < 50).length,
+    Normal: riskData.filter(v => v.riskScore < 25).length,
   }), [riskData]);
 
   const filtered = useMemo(() => {
@@ -186,9 +186,9 @@ export default function RiskClassification() {
                 {filtered.map((v, i) => {
                   const risk = getRiskLevel(v.riskScore);
                   let color = 'var(--accent-green)';
-                  if (v.riskScore >= 76) color = 'var(--accent-red)';
-                  else if (v.riskScore >= 51) color = 'var(--accent-amber)';
-                  else if (v.riskScore >= 26) color = '#eab308';
+                  if (v.riskScore >= 70) color = 'var(--accent-red)';
+                  else if (v.riskScore >= 50) color = 'var(--accent-amber)';
+                  else if (v.riskScore >= 25) color = '#eab308';
                   const pop = (v.population && v.population > 0) ? v.population : 50000;
                   const isEst = !v.population || v.population === 0;
                   const waterDemandKL = Math.round(pop * 55 / 1000);
@@ -251,7 +251,7 @@ export default function RiskClassification() {
           <div style={{ borderTop: '1px solid var(--divider)', paddingTop: '24px' }}>
             <h4 className="card-label" style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>Classification Matrix</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <MatrixRow label="Extreme" threshold={75} color="var(--accent-red)" />
+              <MatrixRow label="Extreme" threshold={70} color="var(--accent-red)" />
               <div style={{ height: '1px', background: 'var(--divider)' }} />
               <MatrixRow label="Severe" threshold={50} color="var(--accent-amber)" />
               <div style={{ height: '1px', background: 'var(--divider)' }} />
