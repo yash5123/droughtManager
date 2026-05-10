@@ -282,10 +282,17 @@ async function computeRiskScore(village, weather, avgPopulation) {
   // 3. TAM: trend-based additive modifier (async — reads 7-day-old record)
   const tam = await computeTAM(village._id, rawComposite);
   const adjustedComposite = rawComposite + tam.adjustment;
-  
-  // 4. Logistic compression — prevents saturation at 100
-  const finalScore = 100 * (1 - Math.exp(-0.045 * Math.max(0, adjustedComposite)));
-  const riskScore = Math.round(finalScore * 10) / 10; // 1 decimal place
+  // 4. Piecewise linear compression — maps raw composite to final score
+  //    with precise control over each severity band.
+  //    Raw 0→0, 20→24, 45→50, 70→70, 90→95, 100→99.5
+  const adj = Math.max(0, adjustedComposite);
+  let finalScore;
+  if (adj <= 20)      finalScore = adj * 1.2;                        // 0→0,   20→24
+  else if (adj <= 45) finalScore = 24 + (adj - 20) * 1.04;           // 20→24, 45→50
+  else if (adj <= 70) finalScore = 50 + (adj - 45) * 0.80;           // 45→50, 70→70
+  else if (adj <= 90) finalScore = 70 + (adj - 70) * 1.25;           // 70→70, 90→95
+  else                finalScore = 95 + (adj - 90) * 0.45;           // 90→95, 100→99.5
+  const riskScore = Math.round(clamp(finalScore, 0, 99.9) * 10) / 10; // 1 decimal, never 100
   
   // 5. Classification (new thresholds)
   let riskLevel = 'Normal';
