@@ -150,13 +150,38 @@ export default function RainfallAnalysis() {
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', paddingBottom: '2px' }}>
-            {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
-              const color = getRiskColor(f);
-              return (
-                <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)', textAlign: 'center' }}>{f}</button>
-              );
-            })}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {/* All button on top, big */}
+            <button 
+              onClick={() => setFilter('All')} 
+              style={{ 
+                width: '100%', 
+                padding: '8px', 
+                borderRadius: '12px', 
+                border: 'none', 
+                cursor: 'pointer', 
+                fontSize: '11px', 
+                fontWeight: 700, 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.5px', 
+                transition: 'all 0.2s', 
+                background: filter === 'All' ? 'rgba(255,255,255,0.08)' : 'transparent', 
+                color: filter === 'All' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                border: filter === 'All' ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent'
+              }}
+            >
+              Show All Districts
+            </button>
+            
+            {/* Other filters in 4 columns */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', paddingBottom: '2px' }}>
+              {['Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
+                const color = getRiskColor(f);
+                return (
+                  <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 0', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)', textAlign: 'center', border: filter === f ? `1px solid ${color}40` : '1px solid transparent' }}>{f}</button>
+                );
+              })}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
             {['10', '25', 'All'].map(c => (
