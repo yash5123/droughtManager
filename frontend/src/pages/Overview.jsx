@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin, CheckCircle, Circle } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
@@ -46,7 +47,25 @@ function MapUpdater({ theme }) {
 }
 
 export default function Overview() {
-  const { activeVillages, riskData, dataSource, seedingStatus, loading, setVillageCount, meta, villageCount } = useVillageData();
+  const { villageCount, setVillageCount } = useVillageData();
+  const { data: rankedData, isLoading: loading } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  const meta = rankedData?.meta || null;
+  
+  // Determine dataSource mimicking old context behavior
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) {
+    dataSource = 'seeding';
+  } else if (riskData.length > 0) {
+    dataSource = meta?.isStale ? 'stale' : 'backend';
+  } else if (seedingStatus?.phase === 'complete' && riskData.length === 0) {
+    dataSource = 'stale';
+  } else if (seedingStatus) {
+    dataSource = 'seeding';
+  }
+
   const { user } = useAuth();
   const [activeTankers, setActiveTankers] = useState(0);
   const [riskFilter, setRiskFilter] = useState('Extreme');

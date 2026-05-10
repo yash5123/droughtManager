@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid, Cell } from 'recharts';
 import { Scale, Truck, AlertTriangle, ArrowRightLeft, Droplet, Users, Loader2 } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
@@ -16,7 +17,19 @@ const LITERS_PER_PERSON_DAY = 50;
 const TANKER_CAPACITY = 10000;
 
 export default function SupplyDemand() {
-  const { activeVillages, dataSource } = useVillageData();
+  const { villageCount } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
+
   const { user, openLoginModal } = useAuth();
   const { addToast } = useToast();
   const [dispatching, setDispatching] = useState(null);

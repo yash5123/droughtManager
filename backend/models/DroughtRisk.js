@@ -28,5 +28,6 @@ const droughtRiskSchema = new mongoose.Schema({
 droughtRiskSchema.index({ village: 1, date: -1 });
 droughtRiskSchema.index({ riskScore: -1 });
 droughtRiskSchema.index({ date: -1 });
+droughtRiskSchema.index({ riskLevel: 1 });
 
 export default mongoose.model('DroughtRisk', droughtRiskSchema);

@@ -34,5 +34,7 @@ villageSchema.index({ climateBaselineStatus: 1 });
 villageSchema.index({ name: 'text', district: 'text' });
 // Unique constraint: one doc per district+state combo
 villageSchema.index({ name: 1, state: 1 }, { unique: true });
+// Compound index for daily job: find geocoded villages with coordinates
+villageSchema.index({ geocodingStatus: 1, lat: 1, lon: 1 });
 
 export default mongoose.model('Village', villageSchema);

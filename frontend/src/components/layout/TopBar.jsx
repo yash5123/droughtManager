@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Bell, RefreshCw, Sun, Moon } from 'lucide-react';
 import { useVillageData } from '../../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../../hooks/useRiskData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../ui/Toast.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
@@ -15,7 +16,19 @@ const PAGE_TITLES = {
 
 export default function TopBar() {
   const location = useLocation();
-  const { dataSource, refresh, loading, lastRefreshed } = useVillageData();
+  const { data: rankedData, isLoading: rankedLoading, refetch: refresh, dataUpdatedAt } = useRankedVillages(10); // small limit just for status
+  const { data: seedingStatus, isLoading: seedingLoading } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
+
+  const loading = rankedLoading || seedingLoading;
+  const lastRefreshed = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
+
   const { user, openLoginModal } = useAuth();
   const { addToast } = useToast();
   const { theme, toggleTheme } = useTheme();

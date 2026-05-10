@@ -10,48 +10,49 @@ export function AuthProvider({ children }) {
   const [loginReturnPath, setLoginReturnPath] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (token && storedUser) {
+    const fetchUser = async () => {
       try {
-        setTimeout(() => setUser(JSON.parse(storedUser)), 0);
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        const res = await api.get('/auth/me');
+        setUser(res.data.user);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
+    };
+    fetchUser();
+
+    const handleUnauthorized = () => setUser(null);
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout error', err);
     }
-    setLoading(false);
-  }, []);
-
-  const persistLogin = useCallback((token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(null);
   }, []);
 
   const registerEmail = useCallback(async (name, email, password) => {
     const res = await api.post('/auth/register', { name, email, password });
-    persistLogin(res.data.token, res.data.user);
+    setUser(res.data.user);
     return res.data;
-  }, [persistLogin]);
+  }, []);
 
   const loginEmail = useCallback(async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    persistLogin(res.data.token, res.data.user);
+    setUser(res.data.user);
     return res.data;
-  }, [persistLogin]);
+  }, []);
 
   const loginGoogle = useCallback(async (access_token) => {
     const res = await api.post('/auth/google', { access_token });
-    persistLogin(res.data.token, res.data.user);
+    setUser(res.data.user);
     return res.data;
-  }, [persistLogin]);
+  }, []);
 
   const openLoginModal = useCallback((returnPath = null) => {
     setLoginReturnPath(returnPath);

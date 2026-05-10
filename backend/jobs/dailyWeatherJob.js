@@ -293,6 +293,22 @@ async function computeTAM(villageId, currentRawComposite) {
   return { adjustment, weeklyDelta, previousScore: prevRecord.riskScore };
 }
 
+// ─── Piecewise Linear Compression ─────────────────────────────────
+
+/**
+ * Piecewise linear compression — maps raw composite to final score
+ * with precise control over each severity band.
+ * Raw 0→0, 20→24, 45→50, 70→70, 90→94, 100→99
+ */
+function applyCompression(adjusted) {
+  const x = Math.max(0, adjusted);
+  if (x <= 20)  return x * 1.20;
+  if (x <= 45)  return 24 + (x - 20) * 1.04;
+  if (x <= 70)  return 50 + (x - 45) * 0.80;
+  if (x <= 90)  return 70 + (x - 70) * 1.30;
+  return 96 + (x - 90) * 0.39;
+}
+
 // ─── Composite Score Assembly ─────────────────────────────────────
 
 /**
@@ -316,17 +332,8 @@ async function computeRiskScore(village, weather, avgPopulation) {
   // 3. TAM: trend-based additive modifier (async — reads 7-day-old record)
   const tam = await computeTAM(village._id, rawComposite);
   const adjustedComposite = rawComposite + tam.adjustment;
-  // 4. Piecewise linear compression — maps raw composite to final score
-  //    with precise control over each severity band.
-  //    Raw 0→0, 20→24, 45→50, 70→70, 90→94, 100→99
-  function applyCompression(adjusted) {
-    const x = Math.max(0, adjusted);
-    if (x <= 20)  return x * 1.20;
-    if (x <= 45)  return 24 + (x - 20) * 1.04;
-    if (x <= 70)  return 50 + (x - 45) * 0.80;
-    if (x <= 90)  return 70 + (x - 70) * 1.30;
-    return 96 + (x - 90) * 0.39;
-  }
+  
+  // 4. Apply compression
   const finalScore = applyCompression(adjustedComposite);
   const riskScore = Math.round(clamp(finalScore, 0, 99.9) * 10) / 10; // 1 decimal, never 100
   
@@ -473,3 +480,5 @@ export async function runDailyWeatherJob() {
   }
 }
 
+// ─── Exported for unit testing ────────────────────────────────────
+export { computeRDI, computeCDD, computeSMA, computePPA, applyCompression };

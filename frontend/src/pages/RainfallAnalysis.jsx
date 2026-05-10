@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 
@@ -11,7 +12,18 @@ import { fetchHistoricalWeather } from '../services/weatherService.js';
 const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, { label: '90 Days', days: 90 }];
 
 export default function RainfallAnalysis() {
-  const { activeVillages, dataSource } = useVillageData();
+  const { villageCount } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
   const [period, setPeriod] = useState(30);
   const [rainfallData, setRainfallData] = useState([]);
   const [selectedVillage, setSelectedVillage] = useState(null);

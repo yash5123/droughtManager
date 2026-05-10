@@ -2,13 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { AlertTriangle, Droplets, ArrowRight, Loader2 } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import { getSoilMoistureLevel } from '../utils/riskLevels.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 
 export default function GroundwaterAnalysis() {
-  const { activeVillages, dataSource } = useVillageData();
+  const { villageCount } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
+
   const [moistureData, setMoistureData] = useState([]);
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [villageTrend, setVillageTrend] = useState(null);

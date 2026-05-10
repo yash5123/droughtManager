@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Truck, Plus, RefreshCw, Download, CheckCircle, Clock, Navigation, MapPin, Activity, X, Loader2, ChevronDown } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages } from '../hooks/useRiskData.js';
 import { useToast } from '../components/ui/Toast.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
 import { formatDate, formatNumber } from '../utils/formatters.js';
@@ -28,7 +29,11 @@ function MapUpdater({ theme }) {
 }
 
 export default function TankerManagement() {
-  const { activeVillages } = useVillageData();
+  const { villageCount } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const riskData = rankedData?.data || [];
+  const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+
   const { theme } = useTheme();
   const { addToast } = useToast();
   const [tankers, setTankers] = useState([]);

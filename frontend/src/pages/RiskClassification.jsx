@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Info, Filter, Activity, AlertTriangle, Droplets, ShieldAlert } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
@@ -24,7 +25,16 @@ function CountCard({ label, count, accentColor, tintColor, icon: Icon }) {
 }
 
 export default function RiskClassification() {
-  const { riskData, dataSource } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
+
   const [search, setSearch] = useState('');
   const [filterLevel, setFilterLevel] = useState('all');
   const [sortField, setSortField] = useState('riskScore');

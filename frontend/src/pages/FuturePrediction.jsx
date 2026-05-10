@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ComposedChart } from 'recharts';
 import { TrendingUp, AlertTriangle, Truck, CloudRain, Sun, Activity, Loader2 } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
@@ -12,7 +13,19 @@ import { getRiskLevel } from '../utils/riskLevels.js';
 import api from '../services/api.js';
 
 export default function FuturePrediction() {
-  const { activeVillages, dataSource } = useVillageData();
+  const { villageCount } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  const activeVillages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
+
   const { user, openLoginModal } = useAuth();
   const { addToast } = useToast();
   const [forecasts, setForecasts] = useState([]);

@@ -4,6 +4,7 @@ import { body, validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import fetch from 'node-fetch';
 import User from '../models/User.js';
+import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -15,8 +16,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const setTokenCookie = (res, userId) => {
+  const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+  return token;
 };
 
 const handleValidation = (req, res) => {
@@ -47,8 +55,8 @@ router.post('/register', authLimiter, [
     const newUser = new User({ name, email, password });
     const savedUser = await newUser.save();
 
-    const token = generateToken(savedUser._id);
-    res.status(201).json({ token, user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
+    setTokenCookie(res, savedUser._id);
+    res.status(201).json({ user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -75,8 +83,8 @@ router.post('/login', authLimiter, [
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    const token = generateToken(user._id);
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+    setTokenCookie(res, user._id);
+    res.json({ user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -111,12 +119,33 @@ router.post('/google', authLimiter, async (req, res) => {
       await user.save();
     }
 
-    const token = generateToken(user._id);
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+    setTokenCookie(res, user._id);
+    res.json({ user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Google Auth Error:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+// Get current user session
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Logout (clear cookie)
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+  res.json({ message: 'Logged out successfully' });
 });
 
 export default router;

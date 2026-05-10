@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import { AlertCircle, Users, MapPin, CloudRain, Droplets, Truck, X, Radio } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
 import LoginPrompt from '../components/ui/LoginPrompt.jsx';
@@ -22,7 +23,17 @@ function MapUpdater({ theme }) {
 }
 
 export default function MapPage() {
-  const { riskData, dataSource, villageCount, setVillageCount } = useVillageData();
+  const { villageCount, setVillageCount } = useVillageData();
+  const { data: rankedData } = useRankedVillages(1000);
+  const { data: seedingStatus } = useSeedingStatus();
+  
+  const riskData = rankedData?.data || [];
+  let dataSource = 'pending';
+  if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
+  else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
+  else if (seedingStatus) dataSource = 'seeding';
+
   const { user } = useAuth();
   const { theme } = useTheme();
   const [selected, setSelected] = useState(null);
