@@ -196,6 +196,11 @@ function computeSMA(weather, village) {
   const currentSM = weather.avgSoilMoistureFrac;
   const historicalSM = estimateHistoricalSoilMoisture(village);
   
+  // If data is missing (maritime nulls), return missing signal
+  if (currentSM === null) {
+    return { score: 0, soilAnomalyPct: 0, currentSM: null, historicalSM, absoluteMin: 0, missing: true };
+  }
+  
   // Absolute thresholds — floor values regardless of anomaly
   let absoluteMin = 0;
   if (currentSM < 0.015)     absoluteMin = 92;
@@ -317,7 +322,14 @@ async function computeRiskScore(village, weather, avgPopulation) {
   const ppa = computePPA(weather, village);
   
   // 2. Weighted raw composite (4 main components = 95% of weight)
-  const rawComposite = (rdi.score * 0.35) + (cdd.score * 0.20) + (sma.score * 0.30) + (ppa.score * 0.10);
+  let rawComposite = 0;
+  if (sma.missing) {
+    // Redistribute the 30% SMA weight to others (Factor = 0.95 / (0.35 + 0.20 + 0.10) = 1.4615)
+    const factor = 0.95 / 0.65;
+    rawComposite = (rdi.score * 0.35 * factor) + (cdd.score * 0.20 * factor) + (ppa.score * 0.10 * factor);
+  } else {
+    rawComposite = (rdi.score * 0.35) + (cdd.score * 0.20) + (sma.score * 0.30) + (ppa.score * 0.10);
+  }
   
   // 3. TAM: trend-based additive modifier (async — reads 7-day-old record)
   const tam = await computeTAM(village._id, rawComposite);
