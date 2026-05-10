@@ -58,7 +58,7 @@ async function fetchWeatherForVillage(village) {
   const start = new Date();
   start.setDate(start.getDate() - 30);
   
-  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${village.lat}&longitude=${village.lon}&start_date=${formatDate(start)}&end_date=${formatDate(end)}&daily=precipitation_sum&hourly=soil_moisture_0_to_1cm,soil_moisture_1_to_3cm,soil_moisture_3_to_9cm&timezone=Asia/Kolkata`;
+  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${village.lat}&longitude=${village.lon}&start_date=${formatDate(start)}&end_date=${formatDate(end)}&daily=precipitation_sum,soil_moisture_0_to_7cm_mean&timezone=Asia/Kolkata`;
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -101,23 +101,13 @@ async function fetchWeatherForVillage(village) {
   const precip = data.daily.precipitation_sum;
   const totalPrecip = precip.reduce((s, v) => s + (v || 0), 0);
   
-  // Average soil moisture across all hourly values and depth layers
-  const sm0 = data.hourly?.soil_moisture_0_to_1cm || [];
-  const sm1 = data.hourly?.soil_moisture_1_to_3cm || [];
-  const sm3 = data.hourly?.soil_moisture_3_to_9cm || [];
+  // Average soil moisture across all daily values
+  const smDaily = data.daily?.soil_moisture_0_to_7cm_mean || [];
+  const validSm = smDaily.filter(v => v != null);
   
   let avgSoilMoisture = 0;
-  if (sm0.length > 0) {
-    const allValues = [];
-    for (let i = 0; i < sm0.length; i++) {
-      const vals = [sm0[i], sm1[i], sm3[i]].filter(v => v != null);
-      if (vals.length > 0) {
-        allValues.push(vals.reduce((a, b) => a + b, 0) / vals.length);
-      }
-    }
-    avgSoilMoisture = allValues.length > 0
-      ? allValues.reduce((a, b) => a + b, 0) / allValues.length
-      : 0;
+  if (validSm.length > 0) {
+    avgSoilMoisture = validSm.reduce((s, v) => s + v, 0) / validSm.length;
   }
   
   return {
