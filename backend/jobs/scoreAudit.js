@@ -156,11 +156,11 @@ function runTest(label, opts, expectedMin, expectedMax) {
   const adjusted = rawComposite + tamAdj;
   const adj = Math.max(0, adjusted);
   let compressed;
-  if (adj <= 20) compressed = adj * 1.2;
+  if (adj <= 20) compressed = adj * 1.20;
   else if (adj <= 45) compressed = 24 + (adj - 20) * 1.04;
   else if (adj <= 70) compressed = 50 + (adj - 45) * 0.80;
-  else if (adj <= 90) compressed = 70 + (adj - 70) * 1.25;
-  else compressed = 95 + (adj - 90) * 0.45;
+  else if (adj <= 90) compressed = 70 + (adj - 70) * 1.30;
+  else compressed = 96 + (adj - 90) * 0.39;
   const finalScore = Math.round(clamp(compressed, 0, 99.9) * 10) / 10;
 
   const pass = finalScore >= expectedMin && finalScore <= expectedMax;

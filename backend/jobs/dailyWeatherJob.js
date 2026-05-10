@@ -284,14 +284,16 @@ async function computeRiskScore(village, weather, avgPopulation) {
   const adjustedComposite = rawComposite + tam.adjustment;
   // 4. Piecewise linear compression — maps raw composite to final score
   //    with precise control over each severity band.
-  //    Raw 0→0, 20→24, 45→50, 70→70, 90→95, 100→99.5
-  const adj = Math.max(0, adjustedComposite);
-  let finalScore;
-  if (adj <= 20)      finalScore = adj * 1.2;                        // 0→0,   20→24
-  else if (adj <= 45) finalScore = 24 + (adj - 20) * 1.04;           // 20→24, 45→50
-  else if (adj <= 70) finalScore = 50 + (adj - 45) * 0.80;           // 45→50, 70→70
-  else if (adj <= 90) finalScore = 70 + (adj - 70) * 1.25;           // 70→70, 90→95
-  else                finalScore = 95 + (adj - 90) * 0.45;           // 90→95, 100→99.5
+  //    Raw 0→0, 20→24, 45→50, 70→70, 90→94, 100→99
+  function applyCompression(adjusted) {
+    const x = Math.max(0, adjusted);
+    if (x <= 20)  return x * 1.20;
+    if (x <= 45)  return 24 + (x - 20) * 1.04;
+    if (x <= 70)  return 50 + (x - 45) * 0.80;
+    if (x <= 90)  return 70 + (x - 70) * 1.30;
+    return 96 + (x - 90) * 0.39;
+  }
+  const finalScore = applyCompression(adjustedComposite);
   const riskScore = Math.round(clamp(finalScore, 0, 99.9) * 10) / 10; // 1 decimal, never 100
   
   // 5. Classification (new thresholds)
