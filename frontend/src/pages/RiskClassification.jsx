@@ -131,10 +131,10 @@ export default function RiskClassification() {
             </div>
 
             {/* Table Container with scroll bounds */}
-            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: '#0a0f18' }}>
+            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'var(--glass-bg)' }}>
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
                 <thead style={{ position: 'sticky', top: 0, zIndex: 30 }}>
-                  <tr style={{ background: '#0f172a' }}>
+                  <tr style={{ background: 'var(--table-header-bg)' }}>
                     {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: '_demand', label: 'WATER DEMAND' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
                       <th key={col.key} onClick={() => toggleSort(col.key)}
                         style={{ 
@@ -142,10 +142,10 @@ export default function RiskClassification() {
                           cursor: 'pointer', 
                           fontSize: '11px', 
                           fontWeight: 800, 
-                          color: '#fff', 
+                          color: 'var(--table-header-text)', 
                           textTransform: 'uppercase', 
                           letterSpacing: '1.2px', 
-                          background: '#0f172a',
+                          background: 'var(--table-header-bg)',
                           borderBottom: '2px solid var(--accent-blue)',
                           whiteSpace: 'nowrap'
                         }}>

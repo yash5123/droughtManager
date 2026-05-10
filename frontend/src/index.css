@@ -67,6 +67,9 @@
   --nav-hover-bg: rgba(255,255,255,0.07);
   --nav-active-bg: rgba(59,130,246,0.15);
   --scrollbar-thumb: rgba(255,255,255,0.1);
+
+  --table-header-bg: #0f172a;
+  --table-header-text: #ffffff;
 }
 
 /* Light Mode Tokens */
@@ -91,6 +94,9 @@
   --nav-hover-bg: rgba(59,130,246,0.08);
   --nav-active-bg: rgba(59,130,246,0.12);
   --scrollbar-thumb: rgba(100,140,200,0.3);
+
+  --table-header-bg: #f1f5f9;
+  --table-header-text: #0f172a;
 }
 
 /* Base Reset & Typography */
