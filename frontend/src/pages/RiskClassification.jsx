@@ -64,6 +64,13 @@ export default function RiskClassification() {
         };
         av = getRank(a.riskScore);
         bv = getRank(b.riskScore);
+      } else if (sortField === '_demand') {
+        const getDemand = (v) => {
+          const pop = (v.population && v.population > 0) ? v.population : 50000;
+          return Math.round(pop * 55 / 1000);
+        };
+        av = getDemand(a);
+        bv = getDemand(b);
       } else {
         av = av ?? 0;
         bv = bv ?? 0;
