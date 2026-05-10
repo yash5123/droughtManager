@@ -226,7 +226,7 @@ export default function Overview() {
       {/* Stats Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
         <KPICard icon={Activity} label="Districts Monitored" value={totalMonitored} accentColor="var(--accent-blue)" tintColor="var(--glass-bg)" />
-        <KPICard icon={AlertTriangle} label="Extreme Risk" value={extremeCount} accentColor="var(--accent-red)" tintColor="var(--risk-extreme-tint)" trend={extremeCount > 0 ? 12 : undefined} />
+        <KPICard icon={AlertTriangle} label="Extreme Risk" value={extremeCount} accentColor="var(--accent-red)" tintColor="var(--risk-extreme-tint)" />
         <KPICard icon={Droplets} label="Avg Risk Score" value={avgScore} accentColor="var(--accent-amber)" tintColor="var(--risk-severe-tint)" />
         <KPICard icon={Truck} label="Active Tankers" value={activeTankers} accentColor="var(--accent-green)" tintColor="var(--risk-normal-tint)" />
       </div>
