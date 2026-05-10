@@ -22,30 +22,23 @@ export default function GroundwaterAnalysis() {
   else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
   else if (seedingStatus) dataSource = 'seeding';
 
-  const [moistureData, setMoistureData] = useState([]);
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [villageTrend, setVillageTrend] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (activeVillages.length === 0) return;
-    const fetchAll = async () => {
-      setLoading(true);
-      const results = await Promise.all(
-        activeVillages.slice(0, 15).map(async (v) => {
-          if (!v.location?.lat) return { ...v, soilMoisture: null, src: 'unavailable' };
-          const { data, dataSource: ws } = await fetchHistoricalWeather(v.location.lat, v.location.lng, 30);
-          const sm = data?.daily?.soil_moisture_0_to_7cm_mean || [];
-          const avg = sm.length > 0 ? sm.reduce((s, x) => s + (x || 0), 0) / sm.length : null;
-          return { ...v, soilMoisture: avg !== null ? Math.round(avg * 100) : null, src: ws }; // Convert to percentage roughly if needed, original code * 10000 / 100.
-        })
-      );
-      const sorted = results.sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999));
-      setMoistureData(sorted);
-      setSelectedVillage(prev => !prev && sorted.length > 0 ? sorted[0] : prev);
-      setLoading(false);
-    };
-    fetchAll();
+    if (activeVillages.length > 0 && !selectedVillage) {
+      setSelectedVillage(activeVillages[0]);
+    }
+  }, [activeVillages, selectedVillage]);
+
+  const moistureData = React.useMemo(() => {
+    return activeVillages.map(v => {
+      // metricsSnapshot.soilMoistureFrac is stored as a fraction (e.g. 0.15 for 15%)
+      const frac = v.metricsSnapshot?.soilMoistureFrac;
+      const soilMoisture = frac != null ? Math.round(frac * 100) : null;
+      return { ...v, soilMoisture };
+    }).sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999));
   }, [activeVillages]);
 
   useEffect(() => {
