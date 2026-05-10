@@ -316,7 +316,7 @@ async function fetchClimateBaselines() {
   seedingProgress.phase = 'baselines';
   
   const pending = await Village.find({
-    geocodingStatus: 'complete',
+    geocodingStatus: { $in: ['complete', 'approximate', 'centroid'] },
     climateBaselineStatus: { $in: ['pending', 'failed'] },
     lat: { $ne: null },
     lon: { $ne: null }
@@ -333,8 +333,21 @@ async function fetchClimateBaselines() {
     try {
       const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${v.lat}&longitude=${v.lon}&start_date=2013-01-01&end_date=2023-12-31&daily=precipitation_sum`;
       
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Archive API ${res.status}`);
+      let res = await fetch(url);
+      if (res.status === 429) {
+        // Rate limited — retry with exponential backoff
+        for (let retry = 1; retry <= 3; retry++) {
+          const backoff = Math.pow(2, retry) * 1000;
+          console.warn(`[Seed] 429 rate-limited for ${v.name}. Retry ${retry}/3 in ${backoff/1000}s...`);
+          await sleep(backoff);
+          res = await fetch(url);
+          if (res.ok) break;
+          if (res.status !== 429) throw new Error(`Archive API ${res.status}`);
+          if (retry === 3) throw new Error(`Archive API 429 after 3 retries`);
+        }
+      } else if (!res.ok) {
+        throw new Error(`Archive API ${res.status}`);
+      }
       
       const data = await res.json();
       
@@ -383,8 +396,8 @@ async function fetchClimateBaselines() {
     seedingProgress.baselinedCount = successCount;
     seedingProgress.failedBaseline = failCount;
     
-    // Open-Meteo soft rate limit
-    await sleep(500);
+    // Open-Meteo rate limit — 800ms to avoid 429s on shared hosting
+    await sleep(800);
   }
   
   console.log(`[Seed] Phase 3 complete: ${successCount} baselined, ${failCount} failed`);

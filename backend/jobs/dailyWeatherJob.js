@@ -74,7 +74,23 @@ async function fetchWeatherForVillage(village) {
     throw err;
   }
   
-  if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
+  if (res.status === 429) {
+    // Rate limited — retry with exponential backoff
+    for (let retry = 1; retry <= 3; retry++) {
+      const backoff = Math.pow(2, retry) * 1000; // 2s, 4s, 8s
+      console.warn(`[Weather] 429 rate-limited for ${village.name}. Retry ${retry}/3 in ${backoff/1000}s...`);
+      await sleep(backoff);
+      const retryRes = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (retryRes.ok) {
+        res = retryRes;
+        break;
+      }
+      if (retryRes.status !== 429) throw new Error(`Open-Meteo ${retryRes.status}`);
+      if (retry === 3) throw new Error(`Open-Meteo 429 after 3 retries`);
+    }
+  } else if (!res.ok) {
+    throw new Error(`Open-Meteo ${res.status}`);
+  }
   
   const data = await res.json();
   
@@ -442,8 +458,8 @@ export async function runDailyWeatherJob() {
         console.warn(`[DailyJob] Failed for ${village.name}: ${err.message}`);
       }
       
-      // Open-Meteo soft rate limit
-      await sleep(200);
+      // Open-Meteo rate limit — 600ms to avoid 429s on shared hosting (Render)
+      await sleep(600);
     }
     
     dailyJobStatus.lastSuccess = new Date();
