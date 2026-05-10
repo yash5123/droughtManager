@@ -52,7 +52,23 @@ export default function RiskClassification() {
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || (v.state||v.region)?.toLowerCase().includes(search.toLowerCase()));
     if (filterLevel !== 'all') list = list.filter(v => getRiskLevel(v.riskScore).label.toLowerCase() === filterLevel.toLowerCase());
     list.sort((a, b) => {
-      const av = a[sortField] ?? 0, bv = b[sortField] ?? 0;
+      let av = a[sortField], bv = b[sortField];
+      
+      // Special handling for Status sorting
+      if (sortField === 'riskLevel') {
+        const getRank = (score) => {
+          if (score >= 76) return 4;
+          if (score >= 51) return 3;
+          if (score >= 26) return 2;
+          return 1;
+        };
+        av = getRank(a.riskScore);
+        bv = getRank(b.riskScore);
+      } else {
+        av = av ?? 0;
+        bv = bv ?? 0;
+      }
+
       return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
     });
     return list;
