@@ -150,11 +150,11 @@ export default function RainfallAnalysis() {
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', paddingBottom: '2px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px', paddingBottom: '2px' }}>
             {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
               const color = getRiskColor(f);
               return (
-                <button key={f} onClick={() => setFilter(f)} style={{ flex: f === 'All' ? '1 0 100%' : '1 0 auto', padding: '5px 8px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)' }}>{f}</button>
+                <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)', textAlign: 'center' }}>{f}</button>
               );
             })}
           </div>
