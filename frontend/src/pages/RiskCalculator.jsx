@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { getRiskLevel } from '../utils/riskLevels.js';
 import { fetchHistoricalWeather, computeLocalRiskMetrics } from '../services/weatherService.js';
-import { Settings, MapPin, Activity, Calculator } from 'lucide-react';
+import { Settings, MapPin, Activity, Calculator, ChevronDown, Loader2 } from 'lucide-react';
+import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 
 export default function RiskCalculator() {
-  const { allVillages } = useVillageData();
+  const { allVillages, dataSource } = useVillageData();
   const [selectedId, setSelectedId] = useState('');
   const [customLat, setCustomLat] = useState('');
   const [customLon, setCustomLon] = useState('');
@@ -54,153 +55,211 @@ export default function RiskCalculator() {
   const dashOffset = result?.score != null ? circumference * (1 - result.score / 100) : circumference;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-[1200px] mx-auto">
-      <div className="flex items-center gap-3 mb-2">
-        <Calculator className="w-6 h-6 text-[var(--color-primary)]" />
-        <div>
-          <h2 className="text-base font-bold text-display text-[var(--color-on-surface)]">Scenario Risk Simulator</h2>
-          <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-wider">Predictive Vulnerability Engine</p>
-        </div>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <DataSourceBanner dataSource={dataSource} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Input Panel */}
-        <div className="card p-6 space-y-6 lg:col-span-2 border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] relative overflow-hidden">
-          {/* Subtle tech background line */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)]/5 blur-3xl rounded-full pointer-events-none"></div>
+      <style>{`
+        .glass-slider {
+          -webkit-appearance: none;
+          width: 100%;
+          height: 6px;
+          border-radius: 3px;
+          outline: none;
+          transition: background 0.2s;
+        }
+        .glass-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #ffffff;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .slider-blue::-webkit-slider-thumb { border: 2px solid var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+        .slider-amber::-webkit-slider-thumb { border: 2px solid var(--accent-amber); box-shadow: 0 0 10px var(--accent-amber); }
+        .slider-cyan::-webkit-slider-thumb { border: 2px solid var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); }
+        .slider-purple::-webkit-slider-thumb { border: 2px solid #8b5cf6; box-shadow: 0 0 10px #8b5cf6; }
+      `}</style>
 
-          <div className="flex items-center gap-2 mb-2 border-b border-[var(--color-outline-variant)] pb-2">
-            <MapPin className="w-4 h-4 text-[var(--color-secondary)]" />
-            <h3 className="text-xs font-bold text-display uppercase tracking-wider text-[var(--color-on-surface)]">Location Parameters</h3>
-          </div>
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        
+        {/* Left Panel: Inputs */}
+        <div className="glass-card" style={{ flex: '1 1 60%', padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
-          <div>
-            <label className="text-[10px] text-[var(--color-on-surface-variant)] font-bold uppercase tracking-wider mb-2 block">Target Region</label>
-            <select value={selectedId} onChange={e => { setSelectedId(e.target.value); setCustomLat(''); setCustomLon(''); }}
-              className="w-full px-3 py-2.5 rounded bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] text-sm text-[var(--color-on-surface)] outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] transition-all">
-              <option value="">Custom Coordinates</option>
-              {allVillages.map(v => <option key={v._id || v.id} value={v._id || v.id}>{v.name} — {v.state}</option>)}
-            </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Calculator size={28} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
+            <div>
+              <h2 className="title" style={{ fontSize: '24px' }}>Scenario Risk Simulator</h2>
+              <p className="body-text" style={{ color: 'var(--text-secondary)' }}>Predictive Vulnerability Engine</p>
+            </div>
           </div>
-          
-          {!selectedId && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] text-[var(--color-on-surface-variant)] font-bold uppercase tracking-wider mb-2 block">Latitude</label>
-                <input type="number" step="0.0001" value={customLat} onChange={e => setCustomLat(e.target.value)} placeholder="e.g. 26.92"
-                  className="w-full px-3 py-2.5 rounded bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] text-sm text-[var(--color-on-surface)] outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] transition-all" />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <MapPin size={18} style={{ color: 'var(--text-tertiary)' }} />
+                <h3 className="section-header">Location Parameters</h3>
               </div>
-              <div>
-                <label className="text-[10px] text-[var(--color-on-surface-variant)] font-bold uppercase tracking-wider mb-2 block">Longitude</label>
-                <input type="number" step="0.0001" value={customLon} onChange={e => setCustomLon(e.target.value)} placeholder="e.g. 70.91"
-                  className="w-full px-3 py-2.5 rounded bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] text-sm text-[var(--color-on-surface)] outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] transition-all" />
-              </div>
-            </div>
-          )}
-          
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-[10px] text-[var(--color-on-surface-variant)] font-bold uppercase tracking-wider block">Time Horizon</label>
-              <span className="text-xs font-mono font-bold text-[var(--color-secondary)]">{days} DAYS</span>
-            </div>
-            <input type="range" min={7} max={90} value={days} onChange={e => setDays(parseInt(e.target.value))} className="w-full accent-[var(--color-secondary)]" />
-          </div>
-
-          <div className="space-y-4 pt-4 border-t border-[var(--color-outline-variant)]">
-            <div className="flex items-center gap-2 mb-2 border-b border-[var(--color-outline-variant)] pb-2">
-              <Settings className="w-4 h-4 text-[var(--color-tertiary)]" />
-              <h3 className="text-xs font-bold text-display uppercase tracking-wider text-[var(--color-on-surface)]">Weight Matrix</h3>
-            </div>
-            {Object.entries(weights).map(([key, val]) => (
-              <div key={key} className="group">
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-[var(--color-on-surface-variant)] uppercase tracking-wider text-[10px] font-bold">{key}</span>
-                  <span className="font-mono font-bold text-[var(--color-on-surface)] group-hover:text-[var(--color-secondary)] transition-colors">{val}%</span>
+              
+              <div style={{ marginBottom: '16px' }}>
+                <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Target Region</label>
+                <div style={{ position: 'relative' }}>
+                  <select 
+                    value={selectedId} 
+                    onChange={e => { setSelectedId(e.target.value); setCustomLat(''); setCustomLon(''); }}
+                    className="glass-input"
+                    style={{ width: '100%', appearance: 'none', paddingRight: '40px', fontSize: '14px', background: 'var(--glass-bg)', color: 'var(--text-primary)' }}
+                  >
+                    <option value="" style={{ background: '#1a1a1a', color: '#fff' }}>Custom Coordinates</option>
+                    {allVillages.map(v => <option key={v._id || v.id} value={v._id || v.id} style={{ background: '#1a1a1a', color: '#fff' }}>{v.name} — {v.state}</option>)}
+                  </select>
+                  <ChevronDown size={16} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }} />
                 </div>
-                <input type="range" min={0} max={100} value={val} onChange={e => adjustWeight(key, parseInt(e.target.value))} className="w-full accent-[var(--color-tertiary)] group-hover:accent-[var(--color-secondary)] transition-colors" />
               </div>
-            ))}
-          </div>
 
-          <button onClick={calculate} disabled={loading || (!lat || !lon)}
-            className="w-full py-3 mt-4 rounded text-sm font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-125 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-bg-base)] relative overflow-hidden group"
-            style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-bg-base)' }}>
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {loading && <div className="w-4 h-4 border-2 border-[var(--color-bg-base)] border-t-transparent rounded-full animate-spin"></div>}
-              {loading ? 'SIMULATING...' : 'EXECUTE SIMULATION'}
-            </span>
-            <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:animate-shimmer"></div>
-          </button>
+              {!selectedId && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Latitude</label>
+                    <input type="number" step="0.0001" value={customLat} onChange={e => setCustomLat(e.target.value)} placeholder="e.g. 26.92"
+                      className="glass-input" style={{ width: '100%', fontSize: '14px', background: 'var(--glass-bg)' }} />
+                  </div>
+                  <div>
+                    <label className="card-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Longitude</label>
+                    <input type="number" step="0.0001" value={customLon} onChange={e => setCustomLon(e.target.value)} placeholder="e.g. 70.91"
+                      className="glass-input" style={{ width: '100%', fontSize: '14px', background: 'var(--glass-bg)' }} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ height: '1px', background: 'var(--divider)' }} />
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <label className="section-header">Time Horizon</label>
+                <span className="data-value" style={{ fontSize: '16px', color: 'var(--accent-blue)' }}>{days} DAYS</span>
+              </div>
+              <input type="range" min={7} max={90} value={days} onChange={e => setDays(parseInt(e.target.value))} 
+                className="glass-slider slider-blue" 
+                style={{ background: `linear-gradient(to right, var(--accent-blue) ${(days-7)/(90-7)*100}%, var(--glass-border) ${(days-7)/(90-7)*100}%)` }} 
+              />
+            </div>
+
+            <div style={{ height: '1px', background: 'var(--divider)' }} />
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                <Settings size={18} style={{ color: 'var(--text-tertiary)' }} />
+                <h3 className="section-header">Weight Matrix</h3>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {Object.entries(weights).map(([key, val]) => {
+                  let color = 'var(--accent-amber)';
+                  let sClass = 'slider-amber';
+                  if(key === 'groundwater') { color = 'var(--accent-cyan)'; sClass = 'slider-cyan'; }
+                  if(key === 'population') { color = '#8b5cf6'; sClass = 'slider-purple'; }
+
+                  return (
+                    <div key={key}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <span className="card-label" style={{ textTransform: 'capitalize', color: 'var(--text-secondary)' }}>{key}</span>
+                        <span className="data-value" style={{ fontSize: '14px', color }}>{val}%</span>
+                      </div>
+                      <input type="range" min={0} max={100} value={val} onChange={e => adjustWeight(key, parseInt(e.target.value))} 
+                        className={`glass-slider ${sClass}`}
+                        style={{ background: `linear-gradient(to right, ${color} ${val}%, var(--glass-border) ${val}%)` }} 
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button 
+              className="primary-btn"
+              onClick={calculate} 
+              disabled={loading || (!lat || !lon)}
+              style={{
+                width: '100%', height: '52px', marginTop: '16px',
+                background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-cyan))',
+                fontSize: '15px', letterSpacing: '1px'
+              }}
+            >
+              {loading ? <Loader2 size={20} className="spinning" /> : 'EXECUTE SIMULATION'}
+            </button>
+          </div>
         </div>
 
-        {/* Result Panel */}
-        <div className="card p-6 lg:col-span-3 flex flex-col items-center justify-center border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] min-h-[500px] relative">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--color-surface-container-high)_0%,_transparent_70%)] opacity-50 pointer-events-none"></div>
+        {/* Right Panel: Output */}
+        <div className="glass-card" style={{ flex: '1 1 40%', padding: '32px', display: 'flex', flexDirection: 'column', minHeight: '600px', position: 'relative', overflow: 'hidden' }}>
           
-          <div className="absolute top-4 left-4 flex items-center gap-2 text-[var(--color-on-surface-variant)] opacity-50">
-            <Activity className="w-4 h-4" />
-            <span className="text-[10px] font-mono uppercase tracking-widest">Telemetry Output</span>
+          {/* Subtle tech background line */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, var(--accent-blue), transparent)', opacity: 0.3 }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+            <Activity size={24} style={{ color: 'var(--accent-green)', filter: 'drop-shadow(var(--accent-green-glow))' }} />
+            <h2 className="title" style={{ fontSize: '20px' }}>Telemetry Output</h2>
           </div>
 
           {result?.error ? (
-            <div className="text-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto">
-                <Settings className="w-8 h-8 text-red-500" />
-              </div>
-              <p className="text-sm font-mono text-red-400">{result.error}</p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+              <Settings size={48} style={{ color: 'var(--accent-red)', marginBottom: '16px', opacity: 0.8 }} />
+              <p className="body-text" style={{ color: 'var(--text-secondary)' }}>{result.error}</p>
             </div>
           ) : result ? (
-            <div className="text-center space-y-8 animate-fade-in w-full max-w-md relative z-10">
-              <div className="relative w-64 h-64 mx-auto">
-                <svg width="256" height="256" viewBox="0 0 180 180" className="drop-shadow-2xl">
-                  {/* Outer glow ring */}
-                  <circle cx="90" cy="90" r="70" fill="none" stroke={result.level.color} strokeWidth="1" opacity="0.2" filter="blur(4px)" />
-                  {/* Background track */}
-                  <circle cx="90" cy="90" r="70" fill="none" stroke="var(--color-surface-container-highest)" strokeWidth="12" />
-                  {/* Active track */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: '240px', height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '40px' }}>
+                <svg width="240" height="240" viewBox="0 0 180 180" style={{ transform: 'rotate(-90deg)' }}>
+                  {/* Glow */}
+                  <circle cx="90" cy="90" r="70" fill="none" stroke={result.level.color} strokeWidth="2" opacity="0.4" filter="blur(6px)" />
+                  {/* Track */}
+                  <circle cx="90" cy="90" r="70" fill="none" stroke="var(--glass-border)" strokeWidth="12" />
+                  {/* Progress */}
                   <circle cx="90" cy="90" r="70" fill="none" stroke={result.level.color} strokeWidth="12"
                     strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                    strokeLinecap="round" transform="rotate(-90 90 90)"
-                    style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1)' }} />
-                  
-                  <text x="90" y="85" textAnchor="middle" fill="var(--color-on-surface)" fontSize="42" fontWeight="bold" fontFamily="var(--font-mono)">{result.score}</text>
-                  <text x="90" y="110" textAnchor="middle" fill={result.level.color} fontSize="12" fontWeight="bold" className="uppercase tracking-widest">{result.level.label}</text>
-                  <text x="90" y="125" textAnchor="middle" fill="var(--color-on-surface-variant)" fontSize="8" className="uppercase tracking-widest">RISK INDEX</text>
+                    strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease-out' }} />
                 </svg>
-                {/* Center glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full pointer-events-none opacity-20" style={{ backgroundColor: result.level.color, filter: 'blur(30px)' }}></div>
+                
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="data-value" style={{ fontSize: '48px', color: 'var(--text-primary)', filter: `drop-shadow(0 0 12px ${result.level.color}80)`, lineHeight: 1 }}>{result.score}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: result.level.color, marginTop: '4px', letterSpacing: '1px' }}>{result.level.label.toUpperCase()}</span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 600, letterSpacing: '2px', marginTop: '4px' }}>RISK INDEX</span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 w-full">
-                <MiniStat label="RAIN DEFICIT" value={`${result.rainfallDeficit}%`} color="var(--color-primary)" />
-                <MiniStat label="GW DEPLETION" value={`${result.gwProxy}%`} color="var(--color-secondary)" />
-                <MiniStat label="POP IMPACT" value={`${result.popGap}%`} color="var(--color-tertiary)" />
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <MiniStat label="RAIN DEFICIT" value={`${result.rainfallDeficit}%`} color="var(--accent-blue)" />
+                <MiniStat label="GW DEPLETION" value={`${result.gwProxy}%`} color="var(--accent-cyan)" />
+                <MiniStat label="POP IMPACT" value={`${result.popGap}%`} color="#8b5cf6" />
               </div>
 
               {result.metrics && (
-                <div className="pt-4 border-t border-[var(--color-outline-variant)] flex justify-between items-center text-xs">
-                  <div className="text-left">
-                    <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-1">Total Precipitation</p>
-                    <p className="font-mono font-bold text-[var(--color-on-surface)]">{result.metrics.totalPrecipitation} <span className="text-[10px] text-[var(--color-on-surface-variant)]">mm</span></p>
+                <div style={{ width: '100%', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--divider)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <p className="card-label" style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Total Precipitation</p>
+                    <p className="data-value" style={{ fontSize: '18px' }}>{result.metrics.totalPrecipitation} <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>mm</span></p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-1">Precipitation Events</p>
-                    <p className="font-mono font-bold text-[var(--color-on-surface)]">{result.metrics.daysWithRain} <span className="text-[10px] text-[var(--color-on-surface-variant)] font-sans">/ {result.metrics.daysTotal} days</span></p>
+                  <div>
+                    <p className="card-label" style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>Rain Events</p>
+                    <p className="data-value" style={{ fontSize: '18px' }}>{result.metrics.daysWithRain} <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>/ {result.metrics.daysTotal}d</span></p>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center relative z-10 flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full bg-[var(--color-surface-container-highest)] border border-[var(--color-outline-variant)] flex items-center justify-center mb-4">
-                <Calculator className="w-8 h-8 text-[var(--color-on-surface-variant)] opacity-50" />
-              </div>
-              <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-widest max-w-[200px] leading-relaxed">
-                Configure simulation parameters and execute to generate risk model
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+              <Calculator size={56} style={{ color: 'var(--text-tertiary)', marginBottom: '24px', opacity: 0.5 }} />
+              <p className="body-text" style={{ color: 'var(--text-secondary)', maxWidth: '240px', lineHeight: 1.6 }}>
+                Configure simulation parameters and execute to generate predictive risk model.
               </p>
             </div>
           )}
         </div>
+        
       </div>
     </div>
   );
@@ -208,10 +267,12 @@ export default function RiskCalculator() {
 
 function MiniStat({ label, value, color }) {
   return (
-    <div className="flex flex-col items-center p-3 rounded bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] relative overflow-hidden group">
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-50 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: color }}></div>
-      <p className="text-[10px] font-bold text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-1 text-center w-full truncate">{label}</p>
-      <p className="text-lg font-bold font-mono text-[var(--color-on-surface)]">{value}</p>
+    <div className="glass-card" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ width: '4px', height: '16px', borderRadius: '2px', background: color, boxShadow: `0 0 6px ${color}` }} />
+        <span className="card-label" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+      </div>
+      <span className="data-value" style={{ fontSize: '16px', color: 'var(--text-primary)' }}>{value}</span>
     </div>
   );
 }

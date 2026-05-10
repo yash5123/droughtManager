@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout.jsx';
 import LoginModal from './components/ui/LoginModal.jsx';
 import { useAuth } from './context/AuthContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 
 const Overview = lazy(() => import('./pages/Overview.jsx'));
 const MapPage = lazy(() => import('./pages/MapPage.jsx'));
@@ -17,8 +18,8 @@ const Login = lazy(() => import('./pages/Login.jsx'));
 
 function LoadingFallback() {
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--color-cyan)', borderTopColor: 'transparent' }} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+      <div className="live-pulse" style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--accent-blue)', boxShadow: 'var(--accent-blue-glow)' }} />
     </div>
   );
 }
@@ -31,7 +32,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <>
+    <ThemeProvider>
       <AppLayout>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
@@ -50,6 +51,6 @@ export default function App() {
         </Suspense>
       </AppLayout>
       <LoginModal />
-    </>
+    </ThemeProvider>
   );
 }

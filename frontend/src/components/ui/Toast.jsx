@@ -50,26 +50,23 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" style={{ maxWidth: '400px' }}>
+      <div}>
         {toasts.map(t => {
           const Icon = ICONS[t.type];
           return (
             <div
               key={t.id}
-              className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border-l-4 backdrop-blur-sm ${COLORS[t.type]}`}
-              style={{
-                animation: t.exiting ? 'toastOut 0.3s ease-in forwards' : 'toastIn 0.3s ease-out forwards',
-                background: 'rgba(17, 26, 46, 0.95)',
-              }}
+             `}
+             }
             >
-              <Icon className={`w-5 h-5 flex-shrink-0 ${ICON_COLORS[t.type]}`} />
-              <p className="text-sm text-[var(--color-text-primary)] flex-1">{t.message}</p>
+              <Icon`} />
+              <p>{t.message}</p>
               <button
                 onClick={() => removeToast(t.id)}
-                className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+               
                 aria-label="Dismiss"
               >
-                <X className="w-4 h-4" />
+                <X />
               </button>
             </div>
           );

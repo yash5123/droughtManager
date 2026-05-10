@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Info, Filter } from 'lucide-react';
+import { Search, Info, Filter, Activity, AlertTriangle, Droplets, ShieldAlert } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
@@ -7,17 +7,18 @@ import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import { RISK_LEVELS, getRiskLevel } from '../utils/riskLevels.js';
 import { formatNumber } from '../utils/formatters.js';
 
-function CountCard({ label, count, color }) {
+function CountCard({ label, count, accentColor, tintColor, icon: Icon }) {
   const val = useCountUp(count, 800);
   return (
-    <div className="card p-4 relative overflow-hidden group">
-      {/* Top accent border */}
-      <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: color }}></div>
-      {/* Background glow */}
-      <div className="absolute top-0 right-0 w-16 h-16 rounded-full opacity-10 transform translate-x-4 -translate-y-4 transition-transform group-hover:scale-150" style={{ backgroundColor: color, filter: 'blur(10px)' }}></div>
-      
-      <p className="text-3xl font-bold font-mono text-[var(--color-on-surface)] z-10 relative" style={{ textShadow: `0 0 10px ${color}40` }}>{val}</p>
-      <p className="text-[10px] uppercase tracking-wider text-[var(--color-on-surface-variant)] mt-1 z-10 relative font-semibold">{label}</p>
+    <div className="glass-card" style={{ padding: '24px', backgroundColor: tintColor, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <Icon size={20} style={{ color: accentColor, filter: `drop-shadow(0 0 12px ${accentColor})` }} />
+      </div>
+      <div>
+        <div className="card-label" style={{ color: 'var(--text-secondary)' }}>{label}</div>
+        <div className="data-value" style={{ color: 'var(--text-primary)', marginTop: '4px' }}>{val}</div>
+      </div>
+      <Icon size={80} style={{ position: 'absolute', bottom: '-10px', right: '-10px', color: accentColor, opacity: 0.08 }} />
     </div>
   );
 }
@@ -30,16 +31,16 @@ export default function RiskClassification() {
   const [sortDir, setSortDir] = useState('desc');
 
   const counts = useMemo(() => ({
-    Extreme: riskData.filter(v => v.riskScore > 70).length,
-    Severe: riskData.filter(v => v.riskScore > 50 && v.riskScore <= 70).length,
-    Moderate: riskData.filter(v => v.riskScore > 25 && v.riskScore <= 50).length,
-    Normal: riskData.filter(v => v.riskScore <= 25).length,
+    Extreme: riskData.filter(v => v.riskScore >= 76).length,
+    Severe: riskData.filter(v => v.riskScore >= 51 && v.riskScore < 76).length,
+    Moderate: riskData.filter(v => v.riskScore >= 26 && v.riskScore < 51).length,
+    Normal: riskData.filter(v => v.riskScore < 26).length,
   }), [riskData]);
 
   const filtered = useMemo(() => {
     let list = [...riskData];
-    if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
-    if (filterLevel !== 'all') list = list.filter(v => getRiskLevel(v.riskScore).label === filterLevel);
+    if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || (v.state||v.region)?.toLowerCase().includes(search.toLowerCase()));
+    if (filterLevel !== 'all') list = list.filter(v => getRiskLevel(v.riskScore).label.toLowerCase() === filterLevel.toLowerCase());
     list.sort((a, b) => {
       const av = a[sortField] ?? 0, bv = b[sortField] ?? 0;
       return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
@@ -53,75 +54,81 @@ export default function RiskClassification() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <DataSourceBanner dataSource={dataSource} />
 
-      <div className="flex items-center gap-3">
-        <Filter className="w-6 h-6 text-[var(--color-primary)]" />
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <ShieldAlert size={28} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
         <div>
-          <h2 className="text-base font-bold text-display text-[var(--color-on-surface)]">Risk Classification Grid</h2>
-          <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-wider">Algorithmic Severity Assessment</p>
+          <h2 className="title">Risk Classification Grid</h2>
+          <p className="body-text" style={{ color: 'var(--text-secondary)' }}>Algorithmic Severity Assessment</p>
         </div>
       </div>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.entries(RISK_LEVELS).map(([key, def]) => (
-          <CountCard key={key} label={def.label} count={counts[key] || 0} color={def.color} />
-        ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+        <CountCard label="Extreme Risk" count={counts.Extreme} accentColor="var(--accent-red)" tintColor="var(--risk-extreme-tint)" icon={AlertTriangle} />
+        <CountCard label="Severe Risk" count={counts.Severe} accentColor="var(--accent-amber)" tintColor="var(--risk-severe-tint)" icon={Activity} />
+        <CountCard label="Moderate Risk" count={counts.Moderate} accentColor="#eab308" tintColor="var(--risk-moderate-tint)" icon={Droplets} />
+        <CountCard label="Normal" count={counts.Normal} accentColor="var(--accent-green)" tintColor="var(--risk-normal-tint)" icon={ShieldAlert} />
       </div>
 
-      {/* Filter Bar */}
-      <div className="card p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-[var(--color-outline-variant)]">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-on-surface-variant)]" />
-          <input 
-            type="text" 
-            value={search} 
-            onChange={e => setSearch(e.target.value)} 
-            placeholder="Query villages or regions..."
-            className="w-full pl-9 pr-4 py-2 rounded bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] text-sm text-[var(--color-on-surface)] outline-none focus:border-[var(--color-secondary)] focus:ring-1 focus:ring-[var(--color-secondary)] transition-all placeholder:text-[var(--color-on-surface-variant)]/60"
-          />
-        </div>
+      {/* Main Layout */}
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
         
-        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-          <span className="text-xs text-[var(--color-on-surface-variant)] font-semibold uppercase tracking-wider mr-2">Severity:</span>
-          <button 
-            onClick={() => setFilterLevel('all')} 
-            className={`px-3 py-1.5 rounded text-xs font-bold transition-all border ${filterLevel === 'all' ? 'bg-[var(--color-secondary)] text-[var(--color-bg-base)] border-[var(--color-secondary)]' : 'bg-transparent text-[var(--color-on-surface-variant)] border-[var(--color-outline-variant)] hover:border-[var(--color-outline)] hover:text-[var(--color-on-surface)]'}`}
-          >
-            ALL
-          </button>
-          {Object.entries(RISK_LEVELS).map(([key, def]) => (
-            <button 
-              key={key} 
-              onClick={() => setFilterLevel(def.label)} 
-              className={`px-3 py-1.5 rounded text-xs font-bold transition-all border whitespace-nowrap`}
-              style={{ 
-                backgroundColor: filterLevel === def.label ? def.color + '20' : 'transparent', 
-                color: filterLevel === def.label ? def.color : 'var(--color-on-surface-variant)',
-                borderColor: filterLevel === def.label ? def.color + '60' : 'var(--color-outline-variant)'
-              }}
-            >
-              {def.label.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Left Col: Table */}
+        <div className="glass-card" style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '24px' }}>
+          
+          {/* Controls */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ position: 'relative', width: '300px' }}>
+              <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+              <input 
+                type="text" 
+                value={search} 
+                onChange={e => setSearch(e.target.value)} 
+                placeholder="Query regions..."
+                className="glass-input"
+                style={{ width: '100%', padding: '12px 16px 12px 40px', fontSize: '14px', background: 'var(--glass-bg)' }}
+              />
+            </div>
+            
+            <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
+              <button onClick={() => setFilterLevel('all')}
+                style={{
+                  padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
+                  background: filterLevel === 'all' ? 'rgba(59,130,246,0.15)' : 'transparent',
+                  color: filterLevel === 'all' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                  transition: 'all 0.2s'
+                }}>
+                ALL
+              </button>
+              {Object.entries(RISK_LEVELS).map(([key, def]) => (
+                <button key={key} onClick={() => setFilterLevel(def.label)}
+                  style={{
+                    padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
+                    background: filterLevel === def.label ? 'rgba(59,130,246,0.15)' : 'transparent',
+                    color: filterLevel === def.label ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                    transition: 'all 0.2s'
+                  }}>
+                  {def.label.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-        {/* Main Data Grid */}
-        <div className="xl:col-span-3 card overflow-hidden border-[var(--color-outline-variant)] flex flex-col">
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-sm whitespace-nowrap">
-              <thead className="sticky top-0 z-10 bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)]">
-                <tr>
-                  {[{ key: 'name', label: 'VILLAGE/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map(col => (
-                    <th key={col.key} className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[var(--color-on-surface-variant)] cursor-pointer select-none hover:text-[var(--color-secondary)] transition-colors group"
-                      onClick={() => toggleSort(col.key)}>
-                      <div className="flex items-center gap-1">
+          {/* Table */}
+          <div style={{ flex: 1, overflowX: 'auto', borderRadius: '12px', border: 'var(--glass-border)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: 'var(--nav-hover-bg)' }}>
+                  {[{ key: 'name', label: 'VILLAGE/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
+                    <th key={col.key} onClick={() => toggleSort(col.key)}
+                      style={{ padding: '16px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: idx === 0 ? '16px' : '0' }}>
                         {col.label} 
-                        <span className={`text-[var(--color-secondary)] ${sortField === col.key ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
+                        <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'transparent' }}>
                           {sortDir === 'asc' ? '▲' : '▼'}
                         </span>
                       </div>
@@ -129,82 +136,85 @@ export default function RiskClassification() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--color-outline-variant)]">
+              <tbody>
                 {filtered.map((v, i) => {
                   const risk = getRiskLevel(v.riskScore);
+                  let color = 'var(--accent-green)';
+                  if (v.riskScore >= 76) color = 'var(--accent-red)';
+                  else if (v.riskScore >= 51) color = 'var(--accent-amber)';
+                  else if (v.riskScore >= 26) color = '#eab308';
+
                   return (
-                    <tr key={v._id || i} className="group hover:bg-[var(--color-surface-container-high)] transition-colors relative">
-                      {/* Left color bar indicator */}
-                      <td className="px-0 py-0 w-0 absolute left-0 top-0 bottom-0">
-                        <div className="w-1 h-full opacity-80 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: risk.color, boxShadow: `0 0 8px ${risk.color}` }}></div>
+                    <tr key={v._id || i} style={{ 
+                      height: '52px', borderBottom: '1px solid var(--divider)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
+                      transition: 'var(--transition-default)', cursor: 'default'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--nav-hover-bg)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--glass-shadow-elevated)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+                    >
+                      <td style={{ padding: '0 16px', position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: 0, top: '4px', bottom: '4px', width: '3px', background: color, borderRadius: '0 4px 4px 0' }} />
+                        <div style={{ paddingLeft: '16px', fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{v.name}</div>
                       </td>
-                      <td className="px-5 py-3 font-semibold text-[var(--color-on-surface)] pl-6">{v.name}</td>
-                      <td className="px-5 py-3 text-[var(--color-on-surface-variant)] text-xs">{v.state || v.region}</td>
-                      <td className="px-5 py-3 font-mono text-xs text-[var(--color-on-surface-variant)]">{formatNumber(v.population)}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3 max-w-[140px]">
-                          <span className="font-mono font-bold text-sm min-w-[28px]" style={{ color: risk.color }}>{v.riskScore}</span>
-                          <div className="flex-1 h-1.5 rounded-full bg-[var(--color-surface-container-highest)] overflow-hidden">
-                            <div className="h-full rounded-full transition-all" style={{ width: `${v.riskScore}%`, backgroundColor: risk.color, boxShadow: `0 0 5px ${risk.color}80` }} />
+                      <td style={{ padding: '0 16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{v.state || v.region}</td>
+                      <td style={{ padding: '0 16px', color: 'var(--text-secondary)', fontSize: '14px' }}>{formatNumber(v.population)}</td>
+                      <td style={{ padding: '0 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontWeight: 700, fontSize: '14px', color: color, width: '24px' }}>{v.riskScore}</span>
+                          <div style={{ height: '4px', flex: 1, background: 'var(--glass-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(v.riskScore, 100)}%`, height: '100%', background: color, boxShadow: `0 0 8px ${color}` }} />
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3"><RiskBadge score={v.riskScore} /></td>
+                      <td style={{ padding: '0 16px' }}>
+                        <RiskBadge score={v.riskScore} />
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+            {filtered.length === 0 && (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <Search size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                No records match current parameters
+              </div>
+            )}
           </div>
-          
-          <div className="p-3 border-t border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] text-[10px] text-[var(--color-on-surface-variant)] flex justify-between uppercase tracking-wider">
-            <span>Total Records: {filtered.length}</span>
-            <span>Refreshed: Live</span>
-          </div>
-
-          {filtered.length === 0 && (
-            <div className="py-16 text-center text-sm text-[var(--color-on-surface-variant)] flex flex-col items-center">
-              <Search className="w-8 h-8 mb-3 opacity-20" />
-              No records match current parameters
-            </div>
-          )}
         </div>
 
-        {/* Algorithm Explanation */}
-        <div className="card border-[var(--color-outline-variant)] flex flex-col">
-          <div className="p-4 border-b border-[var(--color-outline-variant)] flex items-center gap-2">
-            <Info className="w-4 h-4 text-[var(--color-primary)]" />
-            <h3 className="text-xs font-bold text-display uppercase tracking-wider text-[var(--color-on-surface)]">Assessment Model</h3>
-          </div>
-          
-          <div className="p-4 space-y-5 text-sm">
-            <div>
-              <p className="text-xs text-[var(--color-on-surface-variant)] mb-3 leading-relaxed">
-                The composite severity score (0–100) is aggregated across three primary factors, normalized via backend processing:
-              </p>
-              <div className="space-y-3">
-                <WeightRow label="Rainfall Deficit" weight={40} color="var(--color-primary)" />
-                <WeightRow label="GW Depletion" weight={35} color="var(--color-secondary)" />
-                <WeightRow label="Population Gap" weight={25} color="var(--color-tertiary)" />
-              </div>
+        {/* Right Col: Assessment Model */}
+        <div className="glass-card" style={{ width: '320px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Info size={18} style={{ color: 'var(--accent-blue)' }} />
+              <h3 className="section-header">Assessment Model</h3>
             </div>
+            <p className="body-text" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              The composite severity score (0–100) is aggregated across three primary factors, normalized via backend processing:
+            </p>
+          </div>
 
-            <div className="pt-4 border-t border-[var(--color-outline-variant)]">
-              <h4 className="text-[10px] font-bold text-[var(--color-on-surface)] uppercase tracking-wider mb-3">Classification Matrix</h4>
-              <div className="space-y-2">
-                {Object.entries(RISK_LEVELS).map(([key, def]) => (
-                  <div key={key} className="flex items-center justify-between p-2 rounded bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)]/50">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: def.color, boxShadow: `0 0 5px ${def.color}` }} />
-                      <span className="text-xs font-bold" style={{ color: def.color }}>{def.label.toUpperCase()}</span>
-                    </div>
-                    <span className="text-[10px] font-mono text-[var(--color-on-surface-variant)]">&gt; {def.min} PTS</span>
-                  </div>
-                ))}
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <WeightRow label="Rainfall Deficit" weight={48} color="var(--accent-blue)" />
+            <WeightRow label="GW Depletion" weight={35} color="var(--accent-cyan)" />
+            <WeightRow label="Population Gap" weight={25} color="#8b5cf6" />
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--divider)', paddingTop: '24px' }}>
+            <h4 className="card-label" style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>Classification Matrix</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <MatrixRow label="Extreme" threshold={75} color="var(--accent-red)" />
+              <div style={{ height: '1px', background: 'var(--divider)' }} />
+              <MatrixRow label="Severe" threshold={50} color="var(--accent-amber)" />
+              <div style={{ height: '1px', background: 'var(--divider)' }} />
+              <MatrixRow label="Moderate" threshold={25} color="#eab308" />
+              <div style={{ height: '1px', background: 'var(--divider)' }} />
+              <MatrixRow label="Normal" threshold={0} color="var(--accent-green)" />
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
@@ -212,14 +222,26 @@ export default function RiskClassification() {
 
 function WeightRow({ label, weight, color }) {
   return (
-    <div className="group">
-      <div className="flex justify-between mb-1 items-end">
-        <span className="text-xs font-semibold text-[var(--color-on-surface)]">{label}</span>
-        <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)]">{weight}%</span>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px', fontWeight: 500 }}>
+        <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
+        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{weight}%</span>
       </div>
-      <div className="h-1 rounded bg-[var(--color-surface-container-highest)] overflow-hidden">
-        <div className="h-full rounded transition-all group-hover:brightness-125" style={{ width: `${weight}%`, backgroundColor: color }} />
+      <div style={{ height: '6px', background: 'var(--glass-border)', borderRadius: '3px', overflow: 'hidden' }}>
+        <div style={{ width: `${weight}%`, height: '100%', background: color, filter: `drop-shadow(0 0 6px ${color})`, borderRadius: '3px' }} />
       </div>
+    </div>
+  );
+}
+
+function MatrixRow({ label, threshold, color }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, boxShadow: `0 0 6px ${color}` }} />
+        <span style={{ fontSize: '14px', fontWeight: 700, color: color }}>{label.toUpperCase()}</span>
+      </div>
+      <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 600 }}>&gt; {threshold} PTS</span>
     </div>
   );
 }

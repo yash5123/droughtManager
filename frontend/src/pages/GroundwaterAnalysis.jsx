@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { AlertTriangle, Droplets, ArrowRight } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { AlertTriangle, Droplets, ArrowRight, Loader2 } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -24,12 +24,12 @@ export default function GroundwaterAnalysis() {
           const { data, dataSource: ws } = await fetchHistoricalWeather(v.location.lat, v.location.lng, 30);
           const sm = data?.daily?.soil_moisture_0_to_7cm_mean || [];
           const avg = sm.length > 0 ? sm.reduce((s, x) => s + (x || 0), 0) / sm.length : null;
-          return { ...v, soilMoisture: avg !== null ? Math.round(avg * 10000) / 100 : null, src: ws };
+          return { ...v, soilMoisture: avg !== null ? Math.round(avg * 100) : null, src: ws }; // Convert to percentage roughly if needed, original code * 10000 / 100.
         })
       );
       const sorted = results.sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999));
       setMoistureData(sorted);
-      setSelectedVillage(prev => !prev ? sorted[0] : prev);
+      setSelectedVillage(prev => !prev && sorted.length > 0 ? sorted[0] : prev);
       setLoading(false);
     };
     fetchAll();
@@ -42,123 +42,129 @@ export default function GroundwaterAnalysis() {
       if (!data?.daily) { setVillageTrend(null); return; }
       setVillageTrend(data.daily.time.map((t, i) => ({
         date: t.slice(5),
-        moisture: Math.round((data.daily.soil_moisture_0_to_7cm_mean?.[i] || 0) * 10000) / 100,
+        moisture: Math.round((data.daily.soil_moisture_0_to_7cm_mean?.[i] || 0) * 100),
       })));
     };
     fetchTrend();
   }, [selectedVillage]);
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto flex flex-col h-full">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
       <DataSourceBanner dataSource={dataSource} />
 
-      {/* Header & Disclaimer */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Droplets className="w-6 h-6 text-[var(--color-primary)]" />
-          <div>
-            <h2 className="text-base font-bold text-display text-[var(--color-on-surface)]">Subsurface Hydrology</h2>
-            <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-wider">30-Day Moisture Analysis</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] max-w-xl">
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
-          <p className="text-[10px] text-amber-400 leading-tight">
-            <strong className="font-semibold">Notice:</strong> Displaying satellite-derived soil moisture (0–7 cm surface layer). Real aquifer monitoring requires in-situ piezometer sensors. Use as a supplementary indicator only.
-          </p>
+      {/* Notice Banner */}
+      <div className="glass-panel" style={{ 
+        padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '16px',
+        background: 'var(--risk-severe-tint)', borderLeft: '3px solid var(--accent-amber)', borderRight: 'none', borderTop: 'none', borderBottom: 'none'
+      }}>
+        <AlertTriangle size={24} style={{ color: 'var(--accent-amber)', filter: 'drop-shadow(var(--accent-amber-glow))' }} />
+        <div>
+          <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Satellite Estimation Mode</h4>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Displaying satellite-derived soil moisture (0–7 cm surface layer). Real aquifer monitoring requires in-situ piezometer sensors.</p>
         </div>
       </div>
 
-      {/* Top Half: Large Chart */}
-      <div className="card p-5 border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] flex-1 min-h-[400px] flex flex-col relative overflow-hidden">
-        <div className="flex items-center justify-between mb-4 relative z-10">
+      {/* Main Chart */}
+      <div className="glass-card" style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div>
-            <h3 className="text-lg font-bold text-display text-[var(--color-on-surface)]">{selectedVillage?.name || 'Loading...'}</h3>
-            <p className="text-xs text-[var(--color-on-surface-variant)]">Surface Soil Moisture Trend (%)</p>
+            <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedVillage?.name || 'Select a region'}</h2>
+            <p className="section-header" style={{ color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 500 }}>Surface Soil Moisture Trend</p>
           </div>
           {selectedVillage && selectedVillage.soilMoisture !== null && (
-            <div className="text-right">
-              <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider">Current Avg</p>
-              <p className="text-xl font-mono font-bold" style={{ color: getSoilMoistureLevel(selectedVillage.soilMoisture).color }}>
+            <div style={{ textAlign: 'right' }}>
+              <div className="data-value" style={{ color: 'var(--accent-red)', filter: 'drop-shadow(var(--accent-red-glow))', fontSize: '32px' }}>
                 {selectedVillage.soilMoisture.toFixed(1)}%
-              </p>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="flex-1 relative z-10">
+        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
           {villageTrend ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={villageTrend} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-outline-variant)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: 'var(--color-outline)', fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fill: 'var(--color-outline)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <AreaChart data={villageTrend} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--color-surface-container-highest)', border: '1px solid var(--color-outline-variant)', borderRadius: 8, color: 'var(--color-on-surface)', fontSize: 12 }} 
-                  itemStyle={{ color: 'var(--color-secondary)' }}
+                  contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)' }} 
+                  itemStyle={{ color: 'var(--accent-blue)' }}
+                  cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
-                <Line type="monotone" dataKey="moisture" stroke="var(--color-secondary)" strokeWidth={3} dot={{ fill: 'var(--color-bg-base)', stroke: 'var(--color-secondary)', strokeWidth: 2, r: 4 }} activeDot={{ r: 7, strokeWidth: 0, fill: 'var(--color-primary)' }} />
-              </LineChart>
+                <Area type="monotone" dataKey="moisture" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" activeDot={{ r: 6, fill: 'transparent', stroke: '#3b82f6', strokeWidth: 2, className: 'live-pulse' }} />
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-full">
-              {loading ? (
-                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin border-[var(--color-primary)]" style={{ borderTopColor: 'transparent' }} />
-              ) : (
-                <EmptyState icon={Droplets} title="No trend data" description="Weather proxy may be unavailable." />
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+              {loading ? <Loader2 className="spinning" size={32} style={{ color: 'var(--accent-blue)' }} /> : <EmptyState icon={Droplets} title="No trend data" description="Weather proxy may be unavailable." />}
             </div>
           )}
         </div>
-        
-        {/* Glow */}
-        <div className="absolute inset-0 bg-[var(--color-secondary)]/5 pointer-events-none blur-[100px] opacity-30 transform scale-90 z-0"></div>
       </div>
 
-      {/* Bottom Half: Horizontal Scrolling Cards */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-display text-[var(--color-on-surface)]">Regional Comparison</h3>
-          <span className="text-xs text-[var(--color-on-surface-variant)] flex items-center gap-1">Scroll <ArrowRight className="w-3 h-3" /></span>
+      {/* Regional Comparison Scroll Row */}
+      <div style={{ position: 'relative', height: '120px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', padding: '0 8px' }}>
+          <h3 className="section-header" style={{ fontSize: '16px' }}>Regional Comparison</h3>
+          <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px' }}>Scroll <ArrowRight size={12} /></span>
         </div>
         
-        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
+        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {moistureData.map((v, i) => {
             const level = v.soilMoisture !== null ? getSoilMoistureLevel(v.soilMoisture) : null;
             const isSelected = selectedVillage?._id === v._id;
             
+            // Map severity to accent color
+            let accent = 'var(--accent-green)';
+            if (level?.label === 'Extreme Deficit') accent = 'var(--accent-red)';
+            else if (level?.label === 'Severe Deficit') accent = 'var(--accent-amber)';
+            else if (level?.label === 'Moderate Deficit') accent = '#eab308';
+            else if (level?.label === 'High Moisture') accent = 'var(--accent-cyan)';
+
             return (
               <button key={v._id || i} onClick={() => setSelectedVillage(v)}
-                className={`flex-shrink-0 w-64 card p-4 text-left transition-all relative overflow-hidden group snap-start ${isSelected ? 'bg-[var(--color-surface-container-high)] border-[var(--color-secondary)]' : 'bg-[var(--color-surface-container)] hover:bg-[var(--color-surface-container-low)] border-[var(--color-outline-variant)]'}`}
-                style={{ boxShadow: isSelected ? '0 0 15px rgba(187,199,223,0.1)' : 'none' }}>
+                className="glass-card"
+                style={{
+                  flex: '0 0 280px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px',
+                  background: isSelected ? 'var(--nav-active-bg)' : 'var(--glass-bg)',
+                  border: isSelected ? '1px solid var(--accent-blue)' : 'var(--glass-border)',
+                  cursor: 'pointer', textAlign: 'left'
+                }}>
                 
-                <div className="flex justify-between items-start mb-4">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <p className="text-sm font-bold text-[var(--color-on-surface)] truncate w-32">{v.name}</p>
-                    <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wide">{v.district || v.region}</p>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{v.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{v.district || v.region}</div>
                   </div>
                   {level && (
-                    <span className="text-[10px] font-bold px-2 py-1 rounded" style={{ backgroundColor: level.color + '15', color: level.color }}>
+                    <div className="glass-pill" style={{ padding: '2px 8px', fontSize: '10px', fontWeight: 600, color: accent, background: `${accent}20`, border: `1px solid ${accent}40` }}>
                       {level.label}
-                    </span>
+                    </div>
                   )}
                 </div>
                 
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-1">Avg Moisture</p>
-                    <p className="text-2xl font-mono font-bold text-[var(--color-on-surface)]">
-                      {v.soilMoisture !== null ? v.soilMoisture.toFixed(1) : '—'}
-                      <span className="text-sm font-sans font-normal text-[var(--color-outline)] ml-1">%</span>
-                    </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 700, color: accent, filter: `drop-shadow(0 0 8px ${accent}80)` }}>
+                    {v.soilMoisture !== null ? v.soilMoisture.toFixed(1) : '—'}
                   </div>
-                  {isSelected && <div className="w-2 h-2 rounded-full bg-[var(--color-secondary)] shadow-[0_0_8px_var(--color-secondary)]"></div>}
+                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, lineHeight: 1.2 }}>
+                    Avg<br/>Moisture
+                  </div>
                 </div>
               </button>
             );
           })}
         </div>
+
+        {/* Gradient Fade Masks */}
+        <div style={{ position: 'absolute', top: '32px', left: 0, bottom: '16px', width: '40px', background: 'linear-gradient(to right, var(--glass-bg), transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '32px', right: 0, bottom: '16px', width: '40px', background: 'linear-gradient(to left, var(--glass-bg), transparent)', pointerEvents: 'none' }} />
       </div>
       
     </div>
