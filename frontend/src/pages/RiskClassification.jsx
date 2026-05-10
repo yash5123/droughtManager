@@ -87,62 +87,78 @@ export default function RiskClassification() {
       {/* Main Layout */}
       <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
         
-        {/* Left Col: Table */}
-        <div className="glass-card" style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '24px' }}>
-          
-          {/* Controls */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <div style={{ position: 'relative', width: '300px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-              <input 
-                type="text" 
-                value={search} 
-                onChange={e => setSearch(e.target.value)} 
-                placeholder="Query regions..."
-                className="glass-input"
-                style={{ width: '100%', padding: '12px 16px 12px 40px', fontSize: '14px', background: 'var(--glass-bg)' }}
-              />
-            </div>
+          {/* Main Layout Content */}
+          <div className="glass-card" style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '24px', overflow: 'hidden' }}>
             
-            <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
-              <button onClick={() => setFilterLevel('all')}
-                style={{
-                  padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
-                  background: filterLevel === 'all' ? 'rgba(59,130,246,0.15)' : 'transparent',
-                  color: filterLevel === 'all' ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                  transition: 'all 0.2s'
-                }}>
-                ALL
-              </button>
-              {Object.entries(RISK_LEVELS).map(([key, def]) => (
-                <button key={key} onClick={() => setFilterLevel(def.label)}
+            {/* Controls Section */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', zIndex: 20 }}>
+              <div style={{ position: 'relative', width: '300px' }}>
+                <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+                <input 
+                  type="text" 
+                  value={search} 
+                  onChange={e => setSearch(e.target.value)} 
+                  placeholder="Query regions..."
+                  className="glass-input"
+                  style={{ width: '100%', padding: '12px 16px 12px 40px', fontSize: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid var(--divider)' }}
+                />
+              </div>
+              
+              <div className="glass-pill" style={{ display: 'flex', padding: '4px', background: 'rgba(255,255,255,0.03)' }}>
+                <button onClick={() => setFilterLevel('all')}
                   style={{
-                    padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
-                    background: filterLevel === def.label ? 'rgba(59,130,246,0.15)' : 'transparent',
-                    color: filterLevel === def.label ? 'var(--accent-blue)' : 'var(--text-secondary)',
-                    transition: 'all 0.2s'
+                    padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
+                    background: filterLevel === 'all' ? 'var(--accent-blue)' : 'transparent',
+                    color: filterLevel === 'all' ? '#fff' : 'var(--text-secondary)',
+                    transition: 'all 0.2s',
+                    boxShadow: filterLevel === 'all' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none'
                   }}>
-                  {def.label.toUpperCase()}
+                  ALL
                 </button>
-              ))}
+                {Object.entries(RISK_LEVELS).map(([key, def]) => (
+                  <button key={key} onClick={() => setFilterLevel(def.label)}
+                    style={{
+                      padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
+                      background: filterLevel === def.label ? 'var(--accent-blue)' : 'transparent',
+                      color: filterLevel === def.label ? '#fff' : 'var(--text-secondary)',
+                      transition: 'all 0.2s',
+                      boxShadow: filterLevel === def.label ? '0 4px 12px rgba(59,130,246,0.3)' : 'none'
+                    }}>
+                    {def.label.toUpperCase()}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 360px)', borderRadius: '12px', border: 'var(--glass-border)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                <tr style={{ background: 'var(--nav-hover-bg)', boxShadow: '0 1px 0 var(--divider)' }}>
-                  {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: '_demand', label: 'WATER DEMAND' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
-                    <th key={col.key} onClick={() => toggleSort(col.key)}
-                      style={{ padding: '16px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', background: 'var(--nav-hover-bg)', whiteSpace: 'nowrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: idx === 0 ? '16px' : '0' }}>
-                        {col.label}
-                        <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'transparent' }}>{sortDir === 'asc' ? '▲' : '▼'}</span>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+            {/* Table Container with scroll bounds */}
+            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'rgba(0,0,0,0.2)' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
+                <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                  <tr style={{ background: '#1e293b', boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                    {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: '_demand', label: 'WATER DEMAND' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
+                      <th key={col.key} onClick={() => toggleSort(col.key)}
+                        style={{ 
+                          padding: '18px 16px', 
+                          cursor: 'pointer', 
+                          fontSize: '11px', 
+                          fontWeight: 800, 
+                          color: 'var(--text-secondary)', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '1px', 
+                          background: '#1e293b', 
+                          borderBottom: '2px solid var(--divider)',
+                          whiteSpace: 'nowrap' 
+                        }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: idx === 0 ? '16px' : '0' }}>
+                          {col.label}
+                          <span style={{ fontSize: '10px', color: sortField === col.key ? 'var(--accent-blue)' : 'var(--text-tertiary)', opacity: sortField === col.key ? 1 : 0.3 }}>
+                            {sortField === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
               <tbody>
                 {filtered.map((v, i) => {
                   const risk = getRiskLevel(v.riskScore);
