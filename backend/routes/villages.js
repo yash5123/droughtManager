@@ -164,25 +164,4 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// TEMPORARY ENDPOINT: Sync missing coordinates from local to production
-router.post('/sync-coords', express.json({ limit: '10mb' }), async (req, res) => {
-  try {
-    const patches = req.body;
-    let updated = 0;
-    for (const p of patches) {
-      await Village.updateOne({ _id: p.prodId }, { $set: { 
-        lat: p.lat, lon: p.lon, location: p.location, 
-        geocodingStatus: p.geocodingStatus,
-        historicalAvgMonthlyRainfall_mm: p.historicalAvgMonthlyRainfall_mm,
-        historicalAvgAnnualRainfall_mm: p.historicalAvgAnnualRainfall_mm,
-        climateBaselineStatus: p.climateBaselineStatus
-      } });
-      updated++;
-    }
-    res.json({ success: true, updated });
-  } catch(err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 export default router;
