@@ -66,14 +66,21 @@ mongoose.connect(MONGO_URI)
           seedingProgress.phase = 'complete';
         }
         
-        // Check if daily job has run today
+        // Check if daily job has run today for all districts
         const DroughtRisk = (await import('./models/DroughtRisk.js')).default;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const todayRiskCount = await DroughtRisk.countDocuments({ date: { $gte: today } });
+        const geocodedCount = await Village.countDocuments({
+          geocodingStatus: { $in: ['complete', 'approximate', 'centroid'] },
+          lat: { $ne: null }, lon: { $ne: null }
+        });
         
         if (todayRiskCount === 0) {
           console.log('No risk data for today. Triggering daily weather job...');
+          runDailyWeatherJob().catch(err => console.error('Daily job error:', err));
+        } else if (geocodedCount > 0 && todayRiskCount < geocodedCount * 0.9) {
+          console.log(`Found ${todayRiskCount}/${geocodedCount} risk records for today (incomplete). Re-triggering daily job...`);
           runDailyWeatherJob().catch(err => console.error('Daily job error:', err));
         } else {
           console.log(`Found ${todayRiskCount} risk records for today. Daily job not needed.`);
