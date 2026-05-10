@@ -32,12 +32,7 @@ export default function GroundwaterAnalysis() {
   }, [activeVillages, selectedVillage]);
 
   const moistureData = React.useMemo(() => {
-    return activeVillages.map(v => {
-      // metricsSnapshot.soilMoistureFrac is stored as a fraction (e.g. 0.15 for 15%)
-      const frac = v.metricsSnapshot?.soilMoistureFrac;
-      const soilMoisture = frac != null ? Math.round(frac * 100) : null;
-      return { ...v, soilMoisture };
-    }).sort((a, b) => (a.soilMoisture ?? 999) - (b.soilMoisture ?? 999));
+    return [...activeVillages].sort((a, b) => (a.avgSoilMoisturePct ?? 999) - (b.avgSoilMoisturePct ?? 999));
   }, [activeVillages]);
 
   useEffect(() => {
@@ -84,10 +79,10 @@ export default function GroundwaterAnalysis() {
             <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedVillage?.name || 'Select a region'}</h2>
             <p className="section-header" style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500 }}>Surface Soil Moisture Trend (0–7cm)</p>
           </div>
-          {selectedVillage && selectedVillage.soilMoisture !== null && (
+          {selectedVillage && selectedVillage.avgSoilMoisturePct != null && (
             <div style={{ textAlign: 'right' }}>
-              <div className="data-value" style={{ color: selectedVillage.soilMoisture < 7 ? 'var(--accent-red)' : selectedVillage.soilMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)', filter: 'drop-shadow(0 0 8px currentColor)', fontSize: '32px' }}>
-                {selectedVillage.soilMoisture !== null ? selectedVillage.soilMoisture.toFixed(1) : '—'}%
+              <div className="data-value" style={{ color: selectedVillage.avgSoilMoisturePct < 7 ? 'var(--accent-red)' : selectedVillage.avgSoilMoisturePct < 15 ? 'var(--accent-amber)' : 'var(--accent-green)', filter: 'drop-shadow(0 0 8px currentColor)', fontSize: '32px' }}>
+                {selectedVillage.avgSoilMoisturePct != null ? selectedVillage.avgSoilMoisturePct.toFixed(1) : '—'}%
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '2px' }}>Avg Moisture</div>
             </div>
@@ -155,7 +150,7 @@ export default function GroundwaterAnalysis() {
         
         <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {moistureData.map((v, i) => {
-            const level = v.soilMoisture !== null ? getSoilMoistureLevel(v.soilMoisture) : null;
+            const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
             const isSelected = selectedVillage?._id === v._id;
             
             // Map severity to accent color
@@ -189,7 +184,7 @@ export default function GroundwaterAnalysis() {
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ fontSize: '24px', fontWeight: 700, color: accent, filter: `drop-shadow(0 0 8px ${accent}80)` }}>
-                    {v.soilMoisture !== null ? v.soilMoisture.toFixed(1) : '—'}
+                    {v.avgSoilMoisturePct != null ? v.avgSoilMoisturePct.toFixed(1) : '—'}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', fontWeight: 600, lineHeight: 1.2 }}>
                     Avg<br/>Moisture
