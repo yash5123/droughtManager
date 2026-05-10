@@ -138,7 +138,7 @@ export default function MapPage() {
           <MapUpdater theme={theme} />
           <TileLayer url={OSM_TILES} noWrap={true} />
           {showRadar && radarUrl && (
-            <TileLayer url={radarUrl} opacity={0.6} zIndex={10} />
+            <TileLayer url={radarUrl} opacity={0.6} zIndex={10} maxNativeZoom={7} />
           )}
           {filtered.map((v, i) => {
             const risk = getRiskLevel(v.riskScore);
