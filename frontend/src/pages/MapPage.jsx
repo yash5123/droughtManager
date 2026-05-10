@@ -71,17 +71,14 @@ export default function MapPage() {
           <div style={{ display: 'flex', gap: '8px' }}>
             {Object.entries(RISK_LEVELS).map(([key, def]) => {
               const isActive = filters.includes(key);
-              let baseColor = 'var(--accent-green)';
-              if(key === 'Extreme') baseColor = 'var(--accent-red)';
-              if(key === 'Severe') baseColor = 'var(--accent-amber)';
-              if(key === 'Moderate') baseColor = '#eab308';
+              const baseColor = def.color;
               
               return (
                 <button key={key} onClick={() => toggleFilter(key)}
                   style={{
-                    padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${baseColor}60`, cursor: 'pointer',
+                    padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${isActive ? baseColor : 'transparent'}`, cursor: 'pointer',
                     fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
-                    background: isActive ? `${baseColor}20` : 'transparent',
+                    background: isActive ? `${baseColor}15` : 'transparent',
                     color: isActive ? baseColor : 'var(--text-secondary)'
                   }}>
                   {def.label}
@@ -128,7 +125,19 @@ export default function MapPage() {
         </div>
 
         {/* Main Map */}
-        <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} scrollWheelZoom={true} doubleClickZoom={true} dragging={true} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
+        <MapContainer 
+          center={INDIA_CENTER} 
+          zoom={5} 
+          minZoom={4}
+          maxBounds={[[-10, 50], [40, 110]]}
+          maxBoundsViscosity={1.0}
+          zoomControl={true} 
+          scrollWheelZoom={true} 
+          doubleClickZoom={true} 
+          dragging={true} 
+          attributionControl={false} 
+          style={{ height: '100%', width: '100%', background: 'transparent' }}
+        >
           <MapUpdater theme={theme} />
           <TileLayer url={OSM_TILES} noWrap={true} />
           {showRadar && radarUrl && (
