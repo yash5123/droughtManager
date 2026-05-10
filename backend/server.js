@@ -11,7 +11,7 @@ import villageRoutes from './routes/villages.js';
 import weatherRoutes from './routes/weather.js';
 import Village from './models/Village.js';
 import { runSeedDistricts, seedingProgress } from './jobs/seedDistricts.js';
-import { runDailyWeatherJob, dailyJobStatus, backfillScores } from './jobs/dailyWeatherJob.js';
+import { runDailyWeatherJob, dailyJobStatus } from './jobs/dailyWeatherJob.js';
 
 dotenv.config();
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import fetch from 'node-fetch';
-import { runDailyWeatherJob, dailyJobStatus, backfillScores } from '../jobs/dailyWeatherJob.js';
+import { runDailyWeatherJob, dailyJobStatus } from '../jobs/dailyWeatherJob.js';
 
 const router = express.Router();
 
@@ -91,17 +91,5 @@ router.get('/job-status', (req, res) => {
   res.json(dailyJobStatus);
 });
 
-/**
- * POST /api/weather/trigger-backfill
- * One-time backfill: recomputes last 30 days of scores with corrected compression.
- */
-router.post('/trigger-backfill', async (req, res) => {
-  try {
-    res.json({ message: 'Backfill started — check server logs for progress.' });
-    await backfillScores();
-  } catch (err) {
-    console.error('[API] Backfill error:', err);
-  }
-});
 
 export default router;
