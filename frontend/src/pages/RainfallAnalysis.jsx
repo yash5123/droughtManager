@@ -211,7 +211,7 @@ export default function RainfallAnalysis() {
                 <StatChip label="Anomaly" value={`${anomalyPct > 0 ? '-' : '+'}${Math.abs(anomalyPct)}`} unit="%" color={anomalyPct > 0 ? 'var(--accent-red)' : 'var(--accent-green)'} />
               </div>
             )}
-            <div style={{ minHeight: '220px', height: '220px', position: 'relative', width: '100%' }}>
+            <div style={{ flex: 1, minHeight: 0, position: 'relative', width: '100%' }}>
               {villageTimeSeries ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={villageTimeSeries} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
