@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { AlertTriangle, Droplets, Loader2, Search, Download } from 'lucide-react';
+import { AlertTriangle, Droplets, Loader2, Search, Download, ArrowDownUp } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
@@ -28,6 +28,7 @@ export default function GroundwaterAnalysis() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [countLimit, setCountLimit] = useState('All');
+  const [sortAscending, setSortAscending] = useState(true);
 
   useEffect(() => {
     if (activeVillages.length > 0 && !selectedVillage) {
@@ -73,16 +74,16 @@ export default function GroundwaterAnalysis() {
       });
     }
     
-    // Sort by lowest moisture first (most critical)
+    // Sort by moisture
     list.sort((a, b) => {
       const valA = a.avgSoilMoisturePct != null ? a.avgSoilMoisturePct : 999;
       const valB = b.avgSoilMoisturePct != null ? b.avgSoilMoisturePct : 999;
-      return valA - valB;
+      return sortAscending ? valA - valB : valB - valA;
     });
     
     if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
     return list;
-  }, [activeVillages, search, filter, countLimit]);
+  }, [activeVillages, search, filter, countLimit, sortAscending]);
 
   const getFilterColor = (f) => {
     switch(f) {
@@ -125,7 +126,12 @@ export default function GroundwaterAnalysis() {
       <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
         {/* LEFT PANEL */}
         <div className="glass-card" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
-          <h3 className="section-header" style={{ marginBottom: '4px' }}>Monitored Districts</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <h3 className="section-header" style={{ marginBottom: 0 }}>Monitored Districts ({filteredList.length})</h3>
+            <button onClick={() => setSortAscending(!sortAscending)} style={{ background: 'transparent', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '4px' }} title={sortAscending ? "Sort Descending" : "Sort Ascending"} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
+              <ArrowDownUp size={14} />
+            </button>
+          </div>
           <div style={{ position: 'relative' }}>
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
