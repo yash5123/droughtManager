@@ -89,11 +89,11 @@ export default function GroundwaterAnalysis() {
 
   const getFilterColor = (f) => {
     switch(f) {
-      case 'Extreme': return 'var(--accent-red)';
-      case 'Severe': return 'var(--accent-amber)';
+      case 'Extreme': return '#ef4444';
+      case 'Severe': return '#f97316';
       case 'Moderate': return '#eab308';
-      case 'Normal': return 'var(--accent-green)';
-      default: return 'var(--accent-blue)';
+      case 'Normal': return '#10b981';
+      default: return '#3b82f6';
     }
   };
 
