@@ -82,49 +82,52 @@ async function fetchWeatherForVillage(village) {
  */
 function computeRiskScore(village, weather, avgPopulation) {
   // 1. Rainfall Deficit (40%)
-  //    Compare actual 30d precipitation to historical monthly average for current month
+  // Compare actual 30d precipitation to historical monthly average for current month
   const currentMonth = new Date().getMonth(); // 0-11
   const historicalMonthlyAvg = (village.historicalAvgMonthlyRainfall_mm && village.historicalAvgMonthlyRainfall_mm[currentMonth]) || 0;
   
-  let rainfallDeficit = 0;
+  let rainfallDeficitScore = 0;
   if (historicalMonthlyAvg > 0) {
-    rainfallDeficit = ((historicalMonthlyAvg - weather.totalPrecipitation_mm) / historicalMonthlyAvg) * 100;
+    const rawDeficitPct = Math.max(0, ((historicalMonthlyAvg - weather.totalPrecipitation_mm) / historicalMonthlyAvg) * 100);
+    // Severity Multiplier: A 100% deficit in a 200mm region is worse than a 100% deficit in a 10mm region.
+    const severityMultiplier = Math.min(1.5, Math.max(0.5, historicalMonthlyAvg / 100)); 
+    rainfallDeficitScore = rawDeficitPct * severityMultiplier;
   } else {
     // No historical data — use a moderate default
-    rainfallDeficit = weather.totalPrecipitation_mm < 10 ? 70 : 30;
+    rainfallDeficitScore = weather.totalPrecipitation_mm < 10 ? 70 : 30;
   }
-  rainfallDeficit = clamp(rainfallDeficit, 0, 100);
   
   // 2. Soil Moisture Depletion (35%)
-  //    Lower soil moisture = higher depletion stress
-  const soilMoistureDepletion = clamp((1 - weather.avgSoilMoistureFrac * 3) * 100, 0, 100);
-  // Multiplied by 3 because typical volumetric soil moisture is 0.1-0.4
-  // At 0.33 => depletion = 0%, at 0 => depletion = 100%
+  // Exponential decay: as moisture fraction approaches 0, depletion score spikes to 100
+  // avgSoilMoistureFrac is usually 0 to 0.4.
+  const soilMoistureDepletionScore = 100 * Math.exp(-10 * weather.avgSoilMoistureFrac);
   
   // 3. Population Demand Gap (25%)
-  //    Uses REAL Census 2011 population
+  // Uses REAL Census 2011 population
   const population = village.population || 0;
   const demandLitersPerDay = population * 55; // 55 L/person/day WHO standard
   // Estimate supply from precipitation: 1 sq km catchment per district as rough estimate
   const supplyLitersPerDay = (weather.totalPrecipitation_mm * 1000000) / 30;
   
-  let populationDemandGap = 0;
+  let rawGapPct = 0;
   if (demandLitersPerDay > 0) {
-    populationDemandGap = ((demandLitersPerDay - supplyLitersPerDay) / demandLitersPerDay) * 100;
+    rawGapPct = Math.max(0, ((demandLitersPerDay - supplyLitersPerDay) / demandLitersPerDay) * 100);
   }
-  // Also factor in relative population size
-  if (avgPopulation > 0 && population > 0) {
-    const popFactor = population / avgPopulation;
-    populationDemandGap = populationDemandGap * Math.min(popFactor, 2); // cap at 2x
-  }
-  populationDemandGap = clamp(populationDemandGap, 0, 100);
   
-  // Composite
-  const riskScore = Math.round(
-    (rainfallDeficit * 0.40) +
-    (soilMoistureDepletion * 0.35) +
-    (populationDemandGap * 0.25)
-  );
+  // Logarithmic scaling for population impact
+  let popMultiplier = 1;
+  if (avgPopulation > 0 && population > 0) {
+    // log10 allows massive cities to scale without hard caps
+    popMultiplier = Math.max(0.5, 1 + Math.log10(population / avgPopulation));
+  }
+  const populationDemandScore = rawGapPct * popMultiplier;
+  
+  // 4. Composite & Asymptotic Normalization
+  const rawComposite = (rainfallDeficitScore * 0.40) + (soilMoistureDepletionScore * 0.35) + (populationDemandScore * 0.25);
+  
+  // Asymptotic curve: limits to 100 but requires exponentially worse conditions to reach it
+  const finalScore = 100 * (1 - Math.exp(-rawComposite / 60));
+  const riskScore = Math.round(finalScore);
   
   // Classification
   let riskLevel = 'Normal';
@@ -135,9 +138,10 @@ function computeRiskScore(village, weather, avgPopulation) {
   return {
     riskScore: clamp(riskScore, 0, 100),
     riskLevel,
-    rainfallDeficit: Math.round(rainfallDeficit * 10) / 10,
-    soilMoistureDepletion: Math.round(soilMoistureDepletion * 10) / 10,
-    populationDemandGap: Math.round(populationDemandGap * 10) / 10,
+    // Keep internal components clamped 0-100 for the UI radar charts
+    rainfallDeficit: clamp(Math.round(rainfallDeficitScore), 0, 100),
+    soilMoistureDepletion: clamp(Math.round(soilMoistureDepletionScore), 0, 100),
+    populationDemandGap: clamp(Math.round(populationDemandScore), 0, 100),
     metricsSnapshot: {
       historicalMonthlyAvg,
       actualPrecipitation: weather.totalPrecipitation_mm,
