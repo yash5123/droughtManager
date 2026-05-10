@@ -269,7 +269,6 @@ export default function GroundwaterAnalysis() {
             {villageTrend && villageTrend.length > 0 && (
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                 {[
-                {[
                   { label: 'Current Moisture', value: (() => {
                     let val = latestMoisture;
                     const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');

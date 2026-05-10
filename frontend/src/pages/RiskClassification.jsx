@@ -131,16 +131,13 @@ export default function RiskClassification() {
             </div>
 
             {/* Table Container with scroll bounds */}
-            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'var(--card-bg)' }}>
+            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: '#0a0f18' }}>
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
-                <thead>
-                  <tr>
+                <thead style={{ position: 'sticky', top: 0, zIndex: 30 }}>
+                  <tr style={{ background: '#0f172a' }}>
                     {[{ key: 'name', label: 'DISTRICT/TOWN' }, { key: 'state', label: 'REGION' }, { key: 'population', label: 'POPULATION' }, { key: '_demand', label: 'WATER DEMAND' }, { key: 'riskScore', label: 'COMPOSITE SCORE' }, { key: 'riskLevel', label: 'STATUS' }].map((col, idx) => (
                       <th key={col.key} onClick={() => toggleSort(col.key)}
                         style={{ 
-                          position: 'sticky',
-                          top: 0,
-                          zIndex: 20,
                           padding: '20px 16px', 
                           cursor: 'pointer', 
                           fontSize: '11px', 
@@ -148,10 +145,9 @@ export default function RiskClassification() {
                           color: '#fff', 
                           textTransform: 'uppercase', 
                           letterSpacing: '1.2px', 
-                          background: '#0f172a', // Solid, dark, non-transparent background
+                          background: '#0f172a',
                           borderBottom: '2px solid var(--accent-blue)',
-                          whiteSpace: 'nowrap',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                          whiteSpace: 'nowrap'
                         }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: idx === 0 ? '16px' : '0' }}>
                           {col.label}
@@ -224,9 +220,9 @@ export default function RiskClassification() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <WeightRow label="Rainfall Deficit" weight={48} color="var(--accent-blue)" />
-            <WeightRow label="GW Depletion" weight={35} color="var(--accent-cyan)" />
-            <WeightRow label="Population Gap" weight={25} color="#8b5cf6" />
+            <WeightRow label="Rainfall Deficit" weight={50} color="var(--accent-blue)" />
+            <WeightRow label="GW Depletion" weight={30} color="var(--accent-cyan)" />
+            <WeightRow label="Population Gap" weight={20} color="#8b5cf6" />
           </div>
 
           <div style={{ borderTop: '1px solid var(--divider)', paddingTop: '24px' }}>
