@@ -56,7 +56,7 @@ export default function RainfallAnalysis() {
   }, [selectedVillage, period]);
 
   const handleExport = () => {
-    exportToCSV(rainfallData.map(v => ({ Village: v.name, State: v.state, 'Total Rain (mm)': v.totalRain, 'Deficit %': v.deficit })), `rainfall_${period}d`);
+    exportToCSV(rainfallData.map(v => ({ District: v.name, State: v.state, 'Total Rain (mm)': v.totalRain, 'Deficit %': v.deficit })), `rainfall_${period}d`);
   };
 
   return (

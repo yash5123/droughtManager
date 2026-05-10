@@ -60,7 +60,20 @@ async function fetchWeatherForVillage(village) {
   
   const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${village.lat}&longitude=${village.lon}&start_date=${formatDate(start)}&end_date=${formatDate(end)}&daily=precipitation_sum&hourly=soil_moisture_0_to_1cm,soil_moisture_1_to_3cm,soil_moisture_3_to_9cm&timezone=Asia/Kolkata`;
   
-  const res = await fetch(url);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  let res;
+  try {
+    res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error(`Timeout after 10s for village: ${village.name}, ${village.state}. Skipping.`);
+    }
+    throw err;
+  }
+  
   if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
   
   const data = await res.json();
@@ -207,10 +220,15 @@ function computeSMA(weather, village) {
 // ─── Sub-Component 4: Population Pressure Amplifier (PPA) — 10% ───
 
 function computePPA(weather, village) {
-  const population = village.population || 0;
-  if (population === 0) return { score: 0, supplyRatio: 0, dailyDemand: 0, dailySupply: 0 };
+  const effectivePopulation = (!village.population || village.population === 0)
+    ? 500000
+    : village.population;
+
+  if (!village.population || village.population === 0) {
+    console.warn(`[ScoreCalc] Village ${village.name} has zero population. Using default 500000 for PPA.`);
+  }
   
-  const dailyDemand = population * 55; // 55 L/person/day (WHO standard)
+  const dailyDemand = effectivePopulation * 55; // 55 L/person/day (WHO standard)
   
   // Estimate supply: precip (mm) × 1M L/km² × 3000 km² catchment × 0.08 retention ÷ 30 days
   const catchmentArea = 3000; // km² fallback per district
@@ -375,7 +393,7 @@ export async function runDailyWeatherJob() {
   
   try {
     const villages = await Village.find({
-      geocodingStatus: 'complete',
+      geocodingStatus: { $in: ['complete', 'approximate', 'centroid'] },
       lat: { $ne: null },
       lon: { $ne: null }
     }).lean();

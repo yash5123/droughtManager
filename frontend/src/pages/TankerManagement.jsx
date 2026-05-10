@@ -58,7 +58,7 @@ export default function TankerManagement() {
 
   const handleDispatch = async (e) => {
     e.preventDefault();
-    if (!form.village) { addToast('Select a village', 'warning'); return; }
+    if (!form.village) { addToast('Select a district', 'warning'); return; }
     setSubmitting(true);
     try {
       await api.post('/tanker', { ...form, dispatchDate: new Date().toISOString() });
@@ -79,7 +79,7 @@ export default function TankerManagement() {
   };
 
   const handleExport = () => {
-    exportToCSV(tankers.map(t => ({ Village: t.village, Status: t.status, Capacity: t.capacityLiters, Driver: t.driverName || '', Date: t.dispatchDate })), 'tanker_dispatch');
+    exportToCSV(tankers.map(t => ({ District: t.village, Status: t.status, Capacity: t.capacityLiters, Driver: t.driverName || '', Date: t.dispatchDate })), 'tanker_dispatch');
   };
 
   const filteredTankers = tankers.filter(t => tab === 'history' ? t.status === 'Delivered' : tab === 'tracking' ? t.status !== 'Delivered' : true);

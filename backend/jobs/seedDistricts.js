@@ -199,7 +199,14 @@ async function geocodeDistricts() {
   console.log('[Seed] Phase 2: Geocoding districts via Nominatim...');
   seedingProgress.phase = 'geocoding';
   
-  const pending = await Village.find({ geocodingStatus: 'pending' }).lean();
+  const pending = await Village.find({
+    $or: [
+      { geocodingStatus: 'pending' },
+      { geocodingStatus: 'failed' },
+      { lat: null },
+      { lon: null }
+    ]
+  }).lean();
   console.log(`[Seed] ${pending.length} districts need geocoding`);
   
   let successCount = 0;
@@ -211,39 +218,82 @@ async function geocodeDistricts() {
     try {
       // Clean state name for query (remove UT/NCT tags)
       const cleanState = v.state.replace(/\s*\(.*?\)\s*/g, '').trim();
-      const query = encodeURIComponent(`${v.name} district ${cleanState} India`);
-      const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
-      
-      const res = await fetch(url, {
-        headers: { 'User-Agent': 'AqvaSense-DroughtMonitor/1.0' }
-      });
-      
-      if (!res.ok) throw new Error(`Nominatim ${res.status}`);
-      
-      const results = await res.json();
-      
-      if (results.length > 0) {
-        const lat = parseFloat(results[0].lat);
-        const lon = parseFloat(results[0].lon);
+      const queryAttempts = [
+        encodeURIComponent(`${v.name}, ${cleanState}, India`),
+        encodeURIComponent(`${v.name}, India`),
+        encodeURIComponent(`${cleanState}, India`)
+      ];
+
+      let attemptSuccess = 0;
+      let finalLat = null;
+      let finalLon = null;
+      let finalStatus = 'failed';
+
+      for (let i = 0; i < queryAttempts.length; i++) {
+        const query = queryAttempts[i];
+        const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
         
-        await Village.updateOne(
-          { _id: v._id },
-          {
-            $set: {
-              lat, lon,
-              location: { lat, lng: lon },
-              geocodingStatus: 'complete'
-            }
+        let res;
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          res = await fetch(url, {
+            headers: { 'User-Agent': 'AqvaSense-DroughtMonitor/1.0' },
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (res.status === 429) {
+            await sleep(5000);
+            const controller2 = new AbortController();
+            const timeoutId2 = setTimeout(() => controller2.abort(), 8000);
+            res = await fetch(url, {
+              headers: { 'User-Agent': 'AqvaSense-DroughtMonitor/1.0' },
+              signal: controller2.signal
+            });
+            clearTimeout(timeoutId2);
           }
-        );
+          
+          if (!res.ok) throw new Error(`Nominatim ${res.status}`);
+          
+          const results = await res.json();
+          if (results.length > 0) {
+            finalLat = parseFloat(results[0].lat);
+            finalLon = parseFloat(results[0].lon);
+            attemptSuccess = i + 1;
+            if (attemptSuccess === 1) finalStatus = 'complete';
+            else if (attemptSuccess === 2) finalStatus = 'approximate';
+            else finalStatus = 'centroid';
+            
+            await Village.updateOne(
+              { _id: v._id },
+              {
+                $set: {
+                  lat: finalLat, lon: finalLon,
+                  location: { lat: finalLat, lng: finalLon },
+                  geocodingStatus: finalStatus
+                }
+              }
+            );
+            break;
+          }
+        } catch (err) {
+          console.warn(`[Seed] Network/Timeout error for ${v.name} (Attempt ${i + 1}): ${err.message}`);
+        }
+        
+        await sleep(1100);
+      }
+
+      if (finalStatus !== 'failed') {
         successCount++;
       } else {
-        await Village.updateOne({ _id: v._id }, { $set: { geocodingStatus: 'failed' } });
+        await Village.updateOne({ _id: v._id }, { $set: { geocodingStatus: 'failed', lat: null, lon: null } });
         failCount++;
-        console.warn(`[Seed] No geocoding result for: ${v.name}, ${v.state}`);
       }
+
+      console.log(`[Seed] ${v.name}, ${v.state} - ${finalStatus === 'failed' ? 'FAILED' : 'Attempt ' + attemptSuccess} - ${finalStatus}`);
     } catch (err) {
-      await Village.updateOne({ _id: v._id }, { $set: { geocodingStatus: 'failed' } });
+      await Village.updateOne({ _id: v._id }, { $set: { geocodingStatus: 'failed', lat: null, lon: null } });
       failCount++;
       console.warn(`[Seed] Geocoding error for ${v.name}: ${err.message}`);
     }
