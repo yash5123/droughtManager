@@ -64,28 +64,25 @@ export default function GroundwaterAnalysis() {
     
     if (filter !== 'All') {
       list = list.filter(v => {
-        const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct)?.label : 'Normal';
-        if (filter === 'Extreme') return level === 'Extreme Deficit';
-        if (filter === 'Severe') return level === 'Severe Deficit';
-        if (filter === 'Moderate') return level === 'Moderate Deficit';
-        if (filter === 'Normal') return level === 'High Moisture' || level === 'Optimal' || level === 'Normal' || level === 'Mild Deficit';
+        const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct)?.label : 'Adequate';
+        if (filter === 'Extreme') return level === 'Critical';
+        if (filter === 'Severe') return level === 'Low';
+        if (filter === 'Moderate') return level === 'Moderate';
+        if (filter === 'Normal') return level === 'Adequate';
         return true;
       });
     }
     
+    // Sort by lowest moisture first (most critical)
+    list.sort((a, b) => {
+      const valA = a.avgSoilMoisturePct != null ? a.avgSoilMoisturePct : 999;
+      const valB = b.avgSoilMoisturePct != null ? b.avgSoilMoisturePct : 999;
+      return valA - valB;
+    });
+    
     if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
     return list;
   }, [activeVillages, search, filter, countLimit]);
-
-  const getRiskColor = (levelLabel) => {
-    switch(levelLabel) {
-      case 'Extreme Deficit': return 'var(--accent-red)';
-      case 'Severe Deficit': return 'var(--accent-amber)';
-      case 'Moderate Deficit': return '#eab308';
-      case 'High Moisture': return 'var(--accent-cyan)';
-      default: return 'var(--accent-green)';
-    }
-  };
 
   const getFilterColor = (f) => {
     switch(f) {
@@ -154,7 +151,7 @@ export default function GroundwaterAnalysis() {
             ) : filteredList.map((v, i) => {
               const isSelected = selectedVillage?._id === v._id;
               const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
-              const color = getRiskColor(level?.label);
+              const color = level?.color || '#10b981';
               
               return (
                 <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
