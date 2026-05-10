@@ -192,16 +192,8 @@ export default function GroundwaterAnalysis() {
             ) : (
               filteredList.map((v, i) => {
                 const isSelected = selectedVillage?._id === v._id;
-                
-                // DATA BRIDGE: While the background job re-calculates the database, 
-                // we handle the transition from '0%' (old logic) to '18%' (new maritime estimate).
-                let displayMoisture = v.avgSoilMoisturePct;
-                if (displayMoisture === 0 && v.state?.includes('Lakshadweep')) {
-                  displayMoisture = 18.0;
-                }
-                
-                const level = displayMoisture != null ? getSoilMoistureLevel(displayMoisture) : null;
-                const color = level?.color || '#10b981';
+                const level = v.avgSoilMoisturePct != null && v.avgSoilMoisturePct > 0 ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
+                const color = level?.color || 'var(--text-tertiary)';
                 
                 return (
                   <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
@@ -212,7 +204,7 @@ export default function GroundwaterAnalysis() {
                       <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', color: color, fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>
-                      {displayMoisture != null ? `${displayMoisture.toFixed(1)}%` : '—'}
+                      {v.avgSoilMoisturePct != null && v.avgSoilMoisturePct > 0 ? `${v.avgSoilMoisturePct.toFixed(1)}%` : 'N/A'}
                     </div>
                   </button>
                 );
@@ -231,8 +223,8 @@ export default function GroundwaterAnalysis() {
               </div>
               {selectedVillage && selectedVillage.avgSoilMoisturePct != null && (
                 <div style={{ textAlign: 'right' }}>
-                  <div className="data-value" style={{ color: selectedVillage.avgSoilMoisturePct < 7 ? 'var(--accent-red)' : selectedVillage.avgSoilMoisturePct < 15 ? 'var(--accent-amber)' : 'var(--accent-green)', filter: 'drop-shadow(0 0 8px currentColor)', fontSize: '24px' }}>
-                    {selectedVillage.avgSoilMoisturePct.toFixed(1)}%
+                  <div className="data-value" style={{ color: selectedVillage.avgSoilMoisturePct <= 0 ? 'var(--text-tertiary)' : (selectedVillage.avgSoilMoisturePct < 7 ? 'var(--accent-red)' : selectedVillage.avgSoilMoisturePct < 15 ? 'var(--accent-amber)' : 'var(--accent-green)'), filter: selectedVillage.avgSoilMoisturePct <= 0 ? 'none' : 'drop-shadow(0 0 8px currentColor)', fontSize: '24px' }}>
+                    {selectedVillage.avgSoilMoisturePct > 0 ? `${selectedVillage.avgSoilMoisturePct.toFixed(1)}%` : 'N/A'}
                   </div>
                   <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600, marginTop: '2px', letterSpacing: '0.5px' }}>Avg Moisture</div>
                 </div>
@@ -242,9 +234,9 @@ export default function GroundwaterAnalysis() {
             {villageTrend && villageTrend.length > 0 && (
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                 {[
-                  { label: 'Current Moisture', value: `${latestMoisture.toFixed(1)}%`, color: latestMoisture < 7 ? 'var(--accent-red)' : latestMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)' },
-                  { label: '30-Day Average', value: `${avg30.toFixed(1)}%`, color: 'var(--text-secondary)' },
-                  { label: 'Trend Direction', value: trendLabel, color: trendColor }
+                  { label: 'Current Moisture', value: latestMoisture > 0 ? `${latestMoisture.toFixed(1)}%` : 'N/A', color: latestMoisture <= 0 ? 'var(--text-tertiary)' : (latestMoisture < 7 ? 'var(--accent-red)' : latestMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)') },
+                  { label: '30-Day Average', value: avg30 > 0 ? `${avg30.toFixed(1)}%` : 'N/A', color: 'var(--text-secondary)' },
+                  { label: 'Trend Direction', value: latestMoisture > 0 ? trendLabel : 'N/A', color: latestMoisture > 0 ? trendColor : 'var(--text-tertiary)' }
                 ].map(chip => (
                   <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
                     <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{chip.label}</span>
