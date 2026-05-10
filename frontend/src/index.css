@@ -576,3 +576,6 @@ body {
 [data-theme='dark'] .leaflet-tile {
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
