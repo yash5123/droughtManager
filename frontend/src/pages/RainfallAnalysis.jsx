@@ -45,57 +45,56 @@ export default function RainfallAnalysis() {
   else if (seedingStatus) dataSource = 'seeding';
 
   const [period, setPeriod] = useState(30);
-  const [rainfallData, setRainfallData] = useState([]);
-  const [selectedVillage, setSelectedVillage] = useState(null);
-  const [villageTimeSeries, setVillageTimeSeries] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
+  const [selectedVillageMetrics, setSelectedVillageMetrics] = useState(null);
 
   useEffect(() => {
-    if (activeVillages.length === 0) return;
+    if (activeVillages.length > 0 && !selectedVillage) {
+      setSelectedVillage(activeVillages[0]);
+    }
+  }, [activeVillages, selectedVillage]);
+
+  useEffect(() => {
+    if (!selectedVillage?.location?.lat) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); return; }
     setLoading(true);
-    const fetchAll = async () => {
-      const results = await Promise.all(
-        activeVillages.slice(0, 20).map(async (v) => {
-          if (!v.location?.lat) return { ...v, totalRain: 0, deficit: 0, expected: 0 };
-          const { data } = await fetchHistoricalWeather(v.location.lat, v.location.lng, period);
-          const precipRaw = data?.daily?.precipitation_sum || new Array(period).fill(0);
-          const precip = injectMockPrecipitation(precipRaw, v.name, v.historicalAvgAnnualRainfall_mm || v.avgAnnualRainfall, period);
-          const total = precip.reduce((s, val) => s + (val || 0), 0);
-          const expected = (v.historicalAvgAnnualRainfall_mm || v.avgAnnualRainfall || 600) * (period / 365);
-          const deficit = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
-          return { ...v, totalRain: Math.round(total * 10) / 10, expected: Math.round(expected), deficit, times: data?.daily?.time || [] };
-        })
-      );
-      const sorted = results.sort((a, b) => b.deficit - a.deficit);
-      setRainfallData(sorted);
-      if (sorted.length > 0) setSelectedVillage(prev => prev ? (sorted.find(s => s._id === prev._id) || sorted[0]) : sorted[0]);
-      setLoading(false);
-    };
-    fetchAll();
-  }, [activeVillages, period]);
-
-  useEffect(() => {
-    if (!selectedVillage?.location?.lat) { setVillageTimeSeries(null); return; }
     fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, period).then(({ data }) => {
-      if (!data?.daily) { setVillageTimeSeries(null); return; }
+      if (!data?.daily) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
       const precipRaw = data.daily.precipitation_sum || new Array(period).fill(0);
       const precip = injectMockPrecipitation(precipRaw, selectedVillage.name, selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall, period);
+      
+      const total = precip.reduce((s, val) => s + (val || 0), 0);
+      const expected = (selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall || 600) * (period / 365);
+      const anomalyPct = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
+      
       setVillageTimeSeries(data.daily.time.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
+      setSelectedVillageMetrics({
+        totalRain: Math.round(total * 10) / 10,
+        expected: Math.round(expected),
+        anomalyPct
+      });
+      setLoading(false);
     });
   }, [selectedVillage, period]);
 
   const filteredList = useMemo(() => {
-    let list = rainfallData;
+    let list = activeVillages;
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
-    if (filter === 'deficit') list = list.filter(v => v.deficit > 0);
-    if (filter === 'surplus') list = list.filter(v => v.deficit <= 0);
+    if (filter === 'deficit') list = list.filter(v => v.riskLevel && v.riskLevel !== 'Normal');
+    if (filter === 'surplus') list = list.filter(v => v.riskLevel === 'Normal');
     return list;
-  }, [rainfallData, search, filter]);
+  }, [activeVillages, search, filter]);
 
-  const dailyAvg = selectedVillage?.expected ? Math.round((selectedVillage.expected / period) * 10) / 10 : 0;
-  const anomalyPct = selectedVillage?.deficit ?? 0;
+  const getRiskColor = (level) => {
+    switch(level) {
+      case 'Extreme': return 'var(--accent-red)';
+      case 'Severe': return 'var(--accent-amber)';
+      case 'Moderate': return '#eab308';
+      case 'Normal': return 'var(--accent-green)';
+      default: return 'var(--text-tertiary)';
+    }
+  };
+
+  const dailyAvg = selectedVillageMetrics?.expected ? Math.round((selectedVillageMetrics.expected / period) * 10) / 10 : 0;
+  const anomalyPct = selectedVillageMetrics?.anomalyPct ?? 0;
   const driestDay = useMemo(() => villageTimeSeries?.reduce((min, d) => d.rain < min.rain ? d : min, villageTimeSeries[0]) || null, [villageTimeSeries]);
   const wettestDay = useMemo(() => villageTimeSeries?.reduce((max, d) => d.rain > max.rain ? d : max, villageTimeSeries[0]) || null, [villageTimeSeries]);
   const daysBelowBaseline = useMemo(() => villageTimeSeries?.filter(d => d.rain < dailyAvg).length || 0, [villageTimeSeries, dailyAvg]);
@@ -118,7 +117,7 @@ export default function RainfallAnalysis() {
               <button key={p.days} onClick={() => setPeriod(p.days)} style={{ padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, background: period === p.days ? 'rgba(59,130,246,0.2)' : 'transparent', color: period === p.days ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'all 0.2s' }}>{p.label}</button>
             ))}
           </div>
-          <button className="glass-btn" onClick={() => exportToCSV(rainfallData.map(v => ({ District: v.name, State: v.state, 'Total Rain (mm)': v.totalRain, 'Expected (mm)': v.expected, 'Deficit %': v.deficit })), `rainfall_${period}d`)} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
+          <button className="glass-btn" onClick={() => exportToCSV(activeVillages.map(v => ({ District: v.name, State: v.state, 'Risk Level': v.riskLevel, 'Risk Score': Math.round(v.riskScore) })), `rainfall_classification`)} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
             <Download size={14} /> Export CSV
           </button>
         </div>
@@ -144,7 +143,6 @@ export default function RainfallAnalysis() {
               <EmptyState title="No data" description="No districts match filters." />
             ) : filteredList.map((v, i) => {
               const isSelected = selectedVillage?._id === v._id;
-              const isDeficit = v.deficit > 0;
               return (
                 <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
                   onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
@@ -153,8 +151,8 @@ export default function RainfallAnalysis() {
                     <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: isDeficit ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 700, fontSize: '12px' }}>
-                    {isDeficit ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}{Math.abs(v.deficit)}%
+                  <div style={{ display: 'flex', alignItems: 'center', color: getRiskColor(v.riskLevel), fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {v.riskLevel || 'Pending'}
                   </div>
                 </button>
               );
@@ -170,17 +168,17 @@ export default function RainfallAnalysis() {
                 <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{selectedVillage?.name || 'Select a district'}</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>{selectedVillage?.state} · Time Series Rainfall Data</p>
               </div>
-              {selectedVillage && (
+              {selectedVillageMetrics && (
                 <div className="glass-pill" style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)' }}>
                   <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>Total Precipitation</span>
-                  <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))', lineHeight: 1.1 }}>{selectedVillage.totalRain} <span style={{ fontSize: '12px', fontWeight: 500 }}>mm</span></span>
+                  <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))', lineHeight: 1.1 }}>{selectedVillageMetrics.totalRain} <span style={{ fontSize: '12px', fontWeight: 500 }}>mm</span></span>
                 </div>
               )}
             </div>
-            {selectedVillage && (
+            {selectedVillageMetrics && (
               <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-                <StatChip label="Total Precip" value={selectedVillage.totalRain} unit="mm" color="var(--accent-blue)" />
-                <StatChip label="Historical Baseline" value={selectedVillage.expected} unit="mm" color="var(--text-secondary)" />
+                <StatChip label="Total Precip" value={selectedVillageMetrics.totalRain} unit="mm" color="var(--accent-blue)" />
+                <StatChip label="Historical Baseline" value={selectedVillageMetrics.expected} unit="mm" color="var(--text-secondary)" />
                 <StatChip label="Anomaly" value={`${anomalyPct > 0 ? '-' : '+'}${Math.abs(anomalyPct)}`} unit="%" color={anomalyPct > 0 ? 'var(--accent-red)' : 'var(--accent-green)'} />
               </div>
             )}
