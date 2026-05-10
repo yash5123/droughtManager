@@ -11,7 +11,7 @@ import { formatNumber } from '../utils/formatters.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
 const INDIA_CENTER = [22.5, 78.5];
-const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const OSM_TILES = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
 
 function MapUpdater({ theme }) {
   const map = useMap();
@@ -22,7 +22,7 @@ function MapUpdater({ theme }) {
 }
 
 export default function MapPage() {
-  const { activeVillages, dataSource, villageCount, setVillageCount } = useVillageData();
+  const { riskData, dataSource, villageCount, setVillageCount } = useVillageData();
   const { user } = useAuth();
   const { theme } = useTheme();
   const [selected, setSelected] = useState(null);
@@ -48,11 +48,13 @@ export default function MapPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    return activeVillages.filter(v => {
+    const matching = riskData.filter(v => {
       const level = getRiskLevel(v.riskScore).label;
-      return filters.includes(level) && v.location?.lat && v.location?.lng;
+      const hasCoords = (v.location?.lat && v.location?.lng) || (v.lat && v.lon);
+      return filters.includes(level) && hasCoords;
     });
-  }, [activeVillages, filters]);
+    return matching.slice(0, villageCount);
+  }, [riskData, filters, villageCount]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
@@ -126,7 +128,7 @@ export default function MapPage() {
         </div>
 
         {/* Main Map */}
-        <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
+        <MapContainer center={INDIA_CENTER} zoom={5} zoomControl={true} scrollWheelZoom={false} doubleClickZoom={false} dragging={false} attributionControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
           <MapUpdater theme={theme} />
           <TileLayer url={OSM_TILES} noWrap={true} />
           {showRadar && radarUrl && (
@@ -137,7 +139,7 @@ export default function MapPage() {
             const isSelected = selected?._id === v._id;
             const radius = Math.max(6, Math.min(18, v.riskScore / 5));
             return (
-              <CircleMarker key={v._id || i} center={[v.location.lat, v.location.lng]}
+              <CircleMarker key={v._id || i} center={[v.location?.lat || v.lat, v.location?.lng || v.lon]}
                 radius={isSelected ? radius * 1.5 : radius}
                 pathOptions={{ 
                   color: risk.color, 
