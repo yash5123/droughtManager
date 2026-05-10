@@ -108,7 +108,7 @@ export default function MapPage() {
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px', borderRadius: '9999px',
               border: `1px solid ${showRadar ? 'var(--accent-cyan)' : 'transparent'}`,
-              background: showRadar ? 'var(--accent-cyan)20' : 'transparent',
+              background: showRadar ? 'rgba(6,182,212,0.15)' : 'transparent',
               color: showRadar ? 'var(--accent-cyan)' : 'var(--text-secondary)',
               cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.2s'
             }}>
