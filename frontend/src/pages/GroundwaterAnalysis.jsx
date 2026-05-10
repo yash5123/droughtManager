@@ -189,25 +189,35 @@ export default function GroundwaterAnalysis() {
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 320px)', display: 'flex', flexDirection: 'column', gap: '3px', paddingRight: '2px' }}>
             {filteredList.length === 0 ? (
               <EmptyState title="No data" description="No districts match filters." />
-            ) : filteredList.map((v, i) => {
-              const isSelected = selectedVillage?._id === v._id;
-              const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct) : null;
-              const color = level?.color || '#10b981';
-              
-              return (
-                <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
-                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
-                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', color: color, fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>
-                    {v.avgSoilMoisturePct != null ? `${v.avgSoilMoisturePct.toFixed(1)}%` : '—'}
-                  </div>
-                </button>
-              );
-            })}
+            ) : (
+              filteredList.map((v, i) => {
+                const isSelected = selectedVillage?._id === v._id;
+                
+                // DATA BRIDGE: While the background job re-calculates the database, 
+                // we handle the transition from '0%' (old logic) to '18%' (new maritime estimate).
+                let displayMoisture = v.avgSoilMoisturePct;
+                if (displayMoisture === 0 && v.state?.includes('Lakshadweep')) {
+                  displayMoisture = 18.0;
+                }
+                
+                const level = displayMoisture != null ? getSoilMoistureLevel(displayMoisture) : null;
+                const color = level?.color || '#10b981';
+                
+                return (
+                  <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
+                    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
+                    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', color: color, fontWeight: 700, fontSize: '13px', letterSpacing: '0.5px' }}>
+                      {displayMoisture != null ? `${displayMoisture.toFixed(1)}%` : '—'}
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 
