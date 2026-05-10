@@ -13,7 +13,7 @@ const router = express.Router();
  */
 router.get('/ranked', async (req, res) => {
   try {
-    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+    const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 50));
     
     const pipeline = [
       // Get the latest risk record per village

@@ -26,11 +26,7 @@ export default function MapPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const [selected, setSelected] = useState(null);
-  const [filters, setFilters] = useState(['Extreme', 'Severe', 'Moderate', 'Normal']);
-  
-  const toggleFilter = (level) => {
-    setFilters(prev => prev.includes(level) ? prev.filter(f => f !== level) : [...prev, level]);
-  };
+  const [riskFilter, setRiskFilter] = useState('All');
 
   const [radarUrl, setRadarUrl] = useState(null);
   const [showRadar, setShowRadar] = useState(false);
@@ -51,10 +47,11 @@ export default function MapPage() {
     const matching = riskData.filter(v => {
       const level = getRiskLevel(v.riskScore).label;
       const hasCoords = (v.location?.lat && v.location?.lng) || (v.lat && v.lon);
-      return filters.includes(level) && hasCoords;
+      const matchesFilter = riskFilter === 'All' || riskFilter === level;
+      return matchesFilter && hasCoords;
     });
     return matching.slice(0, villageCount);
-  }, [riskData, filters, villageCount]);
+  }, [riskData, riskFilter, villageCount]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
@@ -69,12 +66,21 @@ export default function MapPage() {
         }}>
           {/* Severity Filters */}
           <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setRiskFilter('All')}
+              style={{
+                padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${riskFilter === 'All' ? 'var(--accent-blue)' : 'transparent'}`, cursor: 'pointer',
+                fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
+                background: riskFilter === 'All' ? 'rgba(59,130,246,0.15)' : 'transparent',
+                color: riskFilter === 'All' ? 'var(--accent-blue)' : 'var(--text-secondary)'
+              }}>
+              All
+            </button>
             {Object.entries(RISK_LEVELS).map(([key, def]) => {
-              const isActive = filters.includes(key);
+              const isActive = riskFilter === key;
               const baseColor = def.color;
               
               return (
-                <button key={key} onClick={() => toggleFilter(key)}
+                <button key={key} onClick={() => setRiskFilter(key)}
                   style={{
                     padding: '6px 16px', borderRadius: '9999px', border: `1px solid ${isActive ? baseColor : 'transparent'}`, cursor: 'pointer',
                     fontSize: '12px', fontWeight: 600, transition: 'all 0.2s',
@@ -91,7 +97,7 @@ export default function MapPage() {
 
           {/* Counts */}
           <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
-            {[10, 25, 50].map(c => (
+            {[10, 25, 50, 100, 1000].map(c => (
               <button key={c} onClick={() => setVillageCount(c)}
                 style={{
                   padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
@@ -99,7 +105,7 @@ export default function MapPage() {
                   color: villageCount === c ? 'var(--accent-blue)' : 'var(--text-secondary)',
                   transition: 'all 0.2s'
                 }}>
-                Top {c}
+                {c === 1000 ? 'All' : `Top ${c}`}
               </button>
             ))}
           </div>

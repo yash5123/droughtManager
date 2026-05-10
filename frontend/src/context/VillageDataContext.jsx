@@ -49,7 +49,7 @@ export function VillageDataProvider({ children }) {
    */
   const fetchRankedData = useCallback(async () => {
     try {
-      const res = await api.get('/villages/ranked', { params: { limit: 200 } });
+      const res = await api.get('/villages/ranked', { params: { limit: 1000 } });
       if (res.data && res.data.data) {
         return res.data;
       }
