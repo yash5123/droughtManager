@@ -96,10 +96,10 @@ export default function Overview() {
   const avgScore = riskData.length > 0 ? Math.round(riskData.reduce((s, v) => s + (v.riskScore || 0), 0) / riskData.length) : 0;
   const totalMonitored = riskData.length;
 
-  const chartData = displayVillages.slice(0, 50).map(v => {
+  const chartData = displayVillages.map(v => {
     const risk = getRiskLevel(v.riskScore);
     return {
-      name: v.name.length > 8 ? v.name.slice(0, 8) + '…' : v.name,
+      name: v.name.length > 10 ? v.name.slice(0, 10) + '…' : v.name,
       score: v.riskScore || 0,
       color: risk.color,
     };
@@ -330,16 +330,23 @@ export default function Overview() {
       <div className="glass-card" style={{ padding: '20px', width: '100%' }}>
         <h3 className="section-header" style={{ marginBottom: '20px' }}>Risk Distribution</h3>
         <div style={{ width: '100%', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px' }}>
-          <div style={{ minWidth: `${Math.max(100, chartData.length * 40)}px`, height: '200px' }}>
+          <div style={{ minWidth: `max(100%, ${chartData.length * 35}px)`, height: '240px' }}>
             <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-              <XAxis dataKey="name" tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 40, left: -20 }}>
+              <XAxis 
+                dataKey="name" 
+                tick={{ fill: 'var(--text-tertiary)', fontSize: 11, angle: -45, textAnchor: 'end' }} 
+                axisLine={false} 
+                tickLine={false} 
+                interval={0}
+                height={60}
+              />
               <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-tertiary)', fontSize: 12 }} axisLine={false} tickLine={false} />
               <Tooltip
                 contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)' }}
                 cursor={{ fill: 'var(--text-tertiary)', opacity: 0.1 }}
               />
-              <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={40}>
+              <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={30}>
                 {chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Bar>
             </BarChart>
