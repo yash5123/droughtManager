@@ -120,7 +120,6 @@ export default function GroundwaterAnalysis() {
             </div>
           );
         })()}
-        </div>
 
         <div style={{ height: '260px', position: 'relative', width: '100%' }}>
           {villageTrend ? (
