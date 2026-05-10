@@ -46,10 +46,9 @@ function MapUpdater({ theme }) {
 }
 
 export default function Overview() {
-  const { activeVillages, riskData, dataSource, seedingStatus, loading, setVillageCount, meta } = useVillageData();
+  const { activeVillages, riskData, dataSource, seedingStatus, loading, setVillageCount, meta, villageCount } = useVillageData();
   const { user } = useAuth();
   const [activeTankers, setActiveTankers] = useState(0);
-  const [activeFilter, setActiveFilter] = useState(10);
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -80,7 +79,6 @@ export default function Overview() {
   });
 
   const handleFilterChange = (val) => {
-    setActiveFilter(val);
     setVillageCount(val);
   };
 
@@ -212,7 +210,7 @@ export default function Overview() {
         <div className="glass-card" style={{ flex: '0 0 65%', padding: '20px', display: 'flex', flexDirection: 'column' }}>
           <h3 className="section-header" style={{ marginBottom: '16px' }}>Live Geospatial Overview</h3>
           <div style={{ flex: 1, minHeight: '340px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
-            <MapContainer center={INDIA_CENTER} zoom={4} zoomControl={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
+            <MapContainer center={INDIA_CENTER} zoom={4} zoomControl={false} scrollWheelZoom={false} doubleClickZoom={false} dragging={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
               <MapUpdater theme={theme} />
               <TileLayer url={OSM_TILES} noWrap={true} />
               {activeVillages.map((v, i) => {
@@ -243,8 +241,8 @@ export default function Overview() {
                 <button key={c} onClick={() => handleFilterChange(c)}
                   style={{
                     padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
-                    background: activeFilter === c ? 'rgba(59,130,246,0.15)' : 'transparent',
-                    color: activeFilter === c ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                    background: villageCount === c ? 'rgba(59,130,246,0.15)' : 'transparent',
+                    color: villageCount === c ? 'var(--accent-blue)' : 'var(--text-secondary)',
                     transition: 'all 0.2s'
                   }}>
                   Top {c}
