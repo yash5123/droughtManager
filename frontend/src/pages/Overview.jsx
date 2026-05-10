@@ -226,7 +226,7 @@ export default function Overview() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 className="section-header">Live Geospatial Overview</h3>
             <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
-              {['All', 'Extreme', 'Severe', 'Moderate', 'Low'].map(level => (
+              {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => (
                 <button key={level} onClick={() => setRiskFilter(level)}
                   style={{
                     padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
@@ -267,7 +267,7 @@ export default function Overview() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 className="section-header">Critical Regions</h3>
             <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
-              {[10, 25, 50].map(c => (
+              {[10, 25, 50, 100, 1000].map(c => (
                 <button key={c} onClick={() => handleFilterChange(c)}
                   style={{
                     padding: '4px 12px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
@@ -275,7 +275,7 @@ export default function Overview() {
                     color: villageCount === c ? 'var(--accent-blue)' : 'var(--text-secondary)',
                     transition: 'all 0.2s'
                   }}>
-                  Top {c}
+                  {c === 1000 ? 'All' : `Top ${c}`}
                 </button>
               ))}
             </div>
