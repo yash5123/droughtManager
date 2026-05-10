@@ -60,14 +60,16 @@ export function ToastProvider({ children }) {
               key={t.id}
               className="glass-card"
               style={{
-                background: bg,
-                border: `1px solid ${color}40`,
-                padding: '12px 16px',
+                background: `linear-gradient(${bg}, ${bg}), var(--glass-bg)`,
+                backdropFilter: 'var(--glass-backdrop)',
+                border: `1px solid ${color}30`,
+                borderLeft: `4px solid ${color}`,
+                padding: '14px 18px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                minWidth: '280px',
-                boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 10px ${color}20`,
+                gap: '14px',
+                minWidth: '300px',
+                boxShadow: `0 8px 32px rgba(0,0,0,0.2), 0 0 15px ${color}15`,
                 opacity: t.exiting ? 0 : 1,
                 transform: t.exiting ? 'translateY(10px) scale(0.95)' : 'translateY(0) scale(1)',
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
