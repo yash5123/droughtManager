@@ -9,6 +9,8 @@ import { getSoilMoistureLevel } from '../utils/riskLevels.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 import { exportToCSV } from '../utils/csv.js';
 
+const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, { label: '90 Days', days: 90 }];
+
 export default function GroundwaterAnalysis() {
   const { villageCount } = useVillageData();
   const { data: rankedData } = useRankedVillages(1000);
@@ -29,6 +31,7 @@ export default function GroundwaterAnalysis() {
   const [filter, setFilter] = useState('All');
   const [countLimit, setCountLimit] = useState('All');
   const [sortAscending, setSortAscending] = useState(true);
+  const [period, setPeriod] = useState(30);
 
   useEffect(() => {
     if (activeVillages.length > 0 && !selectedVillage) {
@@ -40,7 +43,7 @@ export default function GroundwaterAnalysis() {
     const fetchTrend = async () => {
       if (!selectedVillage?.location?.lat) { setVillageTrend(null); return; }
       setLoading(true);
-      const { data } = await fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, 30);
+      const { data } = await fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, period);
       if (!data?.daily?.soil_moisture_0_to_7cm_mean) { setVillageTrend(null); setLoading(false); return; }
       const smRaw = data.daily.soil_moisture_0_to_7cm_mean;
       // inject mock if all zeros (future date issue)
@@ -57,7 +60,7 @@ export default function GroundwaterAnalysis() {
       setLoading(false);
     };
     fetchTrend();
-  }, [selectedVillage]);
+  }, [selectedVillage, period]);
 
   const filteredList = useMemo(() => {
     let list = activeVillages;
@@ -115,6 +118,11 @@ export default function GroundwaterAnalysis() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
+            {PERIODS.map(p => (
+              <button key={p.days} onClick={() => setPeriod(p.days)} style={{ padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, background: period === p.days ? 'rgba(59,130,246,0.2)' : 'transparent', color: period === p.days ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'all 0.2s' }}>{p.label}</button>
+            ))}
+          </div>
           <button className="glass-btn" onClick={() => exportToCSV(activeVillages.map(v => ({ District: v.name, State: v.state, 'Avg Moisture %': v.avgSoilMoisturePct?.toFixed(1), 'Risk Score': Math.round(v.riskScore) })), `groundwater_analysis`)} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
             <Download size={14} /> Export CSV
           </button>

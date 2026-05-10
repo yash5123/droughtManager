@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine, CartesianGrid } from 'recharts';
-import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2, Search, TrendingDown, TrendingUp, BarChart2 } from 'lucide-react';
+import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2, Search, TrendingDown, TrendingUp, BarChart2, ArrowDownUp } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
@@ -50,6 +50,7 @@ export default function RainfallAnalysis() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [countLimit, setCountLimit] = useState('All');
+  const [sortDescending, setSortDescending] = useState(true);
   const [selectedVillageMetrics, setSelectedVillageMetrics] = useState(null);
 
   useEffect(() => {
@@ -84,9 +85,17 @@ export default function RainfallAnalysis() {
     let list = activeVillages;
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
     if (filter !== 'All') list = list.filter(v => v.riskLevel === filter);
+    
+    // Sort by risk score
+    list.sort((a, b) => {
+      const valA = a.riskScore || 0;
+      const valB = b.riskScore || 0;
+      return sortDescending ? valB - valA : valA - valB;
+    });
+    
     if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
     return list;
-  }, [activeVillages, search, filter, countLimit]);
+  }, [activeVillages, search, filter, countLimit, sortDescending]);
 
   const getRiskColor = (level) => {
     switch(level) {
@@ -131,7 +140,13 @@ export default function RainfallAnalysis() {
       <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
         {/* LEFT PANEL */}
         <div className="glass-card" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
-          <h3 className="section-header" style={{ marginBottom: '4px' }}>Monitored Districts</h3>
+        <div className="glass-card" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <h3 className="section-header" style={{ marginBottom: 0 }}>Monitored Districts ({filteredList.length})</h3>
+            <button onClick={() => setSortDescending(!sortDescending)} style={{ background: 'transparent', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '4px' }} title={sortDescending ? "Sort Ascending" : "Sort Descending"} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
+              <ArrowDownUp size={14} />
+            </button>
+          </div>
           <div style={{ position: 'relative' }}>
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
