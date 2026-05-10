@@ -132,6 +132,7 @@ export default function GroundwaterAnalysis() {
                 <Tooltip 
                   contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)' }} 
                   itemStyle={{ color: 'var(--accent-blue)' }}
+                  labelStyle={{ color: 'var(--text-secondary)' }}
                   cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
                 <Area type="monotone" dataKey="moisture" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorMoisture)" activeDot={{ r: 6, fill: 'transparent', stroke: '#3b82f6', strokeWidth: 2, className: 'live-pulse' }} />

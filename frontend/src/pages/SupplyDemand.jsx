@@ -128,8 +128,10 @@ export default function SupplyDemand() {
                   <XAxis dataKey="name" tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: 12 }} 
-                    cursor={{ fill: 'var(--text-tertiary)', opacity: 0.1 }}
+                    contentStyle={{ background: 'rgba(15,23,42,0.9)', border: 'var(--glass-border)', borderRadius: '10px', color: 'var(--text-primary)' }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                    labelStyle={{ color: 'var(--text-secondary)' }}
+                    formatter={(val) => [`${(val/1000).toFixed(1)}k L`, '']}
                   />
                   <Legend wrapperStyle={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }} iconType="circle" />
                   <Bar dataKey="demand" name="DEMAND" radius={[4, 4, 0, 0]} maxBarSize={30}>

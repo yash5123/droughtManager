@@ -174,7 +174,9 @@ export default function FuturePrediction() {
                     <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} hide />
                     
                     <Tooltip 
-                      contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(10px)', borderRadius: '12px', color: 'var(--text-primary)', fontSize: 12 }} 
+                      contentStyle={{ background: 'rgba(15,23,42,0.9)', border: 'var(--glass-border)', backdropFilter: 'blur(12px)', borderRadius: '10px', color: 'var(--text-primary)' }}
+                      itemStyle={{ color: 'var(--text-primary)' }}
+                      labelStyle={{ color: 'var(--text-secondary)' }}
                       cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
                     />
                     
