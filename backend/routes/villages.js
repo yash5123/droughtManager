@@ -30,7 +30,7 @@ router.get('/ranked', async (req, res) => {
         date: { $first: '$date' },
         metricsSnapshot: { $first: '$metricsSnapshot' }
       }},
-      { $sort: { riskScore: -1 } },
+      { $sort: { riskScore: -1, _id: 1 } },
       { $limit: limit },
       // Join with village details
       { $lookup: {
