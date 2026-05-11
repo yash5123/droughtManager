@@ -259,13 +259,13 @@ export default function RiskCalculator() {
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', position: 'relative' }}>
                   <div style={{ textAlign: 'center', zIndex: 2 }}>
-                    <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(isSimulating ? selectedVillage.simulatedScore : selectedVillage.riskScore).color }}>
-                      {isSimulating ? selectedVillage.simulatedScore : selectedVillage.riskScore}
+                    <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(selectedVillage.calculatedScore).color }}>
+                      {selectedVillage.calculatedScore}
                     </div>
                     <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '2px', color: 'var(--text-tertiary)', marginTop: '8px' }}>DR INDEX</div>
                   </div>
                   {/* Decorative background glow */}
-                  <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(isSimulating ? selectedVillage.simulatedScore : selectedVillage.riskScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
+                  <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(selectedVillage.calculatedScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
