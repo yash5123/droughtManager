@@ -282,11 +282,14 @@ export default function TankerManagement() {
         
         {/* Left Panel: Tactical Map & Telemetry */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minHeight: 0 }}>
-          <div className="glass-card" style={{ height: '420px', overflow: 'hidden', position: 'relative', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
-            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 1000, display: 'flex', gap: '8px' }}>
-              <div className="glass-pill" style={{ padding: '8px 16px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-green)', boxShadow: '0 0 10px var(--accent-green)' }} />
-                TACTICAL VIEW: INDIA
+          <div style={{ height: '450px', borderRadius: '28px', overflow: 'hidden', border: '1px solid var(--divider)', position: 'relative', background: '#f1f5f9' }}>
+            {/* Vignette Overlay for Depth */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 999, pointerEvents: 'none', boxShadow: 'inset 0 0 100px rgba(0,0,0,0.05)' }} />
+            
+            <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+              <div style={{ padding: '10px 20px', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+                <div className="live-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-green)' }} />
+                <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Tactical Intel Overlay</span>
               </div>
             </div>
             
@@ -299,38 +302,52 @@ export default function TankerManagement() {
               zoomDelta={0.5}
               maxBounds={INDIA_BOUNDS}
               maxBoundsViscosity={1.0}
-              style={{ height: '100%', width: '100%', background: '#f8fafc' }} 
+              style={{ height: '100%', width: '100%' }} 
               zoomControl={false}
             >
               <MapUpdater theme={theme} />
-              <TileLayer url={TILE_URL} />
+              <TileLayer 
+                url={theme === 'dark' 
+                  ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png"
+                  : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                }
+                attribution='&copy; CARTO'
+              />
+              
               {filteredTankers.map(t => {
                 const village = riskData.find(v => v.name === t.village);
                 if (!village || !village.location) return null;
                 const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
-                const Icon = config.icon;
                 const isSelected = selectedId === t._id;
                 
                 return (
                   <CircleMarker 
                     key={t._id} 
                     center={[village.location.lat, village.location.lng]}
-                    radius={isSelected ? 14 : 10}
+                    radius={isSelected ? 16 : 12}
                     eventHandlers={{ click: () => setSelectedId(t._id) }}
                     pathOptions={{ 
-                      color: config.text, 
+                      color: isSelected ? 'white' : config.text, 
                       fillColor: config.text, 
-                      fillOpacity: 0.85, 
+                      fillOpacity: 0.9, 
                       weight: isSelected ? 4 : 2,
                       className: t.status === 'Enroute' ? 'live-pulse' : ''
                     }}
                   >
                     <Popup className="glass-popup">
-                      <div style={{ minWidth: '150px' }}>
-                        <h4 style={{ margin: '0 0 8px', fontSize: '14px', color: 'var(--text-primary)' }}>{t.village}</h4>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
-                          <span>Status:</span>
-                          <span style={{ color: config.text, fontWeight: 700 }}>{t.status}</span>
+                      <div style={{ padding: '12px', minWidth: '180px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                          <Truck size={14} color={config.text} />
+                          <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>{t.tankerNumber}</h4>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Target:</span>
+                          <span style={{ fontWeight: 700 }}>{t.village}</span>
+                        </div>
+                        <div style={{ height: '1px', background: 'var(--divider)', margin: '8px 0' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                          <span style={{ color: 'var(--text-tertiary)' }}>Status:</span>
+                          <span style={{ color: config.text, fontWeight: 900, textTransform: 'uppercase' }}>{t.status}</span>
                         </div>
                       </div>
                     </Popup>
