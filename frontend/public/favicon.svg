@@ -2,9 +2,9 @@
   <!-- Rounded Square Background -->
   <rect width="512" height="512" rx="120" fill="#0066FF"/>
   
-  <!-- Main Water Drop Silhouette -->
-  <path d="M256 80C256 80 140 220 140 310C140 376.274 191.926 430 256 430C320.074 430 372 376.274 372 310C372 220 256 80 256 80Z" fill="white"/>
+  <!-- Organic Water Drop Silhouette (Restored high-quality shape) -->
+  <path d="M256 70C256 70 130 210 130 320C130 389.594 186.406 446 256 446C325.594 446 382 389.594 382 320C382 210 256 70 256 70Z" fill="white"/>
   
-  <!-- "Swoosh" / Crescent Detail (Matches the provided image design) -->
-  <path d="M230 180C190 230 180 320 230 380C200 360 175 280 230 180Z" fill="#0066FF"/>
+  <!-- Refined "Swoosh" Detail -->
+  <path d="M210 230C180 270 180 340 210 390C190 370 170 300 210 230Z" fill="#0066FF"/>
 </svg>
