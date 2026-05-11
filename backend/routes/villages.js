@@ -17,62 +17,55 @@ router.get('/ranked', async (req, res) => {
     const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 50));
     
     const pipeline = [
-      // Get the latest risk record per village
-      { $sort: { date: -1 } },
-      { $group: {
-        _id: '$village',
-        riskScore: { $first: '$riskScore' },
-        riskLevel: { $first: '$riskLevel' },
-        rainfallDeficit: { $first: '$rainfallDeficit' },
-        soilMoistureDepletion: { $first: '$soilMoistureDepletion' },
-        populationDemandGap: { $first: '$populationDemandGap' },
-        totalPrecipitation30d_mm: { $first: '$totalPrecipitation30d_mm' },
-        avgSoilMoisturePct: { $first: '$avgSoilMoisturePct' },
-        date: { $first: '$date' },
-        metricsSnapshot: { $first: '$metricsSnapshot' }
-      }},
-      { $addFields: {
-        avgSoilMoisturePct: {
-          $cond: {
-            if: { $isNumber: '$metricsSnapshot.soilMoistureFrac' },
-            then: { $multiply: ['$metricsSnapshot.soilMoistureFrac', 100] },
-            else: { $ifNull: ['$avgSoilMoisturePct', 0] }
-          }
+      { $limit: limit }, // Limit villages first for performance, or remove limit for full list
+      {
+        $lookup: {
+          from: 'droughtrisks',
+          let: { villageId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$village', '$$villageId'] } } },
+            { $sort: { date: -1 } },
+            { $limit: 1 }
+          ],
+          as: 'latestRisk'
         }
-      }},
-      { $sort: { riskScore: -1, _id: 1 } },
-      { $limit: limit },
-      // Join with village details
-      { $lookup: {
-        from: 'villages',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'village'
-      }},
-      { $unwind: '$village' },
-      // Project final shape
-      { $project: {
-        _id: '$village._id',
-        name: '$village.name',
-        district: '$village.district',
-        state: '$village.state',
-        population: '$village.population',
-        location: '$village.location',
-        lat: '$village.lat',
-        lon: '$village.lon',
-        riskScore: 1,
-        riskLevel: 1,
-        rainfallDeficit: 1,
-        soilMoistureDepletion: 1,
-        populationDemandGap: 1,
-        totalPrecipitation30d_mm: 1,
-        avgSoilMoisturePct: 1,
-        date: 1,
-        metricsSnapshot: 1
-      }}
+      },
+      {
+        $addFields: {
+          riskRecord: { $arrayElemAt: ['$latestRisk', 0] }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          district: 1,
+          state: 1,
+          population: 1,
+          location: 1,
+          lat: 1,
+          lon: 1,
+          riskScore: { $ifNull: ['$riskRecord.riskScore', 0] },
+          riskLevel: { $ifNull: ['$riskRecord.riskLevel', 'Normal'] },
+          rainfallDeficit: { $ifNull: ['$riskRecord.rainfallDeficit', 0] },
+          soilMoistureDepletion: { $ifNull: ['$riskRecord.soilMoistureDepletion', 0] },
+          populationDemandGap: { $ifNull: ['$riskRecord.populationDemandGap', 0] },
+          totalPrecipitation30d_mm: { $ifNull: ['$riskRecord.totalPrecipitation30d_mm', 0] },
+          avgSoilMoisturePct: {
+            $cond: {
+              if: { $isNumber: '$riskRecord.metricsSnapshot.soilMoistureFrac' },
+              then: { $multiply: ['$riskRecord.metricsSnapshot.soilMoistureFrac', 100] },
+              else: { $ifNull: ['$riskRecord.avgSoilMoisturePct', 0] }
+            }
+          },
+          date: '$riskRecord.date',
+          metricsSnapshot: '$riskRecord.metricsSnapshot'
+        }
+      },
+      { $sort: { riskScore: -1, name: 1 } }
     ];
     
-    const results = await DroughtRisk.aggregate(pipeline);
+    const results = await Village.aggregate(pipeline);
     const totalVillages = await Village.countDocuments();
     
     // Include metadata about data freshness

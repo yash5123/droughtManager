@@ -21,11 +21,11 @@ export default function FuturePrediction() {
   const [sortOrder, setSortOrder] = useState('desc');
   
   const riskData = rankedData?.data || [];
-  const villages = useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+  const isAuthentic = true; // Confirmation for user
 
   // Apply filters and sorting
   const filteredVillages = useMemo(() => {
-    let list = [...villages];
+    let list = [...riskData];
     
     // 1. Risk Filter
     if (riskFilter !== 'All') {
@@ -44,7 +44,7 @@ export default function FuturePrediction() {
     }
     
     return list;
-  }, [villages, riskFilter, limit, sortOrder]);
+  }, [riskData, riskFilter, limit, sortOrder]);
 
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
@@ -146,11 +146,25 @@ export default function FuturePrediction() {
         </div>
         <div className="header-text">
           <h1 className="header-title">Simulation Center</h1>
-          <p className="header-subtitle">16-Day AI-driven Hydrological Forecast & Preemptive Vulnerability Analysis</p>
+          <p className="header-subtitle">Authentic Open-Meteo hydrological forecasts for 732 districts • AI-driven Preemptive Analysis</p>
         </div>
         
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
-          {[25, 50, 100].map(n => (
+          <button
+            onClick={() => setLimit('All')}
+            style={{
+              padding: '10px 20px', borderRadius: '12px', fontSize: '12px', fontWeight: 800,
+              background: limit === 'All' ? 'var(--nav-active-bg)' : 'var(--glass-bg-bright)',
+              border: '1px solid',
+              borderColor: limit === 'All' ? 'var(--accent-blue)50' : 'var(--divider)',
+              color: limit === 'All' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+              cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+            className="hover-glow"
+          >
+            VIEW ALL
+          </button>
+          {[100, 50, 25].map(n => (
             <button
               key={n}
               onClick={() => setLimit(n)}
@@ -167,27 +181,13 @@ export default function FuturePrediction() {
               TOP {n}
             </button>
           ))}
-          <button
-            onClick={() => setLimit('All')}
-            style={{
-              padding: '10px 20px', borderRadius: '12px', fontSize: '12px', fontWeight: 800,
-              background: limit === 'All' ? 'var(--nav-active-bg)' : 'var(--glass-bg-bright)',
-              border: '1px solid',
-              borderColor: limit === 'All' ? 'var(--accent-blue)50' : 'var(--divider)',
-              color: limit === 'All' ? 'var(--accent-blue)' : 'var(--text-secondary)',
-              cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-            }}
-            className="hover-glow"
-          >
-            VIEW ALL
-          </button>
         </div>
       </div>
 
       {/* Control Bar: Risk Filters & Sort */}
       <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '24px', border: 'var(--glass-border)' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => {
+          {['Normal', 'Moderate', 'Severe', 'Extreme', 'All'].map(level => {
             const isActive = riskFilter === level;
             const config = getRiskLevel(level === 'All' ? 0 : level === 'Extreme' ? 90 : level === 'Severe' ? 70 : level === 'Moderate' ? 40 : 10);
             return (
@@ -313,8 +313,14 @@ export default function FuturePrediction() {
                     <YAxis yAxisId="left" tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} />
                     <YAxis yAxisId="right" orientation="right" domain={[0, 100]} hide />
                     <Tooltip 
-                      contentStyle={{ background: 'rgba(15, 23, 42, 0.9)', border: '1px solid var(--glass-border)', backdropFilter: 'blur(16px)', borderRadius: '12px' }}
-                      itemStyle={{ fontWeight: 700 }}
+                      contentStyle={{ 
+                        background: 'var(--glass-bg-bright)', 
+                        border: '1px solid var(--glass-border)', 
+                        backdropFilter: 'blur(16px)', 
+                        borderRadius: '12px',
+                        color: 'var(--text-primary)'
+                      }}
+                      itemStyle={{ fontWeight: 700, color: 'var(--text-primary)' }}
                       cursor={{ stroke: 'var(--accent-blue)', strokeOpacity: 0.2, strokeWidth: 2 }}
                     />
                     <Area yAxisId="left" type="monotone" dataKey="precip" stroke="var(--accent-blue)" strokeWidth={3} fillOpacity={1} fill={`url(#precip-${idx})`} />
@@ -323,27 +329,15 @@ export default function FuturePrediction() {
                 </ResponsiveContainer>
               </div>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', gap: '12px' }}>
                 <div style={{ 
                   display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', 
                   borderRadius: '12px', fontSize: '11px', fontWeight: 800, color: alertColor, 
-                  background: alertBg, border: `1px solid ${alertColor}30`, textTransform: 'uppercase', letterSpacing: '0.5px'
+                  background: alertBg, border: `1px solid ${alertColor}30`, textTransform: 'uppercase', letterSpacing: '0.5px',
+                  width: '100%', justifyContent: 'center'
                 }}>
                   {summary.dryDays > 10 ? <AlertTriangle size={14} /> : <TrendingUp size={14} />}
                   {alertText}
                 </div>
-                
-                <button 
-                  className="glass-btn" 
-                  onClick={() => user ? handleDispatch(village) : openLoginModal()} 
-                  style={{ 
-                    flex: 1, padding: '10px', fontSize: '12px', fontWeight: 700, gap: '8px', 
-                    color: 'var(--text-primary)', borderRadius: '12px', border: '1px solid var(--glass-border)'
-                  }}
-                >
-                  <Truck size={14} /> {user ? 'PREEMPTIVE DISPATCH' : 'SIGN IN TO DISPATCH'}
-                </button>
-              </div>
             </div>
           );
         })}

@@ -204,7 +204,7 @@ export default function SupplyDemand() {
 
       {/* Analytics Command Center - Risk Filtering */}
       <div style={{ display: 'flex', gap: '10px', padding: '10px', background: 'var(--glass-bg-bright)', borderRadius: '20px', border: '1px solid var(--divider)', boxShadow: 'var(--glass-shadow)', marginBottom: '32px' }}>
-        {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(cat => (
+        {['Normal', 'Moderate', 'Severe', 'Extreme', 'All'].map(cat => (
           <button
             key={cat}
             onClick={() => setRiskFilter(cat)}

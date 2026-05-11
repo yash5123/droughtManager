@@ -134,7 +134,7 @@ export default function RiskClassification() {
               
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '8px', background: 'var(--nav-hover-bg)', padding: '4px', borderRadius: '14px' }}>
-                  {['25', '50', '100', 'All'].map(n => (
+                  {['All', '100', '50', '25'].map(n => (
                     <button key={n} onClick={() => setLimit(n)}
                       style={{
                         padding: '6px 14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 800,
@@ -150,7 +150,7 @@ export default function RiskClassification() {
                 <div style={{ width: '1px', height: '24px', background: 'var(--divider)' }} />
 
                 <div className="glass-pill" style={{ display: 'flex', padding: '4px', background: 'rgba(255,255,255,0.03)' }}>
-                  {['all', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(lvl => {
+                  {['Normal', 'Moderate', 'Severe', 'Extreme', 'all'].map(lvl => {
                     const isActive = filterLevel.toLowerCase() === lvl.toLowerCase();
                     return (
                       <button key={lvl} onClick={() => setFilterLevel(lvl)}
