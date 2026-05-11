@@ -315,32 +315,42 @@ export default function RiskCalculator() {
                     <span style={{ fontSize: '10px', opacity: 0.6 }}>WEIGHTED</span>
                   </h4>
                   <ContributionRow label="RDI (Rainfall)" score={selectedVillage.metricsSnapshot?.rdiScore ?? selectedVillage.rainfallDeficit} weight={activeWeights.rdi} color="var(--accent-blue)" />
-                  <ContributionRow label="CDD (Dryness)" score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} weight={activeWeights.cdd} color="var(--accent-amber)" />
+                  <ContributionRow 
+                    label="CDD (Dryness)" 
+                    score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} 
+                    weight={activeWeights.cdd} 
+                    color="var(--accent-amber)" 
+                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak !== undefined ? `${selectedVillage.metricsSnapshot.maxDryStreak} consecutive dry days` : null}
+                  />
                   <ContributionRow label="SMA (Soil)" score={selectedVillage.metricsSnapshot?.smaScore ?? selectedVillage.soilMoistureDepletion} weight={activeWeights.sma} color="var(--accent-cyan)" />
                   <ContributionRow label="PPA (Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? selectedVillage.populationDemandGap} weight={activeWeights.ppa} color="#8b5cf6" />
                   
-                  <div style={{ marginTop: '12px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span className="caption-text" style={{ fontWeight: 700 }}>Trend Adjustment (TAM)</span>
+                  <div style={{ marginTop: '12px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TrendingUp size={14} color="var(--accent-green)" />
+                        <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend Adjustment (TAM)</span>
+                      </div>
                       <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 800 }}>
                         {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot?.tamAdjustment || 0} PTS
                       </span>
                     </div>
-                    <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', lineHeight: '1.4' }}>
-                      Based on 7-day risk trajectory acceleration.
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                      The **Trend Acceleration Modifier** adjusts the final score based on the 7-day risk trajectory. Positive values indicate intensifying conditions, while negative values reflect recovery.
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Fixed Weight Panel */}
-              <div className="glass-card" style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Calculator size={18} color="var(--accent-blue)" />
-                    <h3 className="section-header" style={{ fontSize: '16px' }}>Simulation Weights</h3>
+              <div className="glass-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--accent-blue)15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Calculator size={18} color="var(--accent-blue)" />
+                    </div>
+                    <h3 className="section-header" style={{ fontSize: '16px', margin: 0, letterSpacing: '0.5px' }}>Regional Parameters</h3>
                   </div>
-                  <div style={{ padding: '4px 8px', borderRadius: '4px', background: 'var(--accent-blue)20', color: 'var(--accent-blue)', fontSize: '10px', fontWeight: 800 }}>LOCKED</div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -395,13 +405,15 @@ function MetricBar({ value, color }) {
   );
 }
 
-function ContributionRow({ label, score, weight, color }) {
-  const contrib = Math.round((score || 0) * (weight / 100) * 10) / 10;
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span className="caption-text" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>RAW: {(score || 0).toFixed(1)} × {weight}%</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '4px 0' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <span className="caption-text" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'rgba(255,255,255,0.03)', padding: '1px 6px', borderRadius: '4px' }}>
+            RAW: {(score || 0).toFixed(1)} × {weight}%
+          </span>
+          {subtext && <span style={{ fontSize: '10px', color: color, fontWeight: 700 }}>• {subtext}</span>}
+        </div>
       </div>
       <div style={{ textAlign: 'right' }}>
         <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib}</span>
