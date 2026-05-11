@@ -14,12 +14,14 @@ import {
   Filter,
   Download,
   AlertTriangle,
-  History
+  History,
+  RefreshCw
 } from 'lucide-react';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
+import api from '../services/api.js';
 
 export default function RiskCalculator() {
-  const { data: rankedData, isLoading } = useRankedVillages(1000);
+  const { data: rankedData, isLoading, refetch } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
   const allVillages = rankedData?.data || [];
@@ -31,6 +33,23 @@ export default function RiskCalculator() {
   const [sortOrder, setSortOrder] = useState('desc'); 
   const [riskFilter, setRiskFilter] = useState('All');
   const [limitFilter, setLimitFilter] = useState('All');
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const handleCalculate = async (id) => {
+    if (isCalculating) return;
+    setIsCalculating(true);
+    try {
+      await api.post(`/villages/${id}/calculate`);
+      const updatedData = await refetch();
+      const updatedVillage = updatedData.data.data.find(v => v._id === id);
+      if (updatedVillage) setSelectedVillage(updatedVillage);
+    } catch (err) {
+      console.error('Calculation failed:', err);
+      alert('Live calculation failed: ' + err.message);
+    } finally {
+      setIsCalculating(false);
+    }
+  };
 
   // Official Weights (For display only)
   const activeWeights = { 
@@ -260,7 +279,6 @@ export default function RiskCalculator() {
                         <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{v.district}, {v.state}</div>
                       </td>
                       <td>
-                        <div style={{ fontSize: '18px', fontWeight: 800, color: level.color }}>{score}</div>
                         <div style={{ fontSize: '18px', fontWeight: 800, color: level.color }}>{score.toFixed(1)}</div>
                       </td>
                       <td>
@@ -378,7 +396,55 @@ export default function RiskCalculator() {
                     );
                   })()}
                 </div>
-              </div>
+                {/* Audit Verification Actions */}
+                <div style={{ margin: '16px 0 24px 0', display: 'flex', gap: '10px' }}>
+                  <button 
+                    onClick={() => handleCalculate(selectedVillage._id)}
+                    disabled={isCalculating}
+                    style={{ 
+                      flex: 1, 
+                      padding: '12px', 
+                      borderRadius: '12px', 
+                      background: isCalculating ? 'rgba(255,255,255,0.05)' : 'var(--accent-blue)', 
+                      color: isCalculating ? 'var(--text-tertiary)' : '#fff',
+                      border: '1px solid var(--accent-blue)40',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: isCalculating ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <RefreshCw size={16} className={isCalculating ? 'spin' : ''} style={{ animation: isCalculating ? 'spin 1s linear infinite' : 'none' }} />
+                    {isCalculating ? 'Recalculating...' : 'Trigger Live Audit'}
+                  </button>
+                  <button 
+                    style={{ 
+                      width: '44px', 
+                      height: '44px', 
+                      borderRadius: '12px', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      border: '1px solid var(--divider)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Download size={18} color="var(--text-secondary)" />
+                  </button>
+                </div>
+                <style>{`
+                  @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                  }
+                  .spin { animation: spin 1s linear infinite; }
+                `}</style>
 
               {/* Fixed Weight Panel */}
               <div className="glass-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>

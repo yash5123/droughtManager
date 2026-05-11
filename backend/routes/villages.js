@@ -235,4 +235,50 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// POST /api/villages/:id/calculate - Force real-time risk re-computation
+router.post('/:id/calculate', async (req, res) => {
+  try {
+    const village = await Village.findById(req.params.id);
+    if (!village) return res.status(404).json({ error: 'Village not found' });
+    
+    // Import the compute logic and weather service
+    const { getArchiveWeather } = await import('../services/weatherCacheService.js');
+    const { computeRiskScore } = await import('../jobs/dailyWeatherJob.js');
+    
+    const weather = await getArchiveWeather(village._id, village.lat, village.lon);
+    
+    // Get avg population for normalization
+    const totalPop = await Village.aggregate([{ $group: { _id: null, avg: { $avg: '$population' } } }]);
+    const avgPop = totalPop[0]?.avg || 500000;
+    
+    const risk = await computeRiskScore(village, weather, avgPop);
+    
+    // Save the new real data
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const updated = await DroughtRisk.findOneAndUpdate(
+      { village: village._id, date: today },
+      {
+        $set: {
+          riskScore: risk.riskScore,
+          riskLevel: risk.riskLevel,
+          rainfallDeficit: risk.rainfallDeficit,
+          soilMoistureDepletion: risk.soilMoistureDepletion,
+          populationDemandGap: risk.populationDemandGap,
+          totalPrecipitation30d_mm: weather.totalPrecipitation_mm,
+          avgSoilMoisturePct: weather.avgSoilMoisturePct,
+          precipitationArray: weather.precipitationArray,
+          metricsSnapshot: risk.metricsSnapshot
+        }
+      },
+      { upsert: true, new: true }
+    );
+    
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

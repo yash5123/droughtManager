@@ -252,7 +252,7 @@ function applyCompression(adjusted) {
  * soilMoistureDepletion, populationDemandGap, metricsSnapshot) so no downstream
  * schema or API changes are needed.
  */
-async function computeRiskScore(village, weather, avgPopulation) {
+export async function computeRiskScore(village, weather, avgPopulation) {
   // 1. Compute all sub-components
   const rdi = computeRDI(weather, village);
   const cdd = computeCDD(weather.precipitationArray);
