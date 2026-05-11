@@ -11,7 +11,7 @@ import { getRiskLevel, RISK_LEVELS } from '../utils/riskLevels.js';
 import { formatNumber } from '../utils/formatters.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-const INDIA_CENTER = [25.0, 78.5]; // Shifted North to ensure JnK is visible under tabs
+const INDIA_CENTER = [26.0, 78.5]; // Shifted further North to avoid UI obstruction
 const OSM_TILES = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
 
 function MapUpdater({ theme }) {
@@ -81,9 +81,11 @@ export default function MapPage() {
       <div style={{ flex: 1, borderRadius: '20px', overflow: 'hidden', position: 'relative', marginTop: dataSource ? '20px' : 0 }}>
         {/* Map Controls Overlay */}
         <div className="glass-panel" style={{ 
-          position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)', 
+          position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', 
           zIndex: 1000, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
-          boxShadow: 'var(--glass-shadow-elevated)'
+          boxShadow: 'var(--glass-shadow-elevated)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid var(--divider)'
         }}>
           {/* Severity Filters */}
           <div style={{ display: 'flex', gap: '8px' }}>

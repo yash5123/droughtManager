@@ -46,7 +46,7 @@ const STATUS_CONFIG = {
   },
 };
 
-const INDIA_CENTER = [25.0, 80.0]; // Shifted North for JnK visibility
+const INDIA_CENTER = [26.0, 80.0]; // Shifted North for JnK visibility
 const INDIA_BOUNDS = [
   [6.75, 68.1], 
   [35.5, 97.4] 
