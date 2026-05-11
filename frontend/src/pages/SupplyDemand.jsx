@@ -29,7 +29,9 @@ export default function SupplyDemand() {
   const { data: rankedData, isLoading } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
-  const [limit, setLimit] = useState(25); // Top 25, 50, All
+  const [limit, setLimit] = useState(25);
+  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
+ // Top 25, 50, All
   const [riskFilter, setRiskFilter] = useState('All'); // All, Extreme, Severe, Moderate, Normal
   const [dispatching, setDispatching] = useState(null);
 
@@ -69,8 +71,11 @@ export default function SupplyDemand() {
       list = list.filter(v => getRiskLevel(v.riskScore).label === riskFilter);
     }
     
-    // 2. Sort by riskScore descending (matches Overview logic)
-    list.sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0));
+    // 2. Sort by riskScore
+    list.sort((a, b) => {
+      const diff = (b.riskScore || 0) - (a.riskScore || 0);
+      return sortOrder === 'desc' ? diff : -diff;
+    });
     
     // 3. Limit
     if (limit !== 'All') {
@@ -310,9 +315,24 @@ export default function SupplyDemand() {
               <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Priority Hotspots</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>Critical nodes requiring immediate dispatch</p>
             </div>
-            <div style={{ textAlign: 'right', background: 'var(--accent-blue-tint)', padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--accent-blue)20' }}>
-              <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--accent-blue)', display: 'block', lineHeight: 1 }}>{filteredData.length}</span>
-              <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 800 }}>Targets</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button 
+                onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                style={{
+                  padding: '8px 12px', borderRadius: '10px', background: 'var(--glass-bg-bright)',
+                  border: '1px solid var(--divider)', color: 'var(--text-secondary)',
+                  display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: 800,
+                  cursor: 'pointer', transition: 'all 0.2s', letterSpacing: '0.5px'
+                }}
+                className="hover-glow"
+              >
+                <ArrowUpDown size={14} />
+                {sortOrder === 'desc' ? 'HIGHEST RISK' : 'LOWEST RISK'}
+              </button>
+              <div style={{ textAlign: 'right', background: 'var(--accent-blue-tint)', padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--accent-blue)20' }}>
+                <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--accent-blue)', display: 'block', lineHeight: 1 }}>{filteredData.length}</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 800 }}>Targets</span>
+              </div>
             </div>
           </div>
 
