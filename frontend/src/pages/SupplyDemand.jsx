@@ -391,12 +391,12 @@ export default function SupplyDemand() {
   );
 }
 
-function MetricCard({ label, value, icon: Icon, color, subtext, isCount, isAlert }) {
+function MetricCard({ title, value, unit, subtitle, icon, color }) {
   return (
     <div className="glass-card" style={{ 
       padding: '24px', position: 'relative', overflow: 'hidden',
-      background: isAlert ? 'var(--risk-extreme-tint)' : 'var(--glass-bg)',
-      border: isAlert ? `1px solid ${color}40` : 'var(--glass-border)',
+      background: 'var(--glass-bg)',
+      border: 'var(--glass-border)',
       transition: 'var(--transition-default)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', position: 'relative', zIndex: 2 }}>
@@ -405,26 +405,28 @@ function MetricCard({ label, value, icon: Icon, color, subtext, isCount, isAlert
           display: 'flex', alignItems: 'center', justifyContent: 'center', color,
           border: `1px solid ${color}30`
         }}>
-          <Icon size={20} />
+          {icon}
         </div>
       </div>
       
       <div style={{ position: 'relative', zIndex: 2 }}>
-        <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
+        <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{title}</p>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '8px' }}>
           <h2 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
-            {isCount ? value : formatIndian(value)}
+            {value}
           </h2>
-          {!isCount && <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>L/D</span>}
+          {unit && <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>{unit}</span>}
         </div>
-        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500, opacity: 0.8 }}>{subtext}</p>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500, opacity: 0.8 }}>{subtitle}</p>
       </div>
 
-      <Icon size={120} style={{ 
+      <div style={{ 
         position: 'absolute', right: '-20px', bottom: '-20px', 
-        color, opacity: 0.03, transform: 'rotate(-12deg)',
-        pointerEvents: 'none'
-      }} />
+        color, opacity: 0.05, transform: 'rotate(-12deg) scale(3)',
+        pointerEvents: 'none', zIndex: 1
+      }}>
+        {icon}
+      </div>
     </div>
   );
 }
