@@ -137,13 +137,17 @@ export default function RiskCalculator() {
       `}</style>
 
       {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <h1 className="title" style={{ fontSize: '32px', marginBottom: '8px' }}>Risk Logic & Transparency</h1>
-          <p className="body-text" style={{ color: 'var(--text-secondary)', maxWidth: '600px' }}>
-            A comprehensive audit of all {allVillages.length || 732} districts using our 4-pillar non-linear composite scoring engine.
-          </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <div className="header-icon-container">
+            <Calculator size={32} />
+          </div>
+          <div className="header-text">
+            <h1 className="header-title">Risk Logic & Transparency</h1>
+            <p className="header-subtitle">A comprehensive audit of all {allVillages.length || 732} districts using our 4-pillar non-linear composite scoring engine.</p>
+          </div>
         </div>
+
         <div style={{ display: 'flex', gap: '12px' }}>
           <button className="glass-btn" style={{ padding: '10px 20px', gap: '8px' }} onClick={() => setShowFormulaInfo(!showFormulaInfo)}>
             <Info size={18} /> {showFormulaInfo ? 'Close Math' : 'Explain Formula'}

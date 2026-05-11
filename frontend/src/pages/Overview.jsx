@@ -247,9 +247,19 @@ export default function Overview() {
     );
   }
 
-  return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <DataSourceBanner dataSource={dataSource} />
+
+      {/* Standardized Header */}
+      <div className="page-header">
+        <div className="header-icon-container">
+          <Activity size={32} />
+        </div>
+        <div className="header-text">
+          <h1 className="header-title">Strategic Insights</h1>
+          <p className="header-subtitle">Real-time geospatial analytics & predictive risk intelligence across all monitored domains.</p>
+        </div>
+      </div>
 
       {/* Stats Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>

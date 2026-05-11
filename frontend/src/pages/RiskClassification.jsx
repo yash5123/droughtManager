@@ -90,12 +90,13 @@ export default function RiskClassification() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <DataSourceBanner dataSource={dataSource} />
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <ShieldAlert size={28} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
-        <div>
-          <h2 className="title">Risk Classification Grid</h2>
-          <p className="body-text" style={{ color: 'var(--text-secondary)' }}>Algorithmic Severity Assessment</p>
+      <div className="page-header">
+        <div className="header-icon-container">
+          <ShieldAlert size={32} />
+        </div>
+        <div className="header-text">
+          <h1 className="header-title">Risk Classification Grid</h1>
+          <p className="header-subtitle">Algorithmic Severity Assessment & District Vulnerability Matrix</p>
         </div>
       </div>
 

@@ -144,6 +144,56 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Standardized Page Header */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-20);
+  margin-bottom: var(--space-32);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.header-icon-container {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: var(--nav-active-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--glass-border);
+  box-shadow: var(--accent-blue-glow);
+  color: var(--accent-blue);
+  flex-shrink: 0;
+  transition: var(--transition-default);
+}
+
+.header-icon-container:hover {
+  transform: scale(1.05) rotate(2deg);
+  box-shadow: 0 0 30px rgba(59,130,246,0.4);
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.header-subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.1px;
+}
+
 .body-text {
   font-size: 14px;
   font-weight: 400;

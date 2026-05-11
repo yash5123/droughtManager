@@ -115,186 +115,216 @@ export default function SupplyDemand() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.5s ease-out' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
       <DataSourceBanner dataSource={dataSource} />
 
-      {/* Hero Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ 
-            width: '56px', height: '56px', borderRadius: '16px', background: 'var(--nav-active-bg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'var(--glass-border)',
-            boxShadow: 'var(--accent-blue-glow)', color: 'var(--accent-blue)'
-          }}>
-            <ArrowRightLeft size={32} />
-          </div>
-          <div>
-            <h1 className="title" style={{ fontSize: '32px', marginBottom: '4px' }}>Supply vs Demand</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <p className="body-text" style={{ color: 'var(--text-secondary)' }}>Resource Allocation Matrix & Critical Gap Analysis</p>
-              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-tertiary)' }} />
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Database size={12} /> SERVER VERIFIED
-              </span>
+      {/* Standardized Header with Live Status */}
+      <div className="page-header" style={{ position: 'relative' }}>
+        <div className="header-icon-container" style={{ background: 'linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-cyan) 100%)', boxShadow: '0 8px 24px -6px var(--accent-blue)' }}>
+          <ArrowRightLeft size={32} color="#fff" />
+        </div>
+        <div className="header-text">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 className="header-title">Resource Allocation Matrix</h1>
+            <div className="glass-pill" style={{ padding: '2px 8px', fontSize: '10px', color: 'var(--accent-green)', background: 'var(--risk-normal-tint)', border: '1px solid var(--accent-green)30' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-green)', marginRight: '6px', display: 'inline-block' }} className="live-pulse" />
+              LIVE TELEMETRY
             </div>
           </div>
+          <p className="header-subtitle">Real-time Supply-Demand differential analysis across {villages.length} administrative domains.</p>
         </div>
-
-        {/* Global Filters */}
-        <div className="glass-panel" style={{ padding: '6px', borderRadius: '14px', display: 'flex', gap: '4px' }}>
-          {[25, 50, 'All'].map(s => (
-            <button 
-              key={s}
-              onClick={() => setLimit(s)}
-              style={{
-                padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-                background: limit === s ? 'var(--accent-blue)' : 'transparent',
-                color: limit === s ? 'white' : 'var(--text-secondary)',
-                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                boxShadow: limit === s ? 'var(--accent-blue-glow)' : 'none'
-              }}
-            >
-              TOP {s}
-            </button>
-          ))}
+        
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="glass-panel" style={{ padding: '4px', borderRadius: '12px', display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.03)' }}>
+            {[25, 50, 'All'].map(s => (
+              <button 
+                key={s}
+                onClick={() => setLimit(s)}
+                style={{
+                  padding: '6px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 700,
+                  background: limit === s ? 'var(--accent-blue)' : 'transparent',
+                  color: limit === s ? 'white' : 'var(--text-secondary)',
+                  border: 'none', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: limit === s ? '0 4px 12px var(--accent-blue)40' : 'none'
+                }}
+              >
+                TOP {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Main Filter Strip */}
-      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
+      {/* Analytics Command Center - Risk Filtering */}
+      <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--divider)' }}>
         {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(cat => (
           <button
             key={cat}
             onClick={() => setRiskFilter(cat)}
             style={{
-              padding: '10px 20px', borderRadius: '12px', fontSize: '13px', fontWeight: 600,
-              background: riskFilter === cat ? 'var(--glass-bg-bright)' : 'var(--glass-bg)',
-              border: riskFilter === cat ? '2px solid var(--accent-blue)' : '1px solid var(--glass-border)',
-              color: riskFilter === cat ? 'var(--text-primary)' : 'var(--text-secondary)',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
+              flex: 1, padding: '12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
+              background: riskFilter === cat ? 'var(--glass-bg-bright)' : 'transparent',
+              border: '1px solid',
+              borderColor: riskFilter === cat ? 'var(--accent-blue)60' : 'transparent',
+              color: riskFilter === cat ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'all 0.2s',
+              letterSpacing: '0.5px'
             }}
           >
             <div style={{ 
-              width: '8px', height: '8px', borderRadius: '50%', 
+              width: '10px', height: '10px', borderRadius: '50%', 
               background: cat === 'All' ? 'var(--accent-blue)' : 
                           cat === 'Extreme' ? 'var(--accent-red)' :
                           cat === 'Severe' ? 'var(--accent-amber)' :
-                          cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)'
+                          cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)',
+              boxShadow: riskFilter === cat ? `0 0 10px ${cat === 'All' ? 'var(--accent-blue)' : cat === 'Extreme' ? 'var(--accent-red)' : cat === 'Severe' ? 'var(--accent-amber)' : cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)'}60` : 'none'
             }} />
             {cat.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* High-Impact Metrics */}
+      {/* Global Impact Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-        <MetricCard label="Total Demand" value={totalDemand} icon={Users} color="var(--accent-blue)" subtext="Combined Regional Needs" />
-        <MetricCard label="Available Supply" value={totalSupply} icon={Droplet} color="var(--accent-cyan)" subtext="Rainfall & Groundwater" />
-        <MetricCard label="Critical Deficit" value={totalDeficit} icon={Scale} color="var(--accent-red)" subtext="Current Resource Gap" isAlert />
-        <MetricCard label="Priority Zones" value={criticalCount} icon={AlertTriangle} color="var(--accent-amber)" subtext="Coverage < 90%" isCount />
+        <MetricCard label="Total Volumetric Demand" value={totalDemand} icon={Users} color="var(--accent-blue)" subtext="Combined regional requirements" />
+        <MetricCard label="Aggregated Supply" value={totalSupply} icon={Droplet} color="var(--accent-cyan)" subtext="Net input from all sources" />
+        <MetricCard label="Resource Deficit" value={totalDeficit} icon={Scale} color="var(--accent-red)" subtext="Total volumetric gap" isAlert />
+        <MetricCard label="Priority Redzones" value={criticalCount} icon={AlertTriangle} color="var(--accent-amber)" subtext="Supply coverage below 90%" isCount />
       </div>
 
-      {/* Analytics Workspace */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '24px', alignItems: 'start' }}>
+      {/* Main Analytics Layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }}>
         
-        {/* Left: Volume Differential Chart */}
-        <div className="glass-card" style={{ padding: '24px', position: 'relative' }}>
+        {/* Differential Map/Chart */}
+        <div className="glass-card" style={{ padding: '28px', border: '1px solid var(--divider)', background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <BarChart3 size={20} color="var(--accent-blue)" />
-              <h3 className="section-header">Volume Differential (kL / Day)</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BarChart3 size={20} color="var(--accent-blue)" />
+              </div>
+              <div>
+                <h3 className="section-header" style={{ marginBottom: '2px' }}>Supply-Demand Equilibrium</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Volumetric differential across top priority zones</p>
+              </div>
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '1px' }}>TOP 15 BY GAP</span>
           </div>
 
-          <div style={{ height: '350px', width: '100%' }}>
+          <div style={{ height: '380px', width: '100%' }}>
             {chartData.length === 0 ? <EmptyState /> : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
+                <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 20, left: -20 }}>
                   <defs>
                     <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent-red)" stopOpacity={0.8}/>
+                      <stop offset="5%" stopColor="var(--accent-red)" stopOpacity={0.9}/>
                       <stop offset="95%" stopColor="var(--accent-red)" stopOpacity={0.2}/>
                     </linearGradient>
                     <linearGradient id="colorSupply" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={0.8}/>
+                      <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={0.9}/>
                       <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0.2}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--divider)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--divider)" opacity={0.4} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 500 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 500 }} />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                    contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', borderRadius: '12px', backdropFilter: 'blur(10px)' }}
-                    itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                    contentStyle={{ 
+                      background: 'rgba(15, 23, 42, 0.9)', 
+                      border: '1px solid rgba(255,255,255,0.1)', 
+                      borderRadius: '12px', 
+                      backdropFilter: 'blur(16px)',
+                      boxShadow: '0 12px 32px rgba(0,0,0,0.4)'
+                    }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 700, padding: '4px 0' }}
                   />
-                  <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '20px', fontSize: '12px' }} />
-                  <Bar dataKey="demand" name="DEMAND" fill="url(#colorDemand)" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Bar dataKey="supply" name="SUPPLY" fill="url(#colorSupply)" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '30px', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }} />
+                  <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[6, 6, 0, 0]} barSize={24} />
+                  <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[6, 6, 0, 0]} barSize={24} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
         </div>
 
-        {/* Right: Detailed Resource List */}
-        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '480px' }}>
-          <div style={{ padding: '24px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 className="section-header">Critical Gaps</h3>
-            <span style={{ fontSize: '11px', background: 'var(--nav-active-bg)', padding: '4px 8px', borderRadius: '6px', color: 'var(--accent-blue)' }}>
-              {filteredData.length} REGIONS
-            </span>
+        {/* Priority Action List */}
+        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '530px', border: '1px solid var(--divider)' }}>
+          <div style={{ padding: '24px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.01)' }}>
+            <div>
+              <h3 className="section-header" style={{ marginBottom: '2px' }}>Priority Zones</h3>
+              <p style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Gaps requiring immediate dispatch</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ fontSize: '18px', fontWeight: 900, color: 'var(--accent-blue)', display: 'block' }}>{filteredData.length}</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>NODES</span>
+            </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {filteredData.length === 0 ? <EmptyState /> : filteredData.map((v, i) => (
-              <div key={v._id || i} className="list-item" style={{ 
-                padding: '16px', borderRadius: '12px', marginBottom: '8px', border: '1px solid transparent',
-                transition: 'all 0.2s', cursor: 'default'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>{v.name}</h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{v.state} • {formatNumber(v.population)} pop</p>
+              <div key={v._id || i} style={{ 
+                padding: '20px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative', overflow: 'hidden'
+              }} className="list-item">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, color: 'var(--text-tertiary)' }}>
+                      {i + 1}
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{v.name}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{v.state}</span>
+                        <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--text-tertiary)' }} />
+                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{formatNumber(v.population)} pop</span>
+                      </div>
+                    </div>
                   </div>
                   <RiskBadge score={v.riskScore} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <div style={{ flex: 1, height: '6px', background: 'var(--divider)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Supply Coverage</span>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)' }}>
+                      {Math.round(v.coverage)}%
+                    </span>
+                  </div>
+                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
                     <div style={{ 
-                      width: `${v.coverage}%`, height: '100%', 
-                      background: v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)',
-                      boxShadow: '0 0 10px rgba(0,0,0,0.2)'
+                      width: `${Math.min(100, v.coverage)}%`, height: '100%', 
+                      background: v.coverage < 50 ? 'linear-gradient(90deg, var(--accent-red) 0%, #ff6b6b 100%)' : 
+                                  v.coverage < 80 ? 'linear-gradient(90deg, var(--accent-amber) 0%, #fbbf24 100%)' : 
+                                  'linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%)',
+                      boxShadow: `0 0 12px ${v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)'}40`,
+                      transition: 'width 1s ease-out'
                     }} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 800, width: '40px', textAlign: 'right', color: v.coverage < 50 ? 'var(--accent-red)' : 'var(--text-primary)' }}>
-                    {Math.round(v.coverage)}%
-                  </span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                  <div style={{ display: 'flex', gap: '20px' }}>
                     <div>
-                      <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Deficit</p>
-                      <p style={{ fontSize: '14px', fontWeight: 600 }}>{formatIndian(v.deficit)} <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>L</span></p>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gap (L/D)</p>
+                      <p style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{formatIndian(v.deficit)}</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Tankers</p>
-                      <p style={{ fontSize: '14px', fontWeight: 600 }}>{v.tankersNeeded}</p>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payloads</p>
+                      <p style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{v.tankersNeeded}</p>
                     </div>
                   </div>
                   
                   <button 
                     onClick={() => handleDispatch(v)}
                     disabled={dispatching === v._id}
-                    className="glass-btn"
-                    style={{ padding: '6px 12px', fontSize: '11px', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)' }}
+                    className="primary-btn"
+                    style={{ 
+                      padding: '10px 20px', fontSize: '12px', gap: '8px',
+                      background: 'var(--accent-blue)', border: 'none',
+                      opacity: dispatching === v._id ? 0.7 : 1
+                    }}
                   >
-                    {dispatching === v._id ? <Loader2 size={12} className="spinning" /> : <Truck size={12} />}
-                    {dispatching === v._id ? 'INIT...' : 'DISPATCH'}
+                    {dispatching === v._id ? <Loader2 size={16} className="spinning" /> : <Truck size={16} />}
+                    {dispatching === v._id ? 'INIT...' : 'DEPLOY'}
                   </button>
                 </div>
               </div>

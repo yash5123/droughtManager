@@ -92,11 +92,13 @@ export default function TankerManagement() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <Truck size={28} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
-        <div>
-          <h2 className="title">Logistics Tracking</h2>
-          <p className="body-text" style={{ color: 'var(--text-secondary)' }}>Fleet Deployment & Telemetry</p>
+      <div className="page-header">
+        <div className="header-icon-container">
+          <Truck size={32} />
+        </div>
+        <div className="header-text">
+          <h1 className="header-title">Logistics Tracking</h1>
+          <p className="header-subtitle">Fleet Deployment, Real-time Telemetry & Emergency Resource Allocation</p>
         </div>
       </div>
 

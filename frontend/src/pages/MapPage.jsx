@@ -64,9 +64,18 @@ export default function MapPage() {
     return matching.slice(0, villageCount);
   }, [riskData, riskFilter, villageCount]);
 
-  return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
       <DataSourceBanner dataSource={dataSource} />
+
+      <div className="page-header" style={{ marginBottom: '24px' }}>
+        <div className="header-icon-container">
+          <MapPin size={32} />
+        </div>
+        <div className="header-text">
+          <h1 className="header-title">Spatial Risk Map</h1>
+          <p className="header-subtitle">Interactive visualization of drought vulnerability & live weather radar overlays.</p>
+        </div>
+      </div>
       
       <div style={{ flex: 1, borderRadius: '20px', overflow: 'hidden', position: 'relative', marginTop: dataSource ? '20px' : 0 }}>
         {/* Map Controls Overlay */}

@@ -123,13 +123,16 @@ export default function GroundwaterAnalysis() {
       <DataSourceBanner dataSource={dataSource} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Droplets size={24} style={{ color: 'var(--accent-blue)', filter: 'drop-shadow(var(--accent-blue-glow))' }} />
-          <div>
-            <h2 className="title" style={{ fontSize: '22px', lineHeight: 1 }}>Groundwater Monitoring</h2>
-            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>Satellite-derived Soil Moisture Analysis</p>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <div className="header-icon-container">
+            <Droplets size={32} />
+          </div>
+          <div className="header-text">
+            <h1 className="header-title">Groundwater Monitoring</h1>
+            <p className="header-subtitle">Satellite-derived Soil Moisture Analysis & Aquifer Health</p>
           </div>
         </div>
+        
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
             {PERIODS.map(p => (

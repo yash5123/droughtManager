@@ -106,14 +106,17 @@ export default function FuturePrediction() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <DataSourceBanner dataSource={dataSource} />
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Activity size={28} style={{ color: 'var(--accent-cyan)', filter: 'drop-shadow(var(--accent-cyan-glow))' }} />
-          <div>
-            <h2 className="title">Predictive Modeling</h2>
-            <p className="body-text" style={{ color: 'var(--text-secondary)' }}>16-Day Hydrological Forecast</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <div className="header-icon-container">
+            <Activity size={32} />
+          </div>
+          <div className="header-text">
+            <h1 className="header-title">Predictive Modeling</h1>
+            <p className="header-subtitle">16-Day Hydrological Forecast & Preemptive Drought Simulation</p>
           </div>
         </div>
+
         <div className="glass-pill" style={{ display: 'flex', gap: '16px', padding: '8px 16px', background: 'var(--glass-bg)' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-blue)', boxShadow: 'var(--accent-blue-glow)' }}></span> Precip (mm)
