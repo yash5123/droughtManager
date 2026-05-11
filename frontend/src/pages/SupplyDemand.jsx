@@ -337,10 +337,10 @@ export default function SupplyDemand() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--glass-bg)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filteredData.length === 0 ? <EmptyState /> : filteredData.map((v, i) => (
               <div key={v._id || i} style={{ 
-                padding: '24px', paddingLeft: '32px', borderRadius: '20px', background: 'var(--glass-bg-bright)', border: 'var(--glass-border)',
+                padding: '24px', paddingLeft: '32px', borderRadius: '20px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--divider)',
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
               }} className="hotspot-item hover-glow">
