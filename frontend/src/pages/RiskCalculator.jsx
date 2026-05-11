@@ -18,7 +18,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
-import api from '../services/api.js';
 
 export default function RiskCalculator() {
   const { data: rankedData, isLoading, refetch } = useRankedVillages(1000);
@@ -33,23 +32,7 @@ export default function RiskCalculator() {
   const [sortOrder, setSortOrder] = useState('desc'); 
   const [riskFilter, setRiskFilter] = useState('All');
   const [limitFilter, setLimitFilter] = useState('All');
-  const [isCalculating, setIsCalculating] = useState(false);
 
-  const handleCalculate = async (id) => {
-    if (isCalculating) return;
-    setIsCalculating(true);
-    try {
-      await api.post(`/villages/${id}/calculate`);
-      const updatedData = await refetch();
-      const updatedVillage = updatedData.data.data.find(v => v._id === id);
-      if (updatedVillage) setSelectedVillage(updatedVillage);
-    } catch (err) {
-      console.error('Calculation failed:', err);
-      alert('Live calculation failed: ' + err.message);
-    } finally {
-      setIsCalculating(false);
-    }
-  };
 
   // Official Weights (For display only)
   const activeWeights = { 
@@ -259,8 +242,10 @@ export default function RiskCalculator() {
                   <th>Risk Index</th>
                   <th>Status</th>
                   <th>RDI</th>
+                  <th>CDD</th>
                   <th>SMA</th>
                   <th>Pop Gap</th>
+                  <th>Trend</th>
                   <th style={{ width: '40px' }}></th>
                 </tr>
               </thead>
@@ -287,9 +272,10 @@ export default function RiskCalculator() {
                         </div>
                       </td>
                       <td><MetricBar value={v.metricsSnapshot?.rdiScore ?? v.rainfallDeficit} color="var(--accent-blue)" /></td>
-                      <td><MetricBar value={v.metricsSnapshot?.cddScore ?? (v.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} color="var(--accent-amber)" /></td>
+                      <td><MetricBar value={v.metricsSnapshot?.cddScore ?? 0} color="var(--accent-amber)" /></td>
                       <td><MetricBar value={v.metricsSnapshot?.smaScore ?? v.soilMoistureDepletion} color="var(--accent-cyan)" /></td>
                       <td><MetricBar value={v.metricsSnapshot?.ppaScore ?? v.populationDemandGap} color="#8b5cf6" /></td>
+                      <td><MetricBar value={v.metricsSnapshot?.tamAdjustment ?? 0} color="var(--accent-green)" /></td>
                       <td><ChevronRight size={18} color="var(--text-tertiary)" /></td>
                     </tr>
                   );
@@ -321,7 +307,7 @@ export default function RiskCalculator() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', position: 'relative' }}>
                   <div style={{ textAlign: 'center', zIndex: 2 }}>
                     <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(selectedVillage.riskScore).color }}>
-                      {selectedVillage.riskScore || 0}
+                      {(selectedVillage.riskScore || 0).toFixed(1)}
                     </div>
                     <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '2px', color: 'var(--text-tertiary)', marginTop: '8px' }}>DR INDEX</div>
                   </div>
@@ -342,25 +328,13 @@ export default function RiskCalculator() {
                     color="var(--accent-blue)" 
                   />
 
-                  {selectedVillage.metricsSnapshot?.cddScore === undefined ? (
-                    <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,191,0,0.05)', border: '1px solid rgba(255,191,0,0.2)', margin: '8px 0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-amber)' }}>Trend & Dryness (Legacy)</span>
-                        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent-amber)' }}>
-                          +{Math.max(0, (selectedVillage.riskScore - ((selectedVillage.rainfallDeficit || 0) * 0.35 + (selectedVillage.soilMoistureDepletion || 0) * 0.30 + (selectedVillage.populationDemandGap || 0) * 0.15))).toFixed(1)} PTS
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>This record was calculated with a previous engine. Audit data is pending refresh.</p>
-                    </div>
-                  ) : (
-                    <ContributionRow 
-                      label="CDD (Dryness)" 
-                      score={selectedVillage.metricsSnapshot.cddScore} 
-                      weight={activeWeights.cdd} 
-                      color="var(--accent-amber)" 
-                      subtext={selectedVillage.metricsSnapshot.maxDryStreak > 0 ? `${selectedVillage.metricsSnapshot.maxDryStreak} days` : null}
-                    />
-                  )}
+                  <ContributionRow 
+                    label="CDD (Dryness)" 
+                    score={selectedVillage.metricsSnapshot?.cddScore ?? 0} 
+                    weight={activeWeights.cdd} 
+                    color="var(--accent-amber)" 
+                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak > 0 ? `${selectedVillage.metricsSnapshot.maxDryStreak} days` : null}
+                  />
 
                   <ContributionRow 
                     label="SMA (Soil)" 
@@ -368,6 +342,7 @@ export default function RiskCalculator() {
                     weight={activeWeights.sma} 
                     color="var(--accent-cyan)" 
                   />
+
                   <ContributionRow 
                     label="PPA (Demand)" 
                     score={selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} 
@@ -375,50 +350,24 @@ export default function RiskCalculator() {
                     color="#8b5cf6" 
                   />
 
-                  {selectedVillage.metricsSnapshot?.tamAdjustment !== undefined && (
-                    <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <TrendingUp size={14} color="var(--accent-green)" />
-                          <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend Adjustment (TAM)</span>
-                        </div>
-                        <span style={{ fontSize: '14px', fontWeight: 800, color: selectedVillage.metricsSnapshot.tamAdjustment >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                          {selectedVillage.metricsSnapshot.tamAdjustment >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot.tamAdjustment.toFixed(1)} PTS
-                        </span>
+                  <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TrendingUp size={14} color="var(--accent-green)" />
+                        <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend & Trajectory</span>
                       </div>
-                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>Based on 7-day risk trajectory acceleration.</p>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                        {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{(selectedVillage.metricsSnapshot?.tamAdjustment || 0).toFixed(1)} PTS
+                      </span>
                     </div>
-                  )}
+                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: '1.4', margin: 0 }}>Adjustment based on 7-day risk velocity and historical seasonality shifts.</p>
+                  </div>
                 </div>
 
-                {/* Audit Actions */}
-                <div style={{ margin: '16px 0 24px 0', display: 'flex', gap: '10px' }}>
-                  <button 
-                    onClick={() => handleCalculate(selectedVillage._id)}
-                    disabled={isCalculating}
-                    style={{ 
-                      flex: 1, 
-                      padding: '12px', 
-                      borderRadius: '12px', 
-                      background: isCalculating ? 'rgba(255,255,255,0.05)' : 'var(--accent-blue)', 
-                      color: isCalculating ? 'var(--text-tertiary)' : '#fff',
-                      border: '1px solid var(--accent-blue)40',
-                      fontWeight: 700,
-                      fontSize: '13px',
-                      cursor: isCalculating ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <RefreshCw size={16} style={{ animation: isCalculating ? 'spin 1s linear infinite' : 'none' }} />
-                    {isCalculating ? 'Recalculating...' : 'Trigger Live Audit'}
-                  </button>
-                  <button style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Download size={18} color="var(--text-secondary)" />
+                {/* Audit Export */}
+                <div style={{ marginTop: '24px' }}>
+                  <button style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--divider)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Download size={18} /> DOWNLOAD AUDIT LOG
                   </button>
                 </div>
               </div>
@@ -495,7 +444,7 @@ function ContributionRow({ label, score, weight, color, subtext }) {
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib}</span>
+        <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib.toFixed(1)}</span>
         <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block' }}>PTS</span>
       </div>
     </div>
