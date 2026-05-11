@@ -137,7 +137,7 @@ export default function RiskCalculator() {
           <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(255,255,255,0.01)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
               <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
+                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', gap: '4px', backdropFilter: 'blur(10px)' }}>
                   {['All', 'Extreme', 'Severe', 'Normal'].map(label => (
                     <button 
                       key={label}
@@ -195,7 +195,15 @@ export default function RiskCalculator() {
                     type="text" 
                     placeholder="Search by district or state..." 
                     className="glass-input"
-                    style={{ paddingLeft: '48px', width: '100%', height: '48px', fontSize: '14px', background: 'rgba(0,0,0,0.2)' }}
+                    style={{ 
+                      paddingLeft: '48px', 
+                      width: '100%', 
+                      height: '48px', 
+                      fontSize: '14px', 
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: 'var(--text-primary)'
+                    }}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                   />
@@ -259,9 +267,9 @@ export default function RiskCalculator() {
                           {level.label}
                         </div>
                       </td>
-                      <td><MetricBar value={v.rainfallDeficit} color="var(--accent-blue)" /></td>
-                      <td><MetricBar value={v.soilMoistureDepletion} color="var(--accent-cyan)" /></td>
-                      <td><MetricBar value={v.populationDemandGap} color="#8b5cf6" /></td>
+                      <td><MetricBar value={v.metricsSnapshot?.rdiScore ?? v.rainfallDeficit} color="var(--accent-blue)" /></td>
+                      <td><MetricBar value={v.metricsSnapshot?.smaScore ?? v.soilMoistureDepletion} color="var(--accent-cyan)" /></td>
+                      <td><MetricBar value={v.metricsSnapshot?.ppaScore ?? v.populationDemandGap} color="#8b5cf6" /></td>
                       <td><ChevronRight size={18} color="var(--text-tertiary)" /></td>
                     </tr>
                   );
@@ -382,7 +390,7 @@ function MetricBar({ value, color }) {
       <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden', minWidth: '60px' }}>
         <div style={{ width: `${Math.min(100, value || 0)}%`, height: '100%', background: color, borderRadius: '2px' }} />
       </div>
-      <span style={{ fontSize: '11px', fontWeight: 700, width: '30px' }}>{Math.round(value || 0)}</span>
+      <span style={{ fontSize: '11px', fontWeight: 700, width: '35px' }}>{(value || 0).toFixed(1)}</span>
     </div>
   );
 }
@@ -393,7 +401,7 @@ function ContributionRow({ label, score, weight, color }) {
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span className="caption-text" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>RAW: {Math.round(score || 0)} × {weight}%</span>
+        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>RAW: {(score || 0).toFixed(1)} × {weight}%</span>
       </div>
       <div style={{ textAlign: 'right' }}>
         <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib}</span>
