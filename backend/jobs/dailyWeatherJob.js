@@ -242,6 +242,15 @@ function applyCompression(adjusted) {
   return 96 + (x - 90) * 0.39;
 }
 
+// Determine which compression band was active
+function getCompressionBand(x) {
+  if (x <= 20)  return '0–20: Sensitivity Boost (×1.20)';
+  if (x <= 45)  return '20–45: Linear Growth (×1.04)';
+  if (x <= 70)  return '45–70: Gradual Taper (×0.80)';
+  if (x <= 90)  return '70–90: Extreme Saturation (×1.30)';
+  return '90–100: Hard Cap (×0.39)';
+}
+
 // ─── Composite Score Assembly ─────────────────────────────────────
 
 /**
@@ -253,11 +262,19 @@ function applyCompression(adjusted) {
  * schema or API changes are needed.
  */
 export async function computeRiskScore(village, weather, avgPopulation) {
+  // Normalize weather object fields if coming from getArchiveWeather
+  const normalizedWeather = {
+    ...weather,
+    totalPrecipitation_mm: weather.totalPrecipitation_mm || weather.totalPrecipitation30d_mm || 0,
+    precipitationArray: weather.precipitationArray || weather.daily?.precipitation_sum || [],
+    avgSoilMoistureFrac: weather.avgSoilMoistureFrac || 0
+  };
+
   // 1. Compute all sub-components
-  const rdi = computeRDI(weather, village);
-  const cdd = computeCDD(weather.precipitationArray);
-  const sma = computeSMA(weather, village);
-  const ppa = computePPA(weather, village);
+  const rdi = computeRDI(normalizedWeather, village);
+  const cdd = computeCDD(normalizedWeather.precipitationArray);
+  const sma = computeSMA(normalizedWeather, village);
+  const ppa = computePPA(normalizedWeather, village);
   
   // 2. Weighted raw composite (4 main components = 95% of weight)
   let rawComposite = 0;
@@ -294,6 +311,13 @@ export async function computeRiskScore(village, weather, avgPopulation) {
     `| Raw=${rawComposite.toFixed(1)} Adj=${adjustedComposite.toFixed(1)} ` +
     `| Final=${riskScore} | ${riskLevel.toUpperCase()}`
   );
+
+  // Weighted contributions (handle SMA missing case)
+  const scaleFactor = sma.missing ? (0.95 / 0.65) : 1;
+  const rdiWeighted  = rdi.score * 0.35 * scaleFactor;
+  const cddWeighted  = cdd.score * 0.20 * scaleFactor;
+  const smaWeighted  = sma.missing ? 0 : sma.score * 0.30;
+  const ppaWeighted  = ppa.score  * (sma.missing ? 0.10 * scaleFactor : 0.10);
   
   return {
     riskScore: clamp(riskScore, 0, 100),
@@ -308,19 +332,23 @@ export async function computeRiskScore(village, weather, avgPopulation) {
       soilMoistureFrac: weather.avgSoilMoistureFrac,
       population: village.population || 0,
       demandLitersPerDay: ppa.dailyDemand,
-      supplyLitersPerDay: ppa.dailySupply,
-      // Extended audit fields (new keys only, no schema break)
-      rdiScore: rdi.score,
-      cddScore: cdd.score,
-      smaScore: sma.score,
-      ppaScore: ppa.score,
-      tamAdjustment: tam.adjustment,
-      maxDryStreak: cdd.maxStreak,
-      totalDryDays: cdd.totalDryDays,
-      soilAnomalyPct: sma.soilAnomalyPct,
-      supplyRatio: ppa.supplyRatio,
-      rawComposite,
-      adjustedComposite
+      supplyLitersPerDay: ppa.dailySupply
+    },
+    metricsSnapshotAdditions: {
+      rdiScore:           Math.round(rdi.score * 10) / 10,
+      cddScore:           Math.round(cdd.score * 10) / 10,
+      smaScore:           sma.missing ? null : Math.round(sma.score * 10) / 10,
+      ppaScore:           Math.round(ppa.score * 10) / 10,
+      rdiWeighted:        Math.round(rdiWeighted * 100) / 100,
+      cddWeighted:        Math.round(cddWeighted * 100) / 100,
+      smaWeighted:        Math.round(smaWeighted * 100) / 100,
+      ppaWeighted:        Math.round(ppaWeighted * 100) / 100,
+      smaWasMissing:      sma.missing || false,
+      rawComposite:       Math.round(rawComposite * 1000) / 1000,
+      tamAdjustment:      Math.round(tam.adjustment * 1000) / 1000,
+      adjustedComposite:  Math.round(adjustedComposite * 1000) / 1000,
+      compressionBand:    getCompressionBand(adjustedComposite),
+      calculatedAt:       new Date()
     }
   };
 }
@@ -444,7 +472,10 @@ export async function runDailyWeatherJob() {
               totalPrecipitation30d_mm: weather.totalPrecipitation_mm,
               avgSoilMoisturePct: weather.avgSoilMoisturePct,
               precipitationArray: weather.precipitationArray,
-              metricsSnapshot: risk.metricsSnapshot
+              metricsSnapshot: {
+                ...risk.metricsSnapshot,
+                ...risk.metricsSnapshotAdditions
+              }
             }
           },
           { upsert: true }

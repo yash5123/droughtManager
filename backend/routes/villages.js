@@ -2,8 +2,8 @@ import express from 'express';
 import Village from '../models/Village.js';
 import DroughtRisk from '../models/DroughtRisk.js';
 import { seedingProgress } from '../jobs/seedDistricts.js';
-import { dailyJobStatus } from '../jobs/dailyWeatherJob.js';
-import { getForecastWeather } from '../services/weatherCacheService.js';
+import { dailyJobStatus, computeRiskScore } from '../jobs/dailyWeatherJob.js';
+import { getArchiveWeather, getForecastWeather } from '../services/weatherCacheService.js';
 
 const router = express.Router();
 
@@ -184,22 +184,37 @@ router.get('/seeding-status', (req, res) => {
  */
 router.get('/:id/detail', async (req, res) => {
   try {
+    // Step 1 — Fetch the village
     const village = await Village.findById(req.params.id).lean();
     if (!village) return res.status(404).json({ error: 'Village not found' });
     
-    // Get last 7 risk records for trend
+    // Step 2 — Get weather from cache (fast, <50ms DB hit)
+    const weather = await getArchiveWeather(village._id, village.lat, village.lon);
+    
+    // Step 3 — Get average population via aggregation
+    const totalPop = await Village.aggregate([
+      { $group: { _id: null, avg: { $avg: '$population' } } }
+    ]);
+    const avgPopulation = totalPop[0]?.avg || 500000;
+    
+    // Step 4 — Run live recalculation using the already-exported computeRiskScore
+    const liveResult = await computeRiskScore(village, weather, avgPopulation);
+    
+    // Step 5 — Fetch last 7 days of risk history
     const riskHistory = await DroughtRisk.find({ village: village._id })
       .sort({ date: -1 })
       .limit(7)
       .lean();
     
-    const latestRisk = riskHistory[0] || null;
-    
+    // Step 6 — Return a combined response
     res.json({
       village,
-      latestRisk,
+      liveScore: liveResult.riskScore,
+      liveAudit: liveResult.metricsSnapshotAdditions,
+      cachedScore: riskHistory[0]?.riskScore ?? null,
+      cachedAudit: riskHistory[0]?.metricsSnapshot ?? null,
       riskHistory,
-      precipitationArray: latestRisk?.precipitationArray || [],
+      precipitationArray: liveResult.metricsSnapshot.actualPrecipitation ? liveResult.metricsSnapshot.precipitationArray : (riskHistory[0]?.precipitationArray || [])
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

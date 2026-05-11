@@ -21,7 +21,22 @@ const droughtRiskSchema = new mongoose.Schema({
     soilMoistureFrac: Number,
     population: Number,
     demandLitersPerDay: Number,
-    supplyLitersPerDay: Number
+    supplyLitersPerDay: Number,
+    // --- NEW FIELDS ---
+    rdiScore:        { type: Number, default: null },
+    cddScore:        { type: Number, default: null },
+    smaScore:        { type: Number, default: null },
+    ppaScore:        { type: Number, default: null },
+    rdiWeighted:     { type: Number, default: null },
+    cddWeighted:     { type: Number, default: null },
+    smaWeighted:     { type: Number, default: null },
+    ppaWeighted:     { type: Number, default: null },
+    smaWasMissing:   { type: Boolean, default: false },
+    rawComposite:    { type: Number, default: null },
+    tamAdjustment:   { type: Number, default: null },
+    adjustedComposite: { type: Number, default: null },
+    compressionBand: { type: String, default: null },
+    calculatedAt:    { type: Date, default: null }
   }
 }, { timestamps: true });
 
