@@ -314,29 +314,33 @@ export default function RiskCalculator() {
                     <span>Logic Pillars</span>
                     <span style={{ fontSize: '10px', opacity: 0.6 }}>WEIGHTED</span>
                   </h4>
-                  <ContributionRow label="RDI (Rainfall)" score={selectedVillage.metricsSnapshot?.rdiScore ?? selectedVillage.rainfallDeficit} weight={activeWeights.rdi} color="var(--accent-blue)" />
+                  <ContributionRow label="RDI (Rainfall)" score={selectedVillage.metricsSnapshot?.rdiScore ?? (selectedVillage.rainfallDeficit || 0)} weight={activeWeights.rdi} color="var(--accent-blue)" />
                   <ContributionRow 
                     label="CDD (Dryness)" 
                     score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} 
                     weight={activeWeights.cdd} 
                     color="var(--accent-amber)" 
-                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak !== undefined ? `${selectedVillage.metricsSnapshot.maxDryStreak} consecutive dry days` : null}
+                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak !== undefined ? `${selectedVillage.metricsSnapshot.maxDryStreak} consecutive dry days` : "Historical baseline"}
                   />
-                  <ContributionRow label="SMA (Soil)" score={selectedVillage.metricsSnapshot?.smaScore ?? selectedVillage.soilMoistureDepletion} weight={activeWeights.sma} color="var(--accent-cyan)" />
-                  <ContributionRow label="PPA (Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? selectedVillage.populationDemandGap} weight={activeWeights.ppa} color="#8b5cf6" />
+                  <ContributionRow label="SMA (Soil)" score={selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0)} weight={activeWeights.sma} color="var(--accent-cyan)" />
+                  <ContributionRow label="PPA (Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} weight={activeWeights.ppa} color="#8b5cf6" />
                   
-                  <div style={{ marginTop: '12px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <TrendingUp size={14} color="var(--accent-green)" />
-                        <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend Adjustment (TAM)</span>
+                  <div style={{ marginTop: '12px', padding: '20px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent-green)20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <TrendingUp size={14} color="var(--accent-green)" />
+                        </div>
+                        <span className="caption-text" style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '12px' }}>Trend Adjustment (TAM)</span>
                       </div>
-                      <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 800 }}>
-                        {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot?.tamAdjustment || 0} PTS
-                      </span>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 900, fontSize: '14px' }}>
+                          {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{(selectedVillage.metricsSnapshot?.tamAdjustment || 0).toFixed(1)} PTS
+                        </span>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                      The **Trend Acceleration Modifier** adjusts the final score based on the 7-day risk trajectory. Positive values indicate intensifying conditions, while negative values reflect recovery.
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                      The **Trend Acceleration Modifier** (TAM) factors in the 7-day risk velocity. If risk is rising faster than historical norms, TAM adds up to +4 pts to the final index to trigger early warnings.
                     </p>
                   </div>
                 </div>
@@ -353,11 +357,11 @@ export default function RiskCalculator() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <StaticWeight label="Rainfall (RDI)" value={activeWeights.rdi} color="var(--accent-blue)" />
-                  <StaticWeight label="Dry Streak (CDD)" value={activeWeights.cdd} color="var(--accent-amber)" />
-                  <StaticWeight label="Groundwater (SMA)" value={activeWeights.sma} color="var(--accent-cyan)" />
-                  <StaticWeight label="Population (PPA)" value={activeWeights.ppa} color="#8b5cf6" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <StaticWeight label="Rainfall Intensity" value={activeWeights.rdi} color="var(--accent-blue)" icon={<Droplets size={14} />} />
+                  <StaticWeight label="Dryness Severity" value={activeWeights.cdd} color="var(--accent-amber)" icon={<TrendingUp size={14} />} />
+                  <StaticWeight label="Groundwater Health" value={activeWeights.sma} color="var(--accent-cyan)" icon={<Waves size={14} />} />
+                  <StaticWeight label="Socio-Economic Demand" value={activeWeights.ppa} color="#8b5cf6" icon={<Users size={14} />} />
                 </div>
 
                 <div style={{ marginTop: '20px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--divider)', display: 'flex', gap: '12px' }}>
@@ -426,15 +430,26 @@ function ContributionRow({ label, score, weight, color, subtext }) {
   );
 }
 
-function StaticWeight({ label, value, color }) {
+function StaticWeight({ label, value, color, icon }) {
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span className="caption-text" style={{ fontWeight: 600 }}>{label}</span>
-        <span style={{ fontSize: '12px', fontWeight: 800, color }}>{value}%</span>
+    <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', transition: 'transform 0.2s' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ color }}>{icon}</div>
+          <span className="caption-text" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{label}</span>
+        </div>
+        <span style={{ fontSize: '13px', fontWeight: 800, color }}>{value}%</span>
       </div>
-      <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
-        <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: '2px', boxShadow: `0 0 8px ${color}40` }} />
+      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+        <div 
+          style={{ 
+            width: `${value}%`, 
+            height: '100%', 
+            background: `linear-gradient(90deg, ${color}aa, ${color})`, 
+            borderRadius: '3px', 
+            boxShadow: `0 0 12px ${color}30` 
+          }} 
+        />
       </div>
     </div>
   );
