@@ -82,9 +82,9 @@ export default function SupplyDemand() {
 
   // Totals (based on current filtered view or global?) — User said "Show all distinct... top 25 top 50"
   // Let's calculate totals based on the filtered view to reflect the context
-  const totalDemand = filteredData.reduce((s, v) => s + v.demand, 0);
-  const totalSupply = filteredData.reduce((s, v) => s + v.supply, 0);
-  const totalDeficit = Math.max(0, totalDemand - totalSupply);
+  const totalDemand = filteredData.reduce((s, v) => s + (v.demand || 0), 0);
+  const totalSupply = filteredData.reduce((s, v) => s + (v.supply || 0), 0);
+  const totalDeficit = filteredData.reduce((s, v) => s + (v.deficit || 0), 0);
   const criticalCount = filteredData.filter(v => v.coverage < 90).length;
 
   const chartData = filteredData.slice(0, 15).map(v => ({
@@ -261,7 +261,7 @@ export default function SupplyDemand() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--glass-bg)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--glass-bg)' }}>
             {filteredData.length === 0 ? <EmptyState /> : filteredData.map((v, i) => (
               <div key={v._id || i} style={{ 
                 padding: '24px', borderRadius: '20px', background: 'var(--glass-bg-bright)', border: 'var(--glass-border)',
@@ -270,7 +270,7 @@ export default function SupplyDemand() {
               }} className="list-item hover-glow">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', gap: '16px' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--accent-blue)', border: 'var(--glass-border)' }}>
+                    <div style={{ width: '48px', height: '48px', minWidth: '48px', flexShrink: 0, borderRadius: '14px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--accent-blue)', border: 'var(--glass-border)' }}>
                       {i + 1}
                     </div>
                     <div>
