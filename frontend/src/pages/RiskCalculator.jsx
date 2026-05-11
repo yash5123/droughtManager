@@ -362,12 +362,51 @@ export default function RiskCalculator() {
                     </div>
                     <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: '1.4', margin: 0 }}>Adjustment based on 7-day risk velocity and historical seasonality shifts.</p>
                   </div>
+
+                  {/* Math Audit Panel */}
+                  <div style={{ marginTop: '24px', padding: '16px', borderRadius: '12px', background: 'rgba(0,0,0,0.2)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <Calculator size={14} color="var(--text-tertiary)" />
+                      <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '1px', color: 'var(--text-tertiary)' }}>LOGIC AUDIT (V3)</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Raw Weighted Sum</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{(selectedVillage.metricsSnapshot?.rawComposite || 0).toFixed(2)} pts</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Scaling Effect</span>
+                        <span style={{ fontWeight: 600, color: 'var(--accent-cyan)' }}>
+                          {selectedVillage.riskScore > (selectedVillage.metricsSnapshot?.rawComposite || 0) ? '+' : ''}
+                          {(selectedVillage.riskScore - (selectedVillage.metricsSnapshot?.rawComposite || 0) - (selectedVillage.metricsSnapshot?.tamAdjustment || 0)).toFixed(2)} pts
+                        </span>
+                      </div>
+
+                      <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '4px 0' }} />
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700 }}>
+                        <span style={{ color: 'var(--text-primary)' }}>Final Audit Index</span>
+                        <span style={{ color: getRiskLevel(selectedVillage.riskScore).color }}>{selectedVillage.riskScore.toFixed(1)}</span>
+                      </div>
+                    </div>
+
+                    {Math.abs(selectedVillage.riskScore - (selectedVillage.metricsSnapshot?.adjustedComposite ? (Math.round((24 + (selectedVillage.metricsSnapshot.adjustedComposite - 20) * 1.04) * 10) / 10) : selectedVillage.riskScore)) > 5 && (
+                      <div style={{ marginTop: '12px', padding: '8px', borderRadius: '6px', background: 'rgba(255,191,0,0.1)', border: '1px solid rgba(255,191,0,0.2)', display: 'flex', gap: '8px' }}>
+                        <AlertTriangle size={12} color="var(--accent-amber)" style={{ marginTop: '2px' }} />
+                        <p style={{ fontSize: '10px', color: 'var(--accent-amber)', margin: 0, lineHeight: '1.3' }}>
+                          <b>Sync Alert:</b> Index calculated during previous weather window. Pillars reflect latest live data.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Audit Export */}
                 <div style={{ marginTop: '24px' }}>
                   <button style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--divider)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <Download size={18} /> DOWNLOAD AUDIT LOG
+                    <Download size={18} /> DOWNLOAD CALCULATION PROOF
                   </button>
                 </div>
               </div>
