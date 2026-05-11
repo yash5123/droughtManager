@@ -46,7 +46,7 @@ const STATUS_CONFIG = {
   },
 };
 
-const INDIA_CENTER = [22.8, 80.0];
+const INDIA_CENTER = [25.0, 80.0]; // Shifted North for JnK visibility
 const INDIA_BOUNDS = [
   [6.75, 68.1], 
   [35.5, 97.4] 
@@ -280,7 +280,7 @@ export default function TankerManagement() {
         <KPICard label="Volumetric Relief" value={`${(stats.volume/1000).toFixed(0)}k`} icon={Droplets} color="var(--accent-blue)" trend="Cumulative" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', minHeight: '480px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', height: '480px' }}>
         {/* Left Panel: Detailed Telemetry */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', border: 'var(--glass-border)', padding: '24px', position: 'relative' }}>
           {selectedId && selectedTanker ? (
@@ -324,21 +324,13 @@ export default function TankerManagement() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {selectedTanker.status === 'Enroute' ? (
                     <>
-                      <div style={{ background: 'var(--accent-blue-tint)', padding: '20px', borderRadius: '20px', border: '1px solid var(--accent-blue)20', flex: 1 }}>
+                      <div style={{ background: 'var(--accent-blue-tint)', padding: '20px', borderRadius: '20px', border: '1px solid var(--accent-blue)20', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                           <Droplets size={16} color="var(--accent-cyan)" />
                           <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>LIVE PAYLOAD</span>
                         </div>
                         <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{formatNumber(selectedTanker.capacityLiters)} L</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{(telemetry[selectedId]?.water || 100).toFixed(0)}% Reservoir</div>
-                      </div>
-                      <div style={{ background: 'var(--risk-severe-tint)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(245, 158, 11, 0.2)', flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                          <Zap size={16} color="var(--accent-amber)" />
-                          <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>REAL-TIME TELEMETRY</span>
-                        </div>
-                        <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(1)} km/h</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>ETA: 24m | Transit Active</div>
                       </div>
                     </>
                   ) : (

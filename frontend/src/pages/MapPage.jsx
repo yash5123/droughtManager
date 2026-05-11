@@ -11,7 +11,7 @@ import { getRiskLevel, RISK_LEVELS } from '../utils/riskLevels.js';
 import { formatNumber } from '../utils/formatters.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-const INDIA_CENTER = [22.5, 78.5];
+const INDIA_CENTER = [25.0, 78.5]; // Shifted North to ensure JnK is visible under tabs
 const OSM_TILES = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
 
 function MapUpdater({ theme }) {
@@ -155,7 +155,7 @@ export default function MapPage() {
           doubleClickZoom={true} 
           dragging={true} 
           attributionControl={false} 
-          style={{ height: '100%', width: '100%', background: 'transparent' }}
+          style={{ height: '100%', width: '100%', background: 'transparent', marginTop: '16px' }}
         >
           <MapUpdater theme={theme} />
           <TileLayer url={OSM_TILES} noWrap={true} />
