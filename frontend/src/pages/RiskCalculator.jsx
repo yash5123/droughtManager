@@ -134,73 +134,93 @@ export default function RiskCalculator() {
         
         {/* Main Audit List */}
         <div className="glass-card" style={{ flex: 1, padding: '0', overflow: 'hidden', minHeight: '700px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '24px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px', gap: '4px' }}>
-              {['All', 'Extreme', 'Severe', 'Normal'].map(label => (
+          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(255,255,255,0.01)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+              <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', gap: '4px' }}>
+                  {['All', 'Extreme', 'Severe', 'Normal'].map(label => (
+                    <button 
+                      key={label}
+                      onClick={() => setRiskFilter(label)}
+                      style={{ 
+                        padding: '10px 18px', 
+                        borderRadius: '10px', 
+                        border: 'none', 
+                        background: riskFilter === label ? 'var(--accent-blue)' : 'transparent',
+                        color: riskFilter === label ? '#fff' : 'var(--text-secondary)',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        minWidth: '90px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '4px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span className="caption-text" style={{ color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 800 }}>SHOW</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {['10', '25', 'All'].map(limit => (
+                      <button 
+                        key={limit}
+                        onClick={() => setLimitFilter(limit)}
+                        style={{ 
+                          padding: '6px 12px', 
+                          borderRadius: '8px', 
+                          border: 'none', 
+                          background: limitFilter === limit ? 'rgba(255,255,255,0.1)' : 'transparent',
+                          color: limitFilter === limit ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {limit}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', flexGrow: 1, maxWidth: '500px' }}>
+                <div style={{ position: 'relative', flexGrow: 1 }}>
+                  <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Search by district or state..." 
+                    className="glass-input"
+                    style={{ paddingLeft: '48px', width: '100%', height: '48px', fontSize: '14px', background: 'rgba(0,0,0,0.2)' }}
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
                 <button 
-                  key={label}
-                  onClick={() => setRiskFilter(label)}
+                  onClick={toggleSort}
                   style={{ 
-                    padding: '8px 16px', 
-                    borderRadius: '8px', 
-                    border: 'none', 
-                    background: riskFilter === label ? 'var(--accent-blue)' : 'transparent',
-                    color: riskFilter === label ? '#fff' : 'var(--text-secondary)',
-                    fontSize: '12px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    cursor: 'pointer', 
+                    padding: '0 20px', 
+                    borderRadius: '12px', 
+                    background: 'rgba(255,255,255,0.03)', 
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    color: 'var(--text-secondary)',
                     fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    fontSize: '12px'
                   }}
                 >
-                  {label.toUpperCase()}
+                  <Filter size={16} color="var(--accent-blue)" style={{ transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
+                  {sortOrder === 'desc' ? 'HIGHEST RISK' : 'LOWEST RISK'}
                 </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span className="caption-text" style={{ color: 'var(--text-tertiary)' }}>SHOW:</span>
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px', gap: '4px' }}>
-                {['10', '25', 'All'].map(limit => (
-                  <button 
-                    key={limit}
-                    onClick={() => setLimitFilter(limit)}
-                    style={{ 
-                      padding: '8px 12px', 
-                      borderRadius: '8px', 
-                      border: 'none', 
-                      background: limitFilter === limit ? 'rgba(255,255,255,0.1)' : 'transparent',
-                      color: limitFilter === limit ? '#fff' : 'var(--text-secondary)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {limit}
-                  </button>
-                ))}
               </div>
-            </div>
-
-            <div style={{ position: 'relative', flexGrow: 1, maxWidth: '300px' }}>
-              <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} size={16} />
-              <input 
-                type="text" 
-                placeholder="Search districts..." 
-                className="glass-input"
-                style={{ paddingLeft: '40px', width: '100%' }}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            <div 
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}
-              onClick={toggleSort}
-            >
-              <Filter size={16} color="var(--accent-blue)" style={{ transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
-              <span className="caption-text" style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>
-                {sortOrder === 'desc' ? 'HIGHEST' : 'LOWEST'}
-              </span>
             </div>
           </div>
 
@@ -281,17 +301,26 @@ export default function RiskCalculator() {
                   <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(selectedVillage.riskScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
-                  <h4 className="card-label" style={{ color: 'var(--text-tertiary)' }}>Logic Contribution</h4>
-                  <ContributionRow label="RDI (Rainfall Deficit)" score={selectedVillage.metricsSnapshot?.rdiScore ?? selectedVillage.rainfallDeficit} weight={activeWeights.rdi} color="var(--accent-blue)" />
-                  <ContributionRow label="CDD (Dry Streak)" score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} weight={activeWeights.cdd} color="var(--accent-amber)" />
-                  <ContributionRow label="SMA (Soil Anomaly)" score={selectedVillage.metricsSnapshot?.smaScore ?? selectedVillage.soilMoistureDepletion} weight={activeWeights.sma} color="var(--accent-cyan)" />
-                  <ContributionRow label="PPA (Pop Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? selectedVillage.populationDemandGap} weight={activeWeights.ppa} color="#8b5cf6" />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
-                    <span className="caption-text">Trend Adjustment (TAM)</span>
-                    <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                      {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot?.tamAdjustment || 0} pts
-                    </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '32px' }}>
+                  <h4 className="card-label" style={{ color: 'var(--text-tertiary)', borderBottom: '1px solid var(--divider)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Logic Pillars</span>
+                    <span style={{ fontSize: '10px', opacity: 0.6 }}>WEIGHTED</span>
+                  </h4>
+                  <ContributionRow label="RDI (Rainfall)" score={selectedVillage.metricsSnapshot?.rdiScore ?? selectedVillage.rainfallDeficit} weight={activeWeights.rdi} color="var(--accent-blue)" />
+                  <ContributionRow label="CDD (Dryness)" score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} weight={activeWeights.cdd} color="var(--accent-amber)" />
+                  <ContributionRow label="SMA (Soil)" score={selectedVillage.metricsSnapshot?.smaScore ?? selectedVillage.soilMoistureDepletion} weight={activeWeights.sma} color="var(--accent-cyan)" />
+                  <ContributionRow label="PPA (Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? selectedVillage.populationDemandGap} weight={activeWeights.ppa} color="#8b5cf6" />
+                  
+                  <div style={{ marginTop: '12px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span className="caption-text" style={{ fontWeight: 700 }}>Trend Adjustment (TAM)</span>
+                      <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 800 }}>
+                        {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot?.tamAdjustment || 0} PTS
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', lineHeight: '1.4' }}>
+                      Based on 7-day risk trajectory acceleration.
+                    </p>
                   </div>
                 </div>
               </div>
