@@ -102,7 +102,12 @@ export default function TankerManagement() {
       const res = await api.get('/tanker?limit=100');
       const data = res.data.data || [];
       setTankers(data);
-      if (data.length > 0 && !selectedId) setSelectedId(data[0]._id);
+      // Auto-select newest if none selected or if count changed
+      if (data.length > 0) {
+        if (!selectedId) {
+          setSelectedId(data[0]._id);
+        }
+      }
     } catch (err) { 
       addToast('Logistics sync failed', 'error'); 
     } finally { 
@@ -160,9 +165,7 @@ export default function TankerManagement() {
       .filter(t => {
         const matchesSearch = t.village.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             (t.tankerNumber && t.tankerNumber.toLowerCase().includes(searchQuery.toLowerCase()));
-        const matchesTab = tab === 'active' ? t.status !== 'Delivered' : 
-                          tab === 'history' ? t.status === 'Delivered' : true;
-        return matchesSearch && matchesTab;
+        return matchesSearch;
       })
       .sort((a, b) => new Date(b.dispatchDate) - new Date(a.dispatchDate));
   }, [tankers, searchQuery, tab]);
@@ -206,7 +209,7 @@ export default function TankerManagement() {
     
     setSubmitting(true);
     try {
-      await api.post('/tanker', { 
+      const res = await api.post('/tanker', { 
         ...form, 
         tankerNumber: form.tankerNumber.toUpperCase(),
         dispatchDate: new Date().toISOString() 
@@ -214,6 +217,8 @@ export default function TankerManagement() {
       addToast(`Strategic deployment initialized for ${form.village}`, 'success');
       setForm({ village: '', capacityLiters: 12000, driverName: '', driverContact: '', tankerNumber: '', priority: 'Normal' });
       setShowForm(false);
+      // Force selection of the new tanker
+      if (res.data?._id) setSelectedId(res.data._id);
       fetchTankers();
     } catch (err) { 
       addToast(err.response?.data?.errors?.[0]?.msg || 'Deployment aborted', 'error'); 
@@ -246,10 +251,8 @@ export default function TankerManagement() {
     : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '24px' }}>
-      
-      {/* Dynamic Command Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px', background: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <div className="page-header" style={{ marginBottom: 0 }}>
           <div className="header-icon-container">
             <Truck size={32} />
@@ -268,153 +271,121 @@ export default function TankerManagement() {
             <Zap size={18} /> INITIALIZE DEPLOYMENT
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* KPI Dashboard */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '8px' }}>
         <KPICard label="Tactical Fleet" value={stats.total} icon={Truck} color="var(--accent-blue)" trend="+2 active" />
         <KPICard label="Live Missions" value={stats.active} icon={Activity} color="var(--accent-cyan)" trend="Real-time" />
-        <KPICard label="Payloads Delivered" value={stats.delivered} icon={ShieldCheck} color="var(--accent-green)" trend="+14% MoM" />
-        <KPICard label="Volumetric Relief" value={`${(stats.volume / 1000).toFixed(1)}k`} unit="Liters" icon={Droplets} color="#8b5cf6" trend="Cumulative" />
+        <KPICard label="Payloads Delivered" value={stats.delivered} icon={CheckCircle} color="var(--accent-green)" trend="+14% MoM" />
+        <KPICard label="Volumetric Relief" value={`${(stats.volume/1000).toFixed(0)}k`} icon={Droplets} color="var(--accent-blue)" trend="Cumulative" />
       </div>
 
-      {/* Tactical Row: Telemetry & Intelligence Feed */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', minHeight: '600px' }}>
-        {/* Left: Detailed Mission Telemetry */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {selectedTanker ? (
-            <div className="glass-card" style={{ padding: '32px', border: 'var(--glass-border)', background: 'var(--glass-bg-bright)', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-blue)30', boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)' }}>
-                    <Truck size={32} color="var(--accent-blue)" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', minHeight: '480px' }}>
+        {/* Left Panel: Detailed Telemetry */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', border: 'var(--glass-border)', padding: '24px', position: 'relative' }}>
+          {selectedId && selectedTanker ? (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'var(--nav-hover-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--divider)' }}>
+                    <Truck size={24} color="var(--accent-blue)" />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-1px' }}>{selectedTanker.tankerNumber || 'TNK-UNIT-01'}</h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>Mission ID: {selectedId.slice(-8).toUpperCase()}</p>
+                    <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{selectedTanker.tankerNumber}</h2>
+                    <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Mission ID: {selectedTanker._id.slice(-8).toUpperCase()}</p>
                   </div>
                 </div>
-                <div className="glass-pill" style={{ background: STATUS_CONFIG[selectedTanker.status]?.bg, color: STATUS_CONFIG[selectedTanker.status]?.text, fontWeight: 900, padding: '10px 24px', fontSize: '12px', border: '1px solid currentColor', borderRadius: '16px' }}>
-                  {selectedTanker.status.toUpperCase()}
+                <div style={{ padding: '6px 12px', borderRadius: '10px', background: selectedTanker.status === 'Delivered' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)', color: selectedTanker.status === 'Delivered' ? 'var(--accent-green)' : 'var(--accent-blue)', fontSize: '10px', fontWeight: 900, border: `1px solid ${selectedTanker.status === 'Delivered' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`, textTransform: 'uppercase' }}>
+                  {selectedTanker.status}
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '24px', borderRadius: '24px', border: '1px solid var(--divider)', flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                      <ShieldCheck size={18} color="var(--accent-blue)" />
-                      <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>OPERATOR COMMAND</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <ShieldCheck size={16} color="var(--accent-blue)" />
+                      <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>OPERATOR COMMAND</span>
                     </div>
-                    <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>{selectedTanker.driverName}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Activity size={12} /> {selectedTanker.driverContact}
-                    </div>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedTanker.driverName}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{selectedTanker.driverContact}</div>
                   </div>
 
-                  <div style={{ background: 'var(--nav-active-bg)', padding: '24px', borderRadius: '24px', border: '1px dashed var(--accent-blue)40' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                      <MapPin size={18} color="var(--accent-blue)" />
-                      <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>TARGET DESTINATION</span>
+                  <div style={{ background: 'var(--nav-active-bg)', padding: '20px', borderRadius: '20px', border: '1px dashed var(--accent-blue)40' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <MapPin size={16} color="var(--accent-blue)" />
+                      <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TARGET DESTINATION</span>
                     </div>
-                    <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>{selectedTanker.village}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--accent-blue)', fontWeight: 800 }}>PRIORITY: {selectedTanker.priority?.toUpperCase()}</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedTanker.village}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--accent-blue)', fontWeight: 800 }}>PRIORITY: {selectedTanker.priority?.toUpperCase()}</div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {selectedTanker.status === 'Enroute' ? (
                     <>
-                      <div style={{ background: 'rgba(59, 130, 246, 0.05)', padding: '24px', borderRadius: '24px', border: '1px solid var(--accent-blue)20', flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                          <Droplets size={18} color="var(--accent-cyan)" />
-                          <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>LIVE PAYLOAD</span>
+                      <div style={{ background: 'rgba(59, 130, 246, 0.04)', padding: '20px', borderRadius: '20px', border: '1px solid var(--accent-blue)20', flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                          <Droplets size={16} color="var(--accent-cyan)" />
+                          <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>LIVE PAYLOAD</span>
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>{formatNumber(selectedTanker.capacityLiters)} L</div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{(telemetry[selectedId]?.water || 100).toFixed(0)}% Reservoir Capacity</div>
+                        <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{formatNumber(selectedTanker.capacityLiters)} L</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{(telemetry[selectedId]?.water || 100).toFixed(0)}% Reservoir</div>
                       </div>
-                      <div style={{ background: 'rgba(245, 158, 11, 0.05)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(245, 158, 11, 0.2)', flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                          <Zap size={18} color="var(--accent-amber)" />
-                          <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>REAL-TIME TELEMETRY</span>
+                      <div style={{ background: 'rgba(245, 158, 11, 0.04)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(245, 158, 11, 0.2)', flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                          <Zap size={16} color="var(--accent-amber)" />
+                          <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>REAL-TIME TELEMETRY</span>
                         </div>
-                        <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(1)} km/h</div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>ETA: 24m</div>
+                        <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(1)} km/h</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>ETA: 24m | Transit Active</div>
                       </div>
                     </>
                   ) : (
-                    <div style={{ background: 'var(--nav-hover-bg)', borderRadius: '24px', border: '1px dashed var(--divider)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+                    <div style={{ background: 'var(--nav-hover-bg)', borderRadius: '20px', border: '1px dashed var(--divider)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
                       <div>
-                        <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', opacity: 0.5 }}>
-                          <Activity size={32} />
+                        <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', opacity: 0.5 }}>
+                          <Activity size={24} />
                         </div>
-                        <h5 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                        <h5 style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '4px' }}>
                           {selectedTanker.status === 'Pending' ? 'MISSION STANDBY' : 'MISSION COMPLETED'}
                         </h5>
-                        <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', maxWidth: '200px' }}>
-                          {selectedTanker.status === 'Pending' ? 'Awaiting transit authorization' : 'Deployment cycle successfully finalized'}
+                        <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', maxWidth: '160px', margin: '0 auto' }}>
+                          {selectedTanker.status === 'Pending' ? 'Awaiting authorization' : 'Cycle finalized'}
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
+
+              {selectedTanker.status !== 'Delivered' && (
+                <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+                  {selectedTanker.status === 'Pending' && (
+                    <button onClick={() => updateStatus(selectedTanker._id, 'Enroute')} className="primary-btn" style={{ flex: 1, height: '44px', fontSize: '12px', fontWeight: 800 }}>INITIALIZE TRANSIT</button>
+                  )}
+                  {selectedTanker.status === 'Enroute' && (
+                    <button onClick={() => updateStatus(selectedTanker._id, 'Delivered')} className="primary-btn" style={{ flex: 1, height: '44px', fontSize: '12px', fontWeight: 800, background: 'var(--accent-green)' }}>CONFIRM DELIVERY</button>
+                  )}
+                  <button onClick={() => setDeleteId(selectedTanker._id)} className="glass-btn" style={{ width: '44px', height: '44px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-red)' }}>
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="glass-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px', textAlign: 'center', border: '1px dashed var(--divider)' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '30px', background: 'var(--nav-hover-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Navigation size={40} style={{ opacity: 0.2 }} />
-              </div>
-              <h4 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '12px' }}>Awaiting Node Selection</h4>
-              <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', maxWidth: '300px', lineHeight: '1.6' }}>Select a mission from the deployment feed to access real-time telemetry and command overrides.</p>
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', opacity: 0.5 }}>
+              <Navigation size={48} style={{ marginBottom: '16px', color: 'var(--text-tertiary)' }} />
+              <h4 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-secondary)' }}>Awaiting Selection</h4>
+              <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', maxWidth: '240px' }}>Select a mission from the intelligence feed to view live telemetry.</p>
             </div>
           )}
         </div>
 
-        {/* Right Panel: Intelligence Feed (Scrollable) */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '600px', border: 'var(--glass-border)', overflow: 'hidden' }}>
-          <div style={{ padding: '24px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.02)' }}>
+        {/* Right Panel: Intelligence Feed (Full List) */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '480px', border: 'var(--glass-border)', overflow: 'hidden' }}>
+          <div style={{ padding: '20px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.01)' }}>
             <div>
-              <h3 className="section-header" style={{ marginBottom: '4px' }}>Deployment Feed</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Tactical monitoring: {filteredTankers.length} nodes</p>
-            </div>
-            <div className="glass-pill" style={{ padding: '4px', background: 'rgba(255,255,255,0.03)', display: 'flex', gap: '4px' }}>
-              {['active', 'history'].map(l => (
-                <button key={l} onClick={() => setTab(l)} style={{ padding: '8px 16px', border: 'none', background: tab === l ? 'var(--nav-active-bg)' : 'transparent', color: tab === l ? 'var(--accent-blue)' : 'var(--text-tertiary)', borderRadius: '10px', cursor: 'pointer', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', transition: 'all 0.2s' }}>{l}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* Precision Search Overlay */}
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--divider)', background: 'rgba(255,255,255,0.01)' }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-              <input 
-                type="text" 
-                placeholder="Search deployment logs..." 
-                className="glass-input" 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{ width: '100%', paddingLeft: '44px', height: '44px', fontSize: '13px', borderRadius: '14px', background: 'rgba(0,0,0,0.2)' }}
-              />
-            </div>
-          </div>
-
-          <div className="hud-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', scrollBehavior: 'smooth' }}>
-            {filteredTankers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 40px' }}>
-                <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'var(--nav-hover-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px dashed var(--divider)' }}>
-                  <Truck size={32} style={{ opacity: 0.2 }} />
-                </div>
-                <h4 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '8px' }}>NO ACTIVE RECORDS</h4>
-                <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', maxWidth: '200px', margin: '0 auto' }}>Deploy a new unit to initiate tactical tracking.</p>
-              </div>
-            ) : (
-              filteredTankers.map(t => {
-                const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
-                const Icon = config.icon;
-                const isSelected = selectedId === t._id;
-                
                 return (
                   <div 
                     key={t._id} 
