@@ -360,82 +360,101 @@ export default function TankerManagement() {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {filteredTankers.map(t => {
-              const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
-              const Icon = config.icon;
-              const isSelected = selectedId === t._id;
-              
-              return (
-                <div 
-                  key={t._id} 
-                  onClick={() => setSelectedId(t._id)}
-                  className={`tactical-feed-item ${isSelected ? 'glow-blue' : ''}`}
-                  style={{ 
-                    padding: '20px', borderRadius: '20px', background: isSelected ? 'var(--nav-active-bg)' : 'rgba(255,255,255,0.02)', 
-                    border: '1px solid', borderColor: isSelected ? 'var(--accent-blue)40' : 'var(--divider)',
-                    cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative'
-                  }}
+            {filteredTankers.length === 0 ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '30px', background: 'var(--nav-hover-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', border: '1px solid var(--divider)' }}>
+                  <Truck size={40} style={{ opacity: 0.2 }} />
+                </div>
+                <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '8px' }}>No Active Deployments</h4>
+                <p style={{ fontSize: '13px', maxWidth: '280px', lineHeight: '1.6', marginBottom: '24px' }}>
+                  The tactical fleet is currently on standby. Initialize a strategic deployment to start tracking live missions.
+                </p>
+                <button 
+                  onClick={() => setShowForm(true)}
+                  className="glass-btn" 
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderColor: 'var(--accent-blue)40', color: 'var(--accent-blue)' }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: config.text, border: `1px solid ${config.text}20` }}>
-                        <Icon size={20} />
-                      </div>
-                      <div>
-                        <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{t.village}</h4>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase' }}>{t.tankerNumber || 'Vehicle Unassigned'}</span>
-                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--divider)' }} />
-                          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700 }}>{formatNumber(t.capacityLiters)}L</span>
+                  <Plus size={18} /> NEW MISSION
+                </button>
+              </div>
+            ) : (
+              filteredTankers.map(t => {
+                const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
+                const Icon = config.icon;
+                const isSelected = selectedId === t._id;
+                
+                return (
+                  <div 
+                    key={t._id} 
+                    onClick={() => setSelectedId(t._id)}
+                    className={`tactical-feed-item ${isSelected ? 'glow-blue' : ''}`}
+                    style={{ 
+                      padding: '20px', borderRadius: '20px', background: isSelected ? 'var(--nav-active-bg)' : 'rgba(255,255,255,0.02)', 
+                      border: '1px solid', borderColor: isSelected ? 'var(--accent-blue)40' : 'var(--divider)',
+                      cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: config.text, border: `1px solid ${config.text}20` }}>
+                          <Icon size={20} />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{t.village}</h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                            <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700, textTransform: 'uppercase' }}>{t.tankerNumber || 'Vehicle Unassigned'}</span>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--divider)' }} />
+                            <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700 }}>{formatNumber(t.capacityLiters)}L</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '12px', alignItems: 'center' }}>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 800, color: config.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{config.label}</span>
-                        <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatDate(t.dispatchDate)}</p>
-                      </div>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setDeleteId(t._id); }}
-                        className="glass-btn"
-                        style={{ padding: '8px', borderRadius: '10px', color: 'var(--accent-red)', borderColor: 'rgba(239, 68, 68, 0.1)' }}
-                        title="Delete Record"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Status Progress Bar */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <div className="status-bar-bg">
-                      <div className="status-bar-fill" style={{ 
-                        width: t.status === 'Delivered' ? '100%' : t.status === 'Enroute' ? '65%' : '15%',
-                        background: config.text,
-                        boxShadow: `0 0 10px ${config.text}`
-                      }} />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                        <Zap size={12} color="var(--accent-blue)" /> High Priority
+                      <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: config.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{config.label}</span>
+                          <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatDate(t.dispatchDate)}</p>
+                        </div>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setDeleteId(t._id); }}
+                          className="glass-btn"
+                          style={{ padding: '8px', borderRadius: '10px', color: 'var(--accent-red)', borderColor: 'rgba(239, 68, 68, 0.1)' }}
+                          title="Delete Record"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      {t.status === 'Pending' && (
-                        <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, 'Enroute'); }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--accent-blue)50', background: 'transparent', color: 'var(--accent-blue)', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>INITIATE TRANSIT</button>
-                      )}
-                      {t.status === 'Enroute' && (
-                        <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, 'Delivered'); }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--accent-green)50', background: 'transparent', color: 'var(--accent-green)', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>CONFIRM DELIVERY</button>
-                      )}
+
+                    {/* Status Progress Bar */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <div className="status-bar-bg">
+                        <div className="status-bar-fill" style={{ 
+                          width: t.status === 'Delivered' ? '100%' : t.status === 'Enroute' ? '65%' : '15%',
+                          background: config.text,
+                          boxShadow: `0 0 10px ${config.text}`
+                        }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          <Zap size={12} color="var(--accent-blue)" /> High Priority
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {t.status === 'Pending' && (
+                          <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, 'Enroute'); }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--accent-blue)50', background: 'transparent', color: 'var(--accent-blue)', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>INITIATE TRANSIT</button>
+                        )}
+                        {t.status === 'Enroute' && (
+                          <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, 'Delivered'); }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--accent-green)50', background: 'transparent', color: 'var(--accent-green)', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>CONFIRM DELIVERY</button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
