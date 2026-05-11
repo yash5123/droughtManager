@@ -345,53 +345,6 @@ export default function RiskCalculator() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '32px' }}>
-                  <h4 className="card-label" style={{ color: 'var(--text-tertiary)', borderBottom: '1px solid var(--divider)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Logic Pillars</span>
-                    <span style={{ fontSize: '10px', opacity: 0.6 }}>WEIGHTED</span>
-                  </h4>
-
-                  <ContributionRow 
-                    label="RDI (Rainfall)" 
-                    score={detailData?.liveAudit?.rdiScore ?? selectedVillage.metricsSnapshot?.rdiScore ?? (selectedVillage.rainfallDeficit || 0)} 
-                    weight={activeWeights.rdi} 
-                    color="var(--accent-blue)" 
-                  />
-
-                  <ContributionRow 
-                    label="CDD (Dryness)" 
-                    score={detailData?.liveAudit?.cddScore ?? selectedVillage.metricsSnapshot?.cddScore ?? 0} 
-                    weight={activeWeights.cdd} 
-                    color="var(--accent-amber)" 
-                    subtext={(detailData?.liveAudit?.cddScore || selectedVillage.metricsSnapshot?.maxDryStreak) > 0 ? `${detailData?.liveAudit?.cddScore || selectedVillage.metricsSnapshot?.maxDryStreak} days` : null}
-                  />
-
-                  <ContributionRow 
-                    label="SMA (Soil)" 
-                    score={detailData?.liveAudit?.smaScore ?? selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0)} 
-                    weight={activeWeights.sma} 
-                    color="var(--accent-cyan)" 
-                  />
-
-                  <ContributionRow 
-                    label="PPA (Demand)" 
-                    score={detailData?.liveAudit?.ppaScore ?? selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} 
-                    weight={activeWeights.ppa} 
-                    color="#8b5cf6" 
-                  />
-
-                  <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <TrendingUp size={14} color="var(--accent-green)" />
-                        <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend & Trajectory</span>
-                      </div>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: (detailData?.liveAudit?.tamAdjustment ?? selectedVillage.metricsSnapshot?.tamAdjustment ?? 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                        {(detailData?.liveAudit?.tamAdjustment ?? selectedVillage.metricsSnapshot?.tamAdjustment ?? 0) >= 0 ? '+' : ''}{(detailData?.liveAudit?.tamAdjustment ?? selectedVillage.metricsSnapshot?.tamAdjustment ?? 0).toFixed(1)} PTS
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: '1.4', margin: 0 }}>Adjustment based on 7-day risk velocity and historical seasonality shifts.</p>
-                  </div>
-
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* CALCULATION BREAKDOWN PANEL — uses `audit` which falls back to metricsSnapshot */}
                     <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow-elevated)', position: 'relative', overflow: 'hidden' }}>
@@ -416,42 +369,96 @@ export default function RiskCalculator() {
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                           {/* Step 1: Pillar Scores */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {/* RDI Pillar */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>RDI (Rainfall)</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>RDI (Rainfall)</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--nav-hover-bg)', padding: '1px 6px', borderRadius: '4px' }}>
+                                    RAW: {(audit.rdiScore ?? 0).toFixed(1)} × 35%
+                                  </span>
+                                  {audit.actualPrecipitation != null && (
+                                    <span style={{ fontSize: '10px', color: 'var(--accent-blue)', fontWeight: 700 }}>
+                                      • {audit.actualPrecipitation.toFixed(1)}mm vs {audit.historicalMonthlyAvg?.toFixed(1)}mm avg
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.rdiScore ?? 0).toFixed(1)} × 35%</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.rdiWeighted ?? (audit.rdiScore ?? 0) * 0.35).toFixed(2)} pts</div>
+                                <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--accent-blue)' }}>+{(audit.rdiWeighted ?? (audit.rdiScore ?? 0) * 0.35).toFixed(2)}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block', marginTop: '-2px' }}>PTS</span>
                               </div>
                             </div>
 
+                            {/* CDD Pillar */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>CDD (Dryness)</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>CDD (Dryness)</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--nav-hover-bg)', padding: '1px 6px', borderRadius: '4px' }}>
+                                    RAW: {(audit.cddScore ?? 0).toFixed(1)} × 20%
+                                  </span>
+                                  {audit.maxDryStreak != null && (
+                                    <span style={{ fontSize: '10px', color: 'var(--accent-amber)', fontWeight: 700 }}>
+                                      • {audit.maxDryStreak} day streak
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.cddScore ?? 0).toFixed(1)} × 20%</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.cddWeighted ?? (audit.cddScore ?? 0) * 0.20).toFixed(2)} pts</div>
+                                <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--accent-amber)' }}>+{(audit.cddWeighted ?? (audit.cddScore ?? 0) * 0.20).toFixed(2)}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block', marginTop: '-2px' }}>PTS</span>
                               </div>
                             </div>
 
+                            {/* SMA Pillar */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>SMA (Soil)</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>SMA (Soil)</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  {audit.smaWasMissing ? (
+                                    <span style={{ fontSize: '10px', color: 'var(--accent-amber)', fontStyle: 'italic' }}>Missing satellite data</span>
+                                  ) : (
+                                    <>
+                                      <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--nav-hover-bg)', padding: '1px 6px', borderRadius: '4px' }}>
+                                        RAW: {(audit.smaScore ?? 0).toFixed(1)} × 30%
+                                      </span>
+                                      {audit.soilMoistureFrac != null && (
+                                        <span style={{ fontSize: '10px', color: 'var(--accent-cyan)', fontWeight: 700 }}>
+                                          • {(audit.soilMoistureFrac * 100).toFixed(1)}% moisture
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                               <div style={{ textAlign: 'right' }}>
-                                {audit.smaWasMissing ? (
-                                  <div style={{ fontSize: '10px', color: 'var(--accent-amber)', fontStyle: 'italic' }}>N/A - Missing Data (weights redistributed)</div>
-                                ) : (
-                                  <>
-                                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.smaScore ?? 0).toFixed(1)} × 30%</div>
-                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.smaWeighted ?? (audit.smaScore ?? 0) * 0.30).toFixed(2)} pts</div>
-                                  </>
-                                )}
+                                <span style={{ fontSize: '15px', fontWeight: 800, color: audit.smaWasMissing ? 'var(--text-tertiary)' : 'var(--accent-cyan)' }}>
+                                  {audit.smaWasMissing ? '---' : `+${(audit.smaWeighted ?? (audit.smaScore ?? 0) * 0.30).toFixed(2)}`}
+                                </span>
+                                <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block', marginTop: '-2px' }}>PTS</span>
                               </div>
                             </div>
 
+                            {/* PPA Pillar */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>PPA (Demand)</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>PPA (Demand)</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--nav-hover-bg)', padding: '1px 6px', borderRadius: '4px' }}>
+                                    RAW: {(audit.ppaScore ?? 0).toFixed(1)} × 10%
+                                  </span>
+                                  {audit.demandLitersPerDay != null && (
+                                    <span style={{ fontSize: '10px', color: '#8b5cf6', fontWeight: 700 }}>
+                                      • {(audit.demandLitersPerDay / 1000).toFixed(0)}k L/day gap
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.ppaScore ?? 0).toFixed(1)} × 10%</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.ppaWeighted ?? (audit.ppaScore ?? 0) * 0.10).toFixed(2)} pts</div>
+                                <span style={{ fontSize: '15px', fontWeight: 800, color: '#8b5cf6' }}>+{(audit.ppaWeighted ?? (audit.ppaScore ?? 0) * 0.10).toFixed(2)}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block', marginTop: '-2px' }}>PTS</span>
                               </div>
                             </div>
                           </div>
@@ -601,26 +608,6 @@ function MetricBar({ value, color }) {
   );
 }
 
-function ContributionRow({ label, score, weight, color, subtext }) {
-  const contrib = (score || 0) * (weight / 100);
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '4px 0' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <span className="caption-text" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{label}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--nav-hover-bg)', padding: '1px 6px', borderRadius: '4px' }}>
-            RAW: {(score || 0).toFixed(1)} × {weight}%
-          </span>
-          {subtext && <span style={{ fontSize: '10px', color: color, fontWeight: 700 }}>• {subtext}</span>}
-        </div>
-      </div>
-      <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib.toFixed(2)}</span>
-        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block' }}>PTS</span>
-      </div>
-    </div>
-  );
-}
 
 function StaticWeight({ label, value, color, icon }) {
   return (

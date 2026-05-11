@@ -43,20 +43,10 @@ async function run() {
           { village: village._id },
           { 
             $set: { 
-              'metricsSnapshot.rdiScore': result.metricsSnapshotAdditions.rdiScore,
-              'metricsSnapshot.cddScore': result.metricsSnapshotAdditions.cddScore,
-              'metricsSnapshot.smaScore': result.metricsSnapshotAdditions.smaScore,
-              'metricsSnapshot.ppaScore': result.metricsSnapshotAdditions.ppaScore,
-              'metricsSnapshot.rdiWeighted': result.metricsSnapshotAdditions.rdiWeighted,
-              'metricsSnapshot.cddWeighted': result.metricsSnapshotAdditions.cddWeighted,
-              'metricsSnapshot.smaWeighted': result.metricsSnapshotAdditions.smaWeighted,
-              'metricsSnapshot.ppaWeighted': result.metricsSnapshotAdditions.ppaWeighted,
-              'metricsSnapshot.smaWasMissing': result.metricsSnapshotAdditions.smaWasMissing,
-              'metricsSnapshot.rawComposite': result.metricsSnapshotAdditions.rawComposite,
-              'metricsSnapshot.tamAdjustment': result.metricsSnapshotAdditions.tamAdjustment,
-              'metricsSnapshot.adjustedComposite': result.metricsSnapshotAdditions.adjustedComposite,
-              'metricsSnapshot.compressionBand': result.metricsSnapshotAdditions.compressionBand,
-              'metricsSnapshot.calculatedAt': result.metricsSnapshotAdditions.calculatedAt
+              metricsSnapshot: {
+                ...result.metricsSnapshot,
+                ...result.metricsSnapshotAdditions
+              }
             }
           }
         );

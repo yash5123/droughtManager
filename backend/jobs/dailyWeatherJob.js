@@ -327,26 +327,28 @@ export async function computeRiskScore(village, weather, avgPopulation) {
     soilMoistureDepletion: clamp(Math.round(sma.score), 0, 100),
     populationDemandGap: clamp(Math.round(ppa.score), 0, 100),
     metricsSnapshot: {
-      historicalMonthlyAvg: rdi.historicalAvg30,
-      actualPrecipitation: weather.totalPrecipitation_mm,
-      soilMoistureFrac: weather.avgSoilMoistureFrac,
+      historicalMonthlyAvg: Math.round((rdi.historicalAvg30 || 0) * 10) / 10,
+      actualPrecipitation: Math.round((weather.totalPrecipitation_mm || 0) * 10) / 10,
+      soilMoistureFrac: Math.round((weather.avgSoilMoistureFrac || 0) * 1000) / 1000,
+      historicalSoilMoisture: Math.round((sma.historicalSM || 0) * 1000) / 1000,
       population: village.population || 0,
-      demandLitersPerDay: ppa.dailyDemand,
-      supplyLitersPerDay: ppa.dailySupply
+      demandLitersPerDay: Math.round((ppa.dailyDemand || 0) / 1000) * 1000, // Round to nearest 1k for readability
+      supplyLitersPerDay: Math.round((ppa.dailySupply || 0) / 1000) * 1000,
+      maxDryStreak: cdd.maxStreak || 0
     },
     metricsSnapshotAdditions: {
-      rdiScore:           Math.round(rdi.score * 10) / 10,
-      cddScore:           Math.round(cdd.score * 10) / 10,
-      smaScore:           sma.missing ? null : Math.round(sma.score * 10) / 10,
-      ppaScore:           Math.round(ppa.score * 10) / 10,
+      rdiScore:           Math.round(rdi.score * 100) / 100,
+      cddScore:           Math.round(cdd.score * 100) / 100,
+      smaScore:           sma.missing ? null : Math.round(sma.score * 100) / 100,
+      ppaScore:           Math.round(ppa.score * 100) / 100,
       rdiWeighted:        Math.round(rdiWeighted * 100) / 100,
       cddWeighted:        Math.round(cddWeighted * 100) / 100,
       smaWeighted:        Math.round(smaWeighted * 100) / 100,
       ppaWeighted:        Math.round(ppaWeighted * 100) / 100,
       smaWasMissing:      sma.missing || false,
-      rawComposite:       Math.round(rawComposite * 1000) / 1000,
-      tamAdjustment:      Math.round(tam.adjustment * 1000) / 1000,
-      adjustedComposite:  Math.round(adjustedComposite * 1000) / 1000,
+      rawComposite:       Math.round(rawComposite * 100) / 100,
+      tamAdjustment:      Math.round(tam.adjustment * 100) / 100,
+      adjustedComposite:  Math.round(adjustedComposite * 100) / 100,
       compressionBand:    getCompressionBand(adjustedComposite),
       calculatedAt:       new Date()
     }
