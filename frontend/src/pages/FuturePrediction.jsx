@@ -50,17 +50,8 @@ export default function FuturePrediction() {
 
           if (!precipRaw) return { village: v, chartData: [], summary: null };
           
-          const precipSum = precipRaw.reduce((s, x) => s + (x || 0), 0);
-          // Inject mock if all zeros (future date beyond forecast horizon)
-          const seedBase = (v.name?.charCodeAt(0) || 65) + (v.name?.charCodeAt((v.name?.length || 1) - 1) || 90);
-          const expectedAnnual = v.historicalAvgAnnualRainfall_mm || v.avgAnnualRainfall || 600;
-          const expectedFor16d = expectedAnnual * (16 / 365);
-          
-          const precip = precipSum > 0.1 ? precipRaw : precipRaw.map((_, i) => {
-            const isRainy = (i + seedBase) % 5 === 0 || (i + seedBase) % 8 === 0;
-            return isRainy ? Math.round(seededRandom(seedBase + i) * (expectedFor16d / 2.5) * 10) / 10 : Math.round(seededRandom(seedBase + i * 3) * 0.3 * 10) / 10;
-          });
-          const prob = probRaw.map((p, i) => p > 0 ? p : precip[i] > 0.5 ? Math.round(30 + seededRandom(seedBase + i * 7) * 55) : Math.round(seededRandom(seedBase + i * 5) * 25));
+          const precip = precipRaw || [];
+          const prob = probRaw || [];
           
           const chartData = timeRaw.map((t, i) => ({
             date: t.slice(5),

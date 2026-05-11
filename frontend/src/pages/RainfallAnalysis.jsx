@@ -12,17 +12,7 @@ const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, {
 
 const seededRandom = (seed) => { const x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); };
 
-const injectMockPrecipitation = (precipArray, villageName, expectedAnnual, period) => {
-  if (!precipArray || precipArray.length === 0) return new Array(period).fill(0);
-  const sum = precipArray.reduce((s, v) => s + (v || 0), 0);
-  if (sum > 0.5) return precipArray;
-  const seedBase = (villageName?.charCodeAt(0) || 65) + (villageName?.charCodeAt((villageName?.length || 1) - 1) || 65);
-  const expectedForPeriod = (expectedAnnual || 600) * (period / 365);
-  return precipArray.map((_, i) => {
-    const isRainy = (i + seedBase) % 7 === 0 || (i + seedBase) % 11 === 0;
-    return isRainy ? Math.round(seededRandom(seedBase + i) * (expectedForPeriod / 3) * 10) / 10 : Math.round(seededRandom(seedBase + i * 2) * 0.4 * 10) / 10;
-  });
-};
+// Mock data injection removed to prioritize real server data.
 
 const StatChip = ({ label, value, color = 'var(--text-secondary)', unit = '' }) => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)', flex: 1 }}>
@@ -71,7 +61,7 @@ export default function RainfallAnalysis() {
 
       if (!precipRaw) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
       
-      const precip = injectMockPrecipitation(precipRaw, selectedVillage.name, selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall, period);
+      const precip = precipRaw || [];
       
       const total = precip.reduce((s, val) => s + (val || 0), 0);
       const expected = (selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall || 600) * (period / 365);

@@ -53,13 +53,9 @@ export default function GroundwaterAnalysis() {
 
         if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
         
-        // inject mock if all zeros (future date issue)
-        const smSum = smRaw.reduce((s, v) => s + (v || 0), 0);
-        const sm = smSum > 0 ? smRaw : smRaw.map((_, i) => {
-          const seed = (selectedVillage.name?.charCodeAt(0) || 65) + i;
-          const base = 0.12 + (Math.sin(seed) * 0.06);
-          return Math.max(0.04, Math.min(0.35, base));
-        });
+        if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
+        
+        const sm = smRaw; // Remove mock injection logic
 
         setVillageTrend(timeRaw.map((t, i) => ({
           date: t.slice(5),
