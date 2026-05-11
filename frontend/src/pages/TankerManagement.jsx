@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Truck, Plus, RefreshCw, Download, CheckCircle, Clock, 
   Navigation, MapPin, Activity, X, Loader2, ChevronDown,
-  Droplets, Fuel, Gauge, AlertTriangle, ShieldCheck, 
+  Droplets, Gauge, AlertTriangle, ShieldCheck, 
   ArrowRight, Search, Filter, Layers, Zap, Trash2, AlertCircle
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polyline } from 'react-leaflet';
@@ -130,9 +130,8 @@ export default function TankerManagement() {
         const next = { ...prev };
         tankers.forEach(t => {
           if (t.status === 'Enroute') {
-            const current = next[t._id] || { fuel: 85, water: 100, speed: 45 };
+            const current = next[t._id] || { water: 100, speed: 45 };
             next[t._id] = {
-              fuel: Math.max(0, current.fuel - Math.random() * 0.1),
               water: current.water, 
               speed: 40 + Math.random() * 15
             };
@@ -340,7 +339,7 @@ export default function TankerManagement() {
                           <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>REAL-TIME TELEMETRY</span>
                         </div>
                         <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '8px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(1)} km/h</div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Fuel: {(telemetry[selectedId]?.fuel || 85).toFixed(1)}% | ETA: 24m</div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>ETA: 24m</div>
                       </div>
                     </>
                   ) : (
