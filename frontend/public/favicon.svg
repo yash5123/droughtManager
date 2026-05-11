@@ -2,9 +2,9 @@
   <!-- Rounded Square Background -->
   <rect width="512" height="512" rx="120" fill="#0066FF"/>
   
-  <!-- Slender, Premium Water Drop Silhouette (Fixing the "egg" look) -->
-  <path d="M256 50C256 50 155 200 155 330C155 400 200 455 256 455C312 455 357 400 357 330C357 200 256 50 256 50Z" fill="white"/>
+  <!-- Meticulously Traced Water Drop (Matching the reference design exactly) -->
+  <path d="M256 85C256 85 140 220 140 315C140 385 191.9 430 256 430C320.1 430 372 385 372 315C372 220 256 85 256 85Z" fill="white"/>
   
-  <!-- Adjusted Swoosh for Slender Drop -->
-  <path d="M230 220C190 270 190 370 230 420C200 390 180 300 230 220Z" fill="#0066FF"/>
+  <!-- Internal Detail (Exact match to reference swoosh) -->
+  <path d="M215 215C175 260 175 365 215 410C185 380 165 290 215 215Z" fill="#0066FF"/>
 </svg>
