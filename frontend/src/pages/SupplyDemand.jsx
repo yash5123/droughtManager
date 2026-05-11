@@ -10,6 +10,7 @@ import LoginPrompt from '../components/ui/LoginPrompt.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import { formatNumber } from '../utils/formatters.js';
+import { getRiskLevel } from '../utils/riskLevels.js';
 import api from '../services/api.js';
 
 const TANKER_CAPACITY = 10000;
@@ -65,11 +66,11 @@ export default function SupplyDemand() {
     
     // 1. Risk Filter
     if (riskFilter !== 'All') {
-      list = list.filter(v => v.riskLevel === riskFilter);
+      list = list.filter(v => getRiskLevel(v.riskScore).label === riskFilter);
     }
     
-    // 2. Sort by deficit
-    list.sort((a, b) => b.deficit - a.deficit);
+    // 2. Sort by riskScore descending (matches Overview logic)
+    list.sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0));
     
     // 3. Limit
     if (limit !== 'All') {
@@ -129,7 +130,7 @@ export default function SupplyDemand() {
         </div>
         
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div className="glass-panel" style={{ padding: '6px', borderRadius: '14px', display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--divider)' }}>
+          <div className="glass-panel" style={{ padding: '6px', borderRadius: '14px', display: 'flex', gap: '4px', background: 'var(--glass-bg-bright)', border: '1px solid var(--divider)' }}>
             {[25, 50, 'All'].map(s => (
               <button 
                 key={s}
@@ -139,7 +140,7 @@ export default function SupplyDemand() {
                   background: limit === s ? 'var(--accent-blue)' : 'transparent',
                   color: limit === s ? 'white' : 'var(--text-secondary)',
                   border: 'none', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: limit === s ? '0 4px 14px var(--accent-blue)50' : 'none',
+                  boxShadow: limit === s ? '0 4px 14px var(--accent-blue)40' : 'none',
                   textTransform: 'uppercase', letterSpacing: '0.5px'
                 }}
               >
@@ -151,30 +152,31 @@ export default function SupplyDemand() {
       </div>
 
       {/* Analytics Command Center - Risk Filtering */}
-      <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--divider)' }}>
+      <div style={{ display: 'flex', gap: '10px', padding: '10px', background: 'var(--glass-bg-bright)', borderRadius: '20px', border: '1px solid var(--divider)', boxShadow: 'var(--glass-shadow)' }}>
         {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(cat => (
           <button
             key={cat}
             onClick={() => setRiskFilter(cat)}
             style={{
-              flex: 1, padding: '12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
+              flex: 1, padding: '14px', borderRadius: '14px', fontSize: '11px', fontWeight: 800,
               background: riskFilter === cat ? 'var(--nav-active-bg)' : 'transparent',
               border: '1px solid',
-              borderColor: riskFilter === cat ? 'var(--accent-blue)40' : 'transparent',
-              color: riskFilter === cat ? 'var(--text-primary)' : 'var(--text-tertiary)',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'all 0.2s',
-              letterSpacing: '0.5px'
+              borderColor: riskFilter === cat ? 'var(--accent-blue)30' : 'transparent',
+              color: riskFilter === cat ? 'var(--text-primary)' : 'var(--text-secondary)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              letterSpacing: '1px', textTransform: 'uppercase'
             }}
+            className="hover-glow"
           >
             <div style={{ 
-              width: '10px', height: '10px', borderRadius: '50%', 
+              width: '8px', height: '8px', borderRadius: '50%', 
               background: cat === 'All' ? 'var(--accent-blue)' : 
                           cat === 'Extreme' ? 'var(--accent-red)' :
                           cat === 'Severe' ? 'var(--accent-amber)' :
                           cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)',
-              boxShadow: riskFilter === cat ? `0 0 10px ${cat === 'All' ? 'var(--accent-blue)' : cat === 'Extreme' ? 'var(--accent-red)' : cat === 'Severe' ? 'var(--accent-amber)' : cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)'}60` : 'none'
+              boxShadow: `0 0 10px ${cat === 'All' ? 'var(--accent-blue)' : cat === 'Extreme' ? 'var(--accent-red)' : cat === 'Severe' ? 'var(--accent-amber)' : cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)'}80`
             }} />
-            {cat.toUpperCase()}
+            {cat}
           </button>
         ))}
       </div>
@@ -191,18 +193,18 @@ export default function SupplyDemand() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }}>
         
         {/* Differential Map/Chart */}
-        <div className="glass-card" style={{ padding: '32px', border: 'var(--glass-border)' }}>
+        <div className="glass-card" style={{ padding: '32px', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(59, 130, 246, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--accent-blue-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-blue)20' }}>
                 <BarChart3 size={24} color="var(--accent-blue)" />
               </div>
               <div>
-                <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '20px', fontWeight: 800 }}>Supply-Demand Equilibrium</h3>
+                <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>Supply-Demand Equilibrium</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>Volumetric differential across top priority zones</p>
               </div>
             </div>
-            <div className="glass-pill" style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700, color: 'var(--accent-blue)', background: 'var(--accent-blue-tint)' }}>
+            <div className="glass-pill" style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 800, color: 'var(--accent-blue)', background: 'var(--accent-blue-tint)', border: '1px solid var(--accent-blue)20' }}>
               UNIT: KILOLITERS / DAY
             </div>
           </div>
@@ -214,31 +216,32 @@ export default function SupplyDemand() {
                   <defs>
                     <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--accent-red)" stopOpacity={1}/>
-                      <stop offset="95%" stopColor="var(--accent-red)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--accent-red)" stopOpacity={0.2}/>
                     </linearGradient>
                     <linearGradient id="colorSupply" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={1}/>
-                      <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0.2}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--divider)" opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 12, fontWeight: 600 }} dy={15} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 12, fontWeight: 600 }} />
+                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--divider)" opacity={0.5} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 700 }} dy={15} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 700 }} />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(255,255,255,0.04)', radius: 8 }}
+                    cursor={{ fill: 'var(--nav-hover-bg)', radius: 10 }}
                     contentStyle={{ 
                       background: 'var(--glass-bg-bright)', 
                       border: 'var(--glass-border)', 
                       borderRadius: '16px', 
-                      backdropFilter: 'blur(20px)',
+                      backdropFilter: 'blur(24px)',
                       boxShadow: 'var(--glass-shadow-elevated)',
-                      padding: '16px'
+                      padding: '16px',
+                      color: 'var(--text-primary)'
                     }}
-                    itemStyle={{ fontSize: '13px', fontWeight: 800, padding: '4px 0' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 800, padding: '4px 0' }}
                   />
-                  <Legend verticalAlign="top" align="right" iconType="rect" iconSize={12} wrapperStyle={{ paddingBottom: '40px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px' }} />
-                  <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[8, 8, 0, 0]} barSize={28} />
-                  <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[8, 8, 0, 0]} barSize={28} />
+                  <Legend verticalAlign="top" align="right" iconType="rect" iconSize={10} wrapperStyle={{ paddingBottom: '40px', fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.5px' }} />
+                  <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[6, 6, 0, 0]} barSize={24} />
+                  <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[6, 6, 0, 0]} barSize={24} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -246,10 +249,10 @@ export default function SupplyDemand() {
         </div>
 
         {/* Priority Action List */}
-        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '560px', border: 'var(--glass-border)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glass-bg)' }}>
+        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '560px', border: 'var(--glass-border)', overflow: 'hidden', boxShadow: 'var(--glass-shadow)' }}>
+          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glass-bg-bright)' }}>
             <div>
-              <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 800 }}>Priority Hotspots</h3>
+              <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Priority Hotspots</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>Critical nodes requiring immediate dispatch</p>
             </div>
             <div style={{ textAlign: 'right', background: 'var(--accent-blue-tint)', padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--accent-blue)20' }}>
@@ -258,23 +261,24 @@ export default function SupplyDemand() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--glass-bg)' }}>
             {filteredData.length === 0 ? <EmptyState /> : filteredData.map((v, i) => (
               <div key={v._id || i} style={{ 
-                padding: '24px', borderRadius: '20px', background: 'var(--glass-bg)', border: 'var(--glass-border)',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative', overflow: 'hidden'
+                padding: '24px', borderRadius: '20px', background: 'var(--glass-bg-bright)', border: 'var(--glass-border)',
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative', overflow: 'hidden',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
               }} className="list-item hover-glow">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', gap: '16px' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--text-secondary)', border: 'var(--glass-border)' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--accent-blue)', border: 'var(--glass-border)' }}>
                       {i + 1}
                     </div>
                     <div>
                       <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.name}</h4>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
-                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>{v.state}</span>
-                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-tertiary)', opacity: 0.5 }} />
-                        <span style={{ fontSize: '13px', color: 'var(--text-tertiary)', fontWeight: 500 }}>{formatNumber(v.population)} pop</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{v.state}</span>
+                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--divider)', opacity: 0.5 }} />
+                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500 }}>{formatNumber(v.population)} pop</span>
                       </div>
                     </div>
                   </div>
@@ -283,34 +287,34 @@ export default function SupplyDemand() {
 
                 <div style={{ background: 'var(--nav-active-bg)', padding: '20px', borderRadius: '16px', border: 'var(--glass-border)', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Supply Coverage</span>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Supply Coverage</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '18px', fontWeight: 900, color: v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)' }}>
                         {Math.round(v.coverage)}%
                       </span>
                     </div>
                   </div>
-                  <div style={{ height: '10px', background: 'var(--glass-bg)', borderRadius: '5px', overflow: 'hidden' }}>
+                  <div style={{ height: '8px', background: 'var(--glass-bg)', borderRadius: '4px', overflow: 'hidden' }}>
                     <div style={{ 
                       width: `${Math.min(100, v.coverage)}%`, height: '100%', 
                       background: v.coverage < 50 ? 'linear-gradient(90deg, var(--accent-red) 0%, #ff6b6b 100%)' : 
                                   v.coverage < 80 ? 'linear-gradient(90deg, var(--accent-amber) 0%, #fbbf24 100%)' : 
                                   'linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%)',
-                      boxShadow: `0 0 20px ${v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)'}60`,
+                      boxShadow: `0 0 15px ${v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)'}40`,
                       transition: 'width 1.5s cubic-bezier(0.16, 1, 0.3, 1)'
                     }} />
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: '28px' }}>
+                  <div style={{ display: 'flex', gap: '24px' }}>
                     <div>
-                      <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>Gap (L/D)</p>
-                      <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{formatIndian(v.deficit)}</p>
+                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Gap (L/D)</p>
+                      <p style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{formatIndian(v.deficit)}</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>Payloads</p>
-                      <p style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.tankersNeeded}</p>
+                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Payloads</p>
+                      <p style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.tankersNeeded}</p>
                     </div>
                   </div>
                   
@@ -319,13 +323,14 @@ export default function SupplyDemand() {
                     disabled={dispatching === v._id}
                     className="primary-btn"
                     style={{ 
-                      padding: '12px 28px', fontSize: '13px', gap: '10px',
-                      background: 'var(--accent-blue)', border: 'none', borderRadius: '14px',
+                      padding: '12px 24px', fontSize: '12px', gap: '10px',
+                      background: 'var(--accent-blue)', border: 'none', borderRadius: '12px',
                       opacity: dispatching === v._id ? 0.7 : 1,
-                      boxShadow: '0 8px 20px -6px var(--accent-blue)'
+                      boxShadow: '0 8px 20px -6px var(--accent-blue)60',
+                      fontWeight: 800, letterSpacing: '0.5px'
                     }}
                   >
-                    {dispatching === v._id ? <Loader2 size={18} className="spinning" /> : <Truck size={18} />}
+                    {dispatching === v._id ? <Loader2 size={16} className="spinning" /> : <Truck size={16} />}
                     {dispatching === v._id ? 'INITIATING...' : 'DEPLOY ASSET'}
                   </button>
                 </div>
@@ -341,34 +346,36 @@ export default function SupplyDemand() {
 function MetricCard({ label, value, icon: Icon, color, subtext, isCount, isAlert }) {
   return (
     <div className="glass-card" style={{ 
-      padding: '28px', position: 'relative', overflow: 'hidden',
+      padding: '24px', position: 'relative', overflow: 'hidden',
       background: isAlert ? 'var(--risk-extreme-tint)' : 'var(--glass-bg)',
-      border: isAlert ? '1px solid var(--accent-red)40' : 'var(--glass-border)',
+      border: isAlert ? `1px solid ${color}40` : 'var(--glass-border)',
+      transition: 'var(--transition-default)'
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', position: 'relative', zIndex: 2 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', position: 'relative', zIndex: 2 }}>
         <div style={{ 
-          width: '44px', height: '44px', borderRadius: '12px', background: `${color}15`,
+          width: '40px', height: '40px', borderRadius: '12px', background: `${color}15`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color,
           border: `1px solid ${color}30`
         }}>
-          <Icon size={22} />
+          <Icon size={20} />
         </div>
       </div>
       
       <div style={{ position: 'relative', zIndex: 2 }}>
-        <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1.2px' }}>{label}</p>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '10px' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '8px' }}>
+          <h2 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
             {isCount ? value : formatIndian(value)}
           </h2>
-          {!isCount && <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>L/D</span>}
+          {!isCount && <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.5px' }}>L/D</span>}
         </div>
-        <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '6px', fontWeight: 500 }}>{subtext}</p>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: 500, opacity: 0.8 }}>{subtext}</p>
       </div>
 
-      <Icon size={140} style={{ 
-        position: 'absolute', right: '-30px', bottom: '-30px', 
-        color, opacity: 0.04, transform: 'rotate(-12deg)' 
+      <Icon size={120} style={{ 
+        position: 'absolute', right: '-20px', bottom: '-20px', 
+        color, opacity: 0.03, transform: 'rotate(-12deg)',
+        pointerEvents: 'none'
       }} />
     </div>
   );

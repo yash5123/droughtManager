@@ -70,6 +70,9 @@
 
   --table-header-bg: #0f172a;
   --table-header-text: #ffffff;
+
+  --glass-bg-bright: rgba(255, 255, 255, 0.08);
+  --accent-blue-tint: rgba(59, 130, 246, 0.15);
 }
 
 /* Light Mode Tokens */
@@ -97,6 +100,9 @@
 
   --table-header-bg: #f8fafc;
   --table-header-text: #1e293b;
+
+  --glass-bg-bright: rgba(255, 255, 255, 0.95);
+  --accent-blue-tint: rgba(59, 130, 246, 0.08);
 }
 
 /* Base Reset & Typography */
