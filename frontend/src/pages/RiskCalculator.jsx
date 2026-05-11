@@ -486,6 +486,7 @@ export default function RiskCalculator() {
                     </div>
                   </div>
                 </div>
+              </div>
 
                 {/* Audit Export */}
                 <div style={{ marginTop: '24px' }}>
