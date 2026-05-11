@@ -348,41 +348,41 @@ export default function RiskCalculator() {
 
                   <ContributionRow 
                     label="RDI (Rainfall)" 
-                    score={selectedVillage.metricsSnapshot?.rdiScore ?? (selectedVillage.rainfallDeficit || 0)} 
+                    score={detailData?.liveAudit?.rdiScore ?? selectedVillage.metricsSnapshot?.rdiScore ?? (selectedVillage.rainfallDeficit || 0)} 
                     weight={activeWeights.rdi} 
                     color="var(--accent-blue)" 
                   />
 
                   <ContributionRow 
                     label="CDD (Dryness)" 
-                    score={selectedVillage.metricsSnapshot?.cddScore ?? 0} 
+                    score={detailData?.liveAudit?.cddScore ?? selectedVillage.metricsSnapshot?.cddScore ?? 0} 
                     weight={activeWeights.cdd} 
                     color="var(--accent-amber)" 
-                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak > 0 ? `${selectedVillage.metricsSnapshot.maxDryStreak} days` : null}
+                    subtext={(detailData?.liveAudit?.cddScore || selectedVillage.metricsSnapshot?.maxDryStreak) > 0 ? `${detailData?.liveAudit?.cddScore || selectedVillage.metricsSnapshot?.maxDryStreak} days` : null}
                   />
 
                   <ContributionRow 
                     label="SMA (Soil)" 
-                    score={selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0)} 
+                    score={detailData?.liveAudit?.smaScore ?? selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0)} 
                     weight={activeWeights.sma} 
                     color="var(--accent-cyan)" 
                   />
 
                   <ContributionRow 
                     label="PPA (Demand)" 
-                    score={selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} 
+                    score={detailData?.liveAudit?.ppaScore ?? selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} 
                     weight={activeWeights.ppa} 
                     color="#8b5cf6" 
                   />
 
-                  <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <TrendingUp size={14} color="var(--accent-green)" />
                         <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend & Trajectory</span>
                       </div>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                        {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{(selectedVillage.metricsSnapshot?.tamAdjustment || 0).toFixed(1)} PTS
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: (detailData?.liveAudit?.tamAdjustment ?? selectedVillage.metricsSnapshot?.tamAdjustment ?? 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                        {(detailData?.liveAudit?.tamAdjustment ?? selectedVillage.metricsSnapshot?.tamAdjustment ?? 0) >= 0 ? '+' : ''}{(detailData?.liveAudit?.tamAdjustment ?? selectedVillage.metricsSnapshot?.tamAdjustment ?? 0).toFixed(1)} PTS
                       </span>
                     </div>
                     <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', lineHeight: '1.4', margin: 0 }}>Adjustment based on 7-day risk velocity and historical seasonality shifts.</p>
@@ -390,8 +390,9 @@ export default function RiskCalculator() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* NEW LIVE AUDIT PANEL */}
-                    <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px' }}>
+                    <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow-elevated)', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent-cyan), transparent)' }} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--divider)', paddingBottom: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Calculator size={16} color="var(--accent-cyan)" />
                           <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '1px', color: 'var(--text-secondary)' }}>LIVE CALCULATION BREAKDOWN</span>
@@ -449,7 +450,7 @@ export default function RiskCalculator() {
                             </div>
                           </div>
 
-                          <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
+                          <div style={{ height: '1px', background: 'var(--divider)', margin: '4px 0' }} />
 
                           {/* Composites */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -469,7 +470,7 @@ export default function RiskCalculator() {
                             </div>
                           </div>
 
-                          <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
+                          <div style={{ height: '1px', background: 'var(--divider)', margin: '4px 0' }} />
 
                           {/* Final Index */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -576,29 +577,29 @@ function FormulaPillar({ icon, title, weight, desc }) {
 function MetricBar({ value, color }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden', minWidth: '60px' }}>
+      <div style={{ flex: 1, height: '4px', background: 'var(--divider)', borderRadius: '2px', overflow: 'hidden', minWidth: '60px' }}>
         <div style={{ width: `${Math.min(100, value || 0)}%`, height: '100%', background: color, borderRadius: '2px' }} />
       </div>
-      <span style={{ fontSize: '11px', fontWeight: 700, width: '35px' }}>{(value || 0).toFixed(1)}</span>
+      <span style={{ fontSize: '11px', fontWeight: 700, width: '35px', color: 'var(--text-secondary)' }}>{(value || 0).toFixed(1)}</span>
     </div>
   );
 }
 
 function ContributionRow({ label, score, weight, color, subtext }) {
-  const contrib = Math.round((score || 0) * (weight / 100) * 10) / 10;
+  const contrib = (score || 0) * (weight / 100);
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '4px 0' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <span className="caption-text" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{label}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'rgba(255,255,255,0.03)', padding: '1px 6px', borderRadius: '4px' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', background: 'var(--nav-hover-bg)', padding: '1px 6px', borderRadius: '4px' }}>
             RAW: {(score || 0).toFixed(1)} × {weight}%
           </span>
           {subtext && <span style={{ fontSize: '10px', color: color, fontWeight: 700 }}>• {subtext}</span>}
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib.toFixed(1)}</span>
+        <span style={{ fontSize: '14px', fontWeight: 700, color }}>+{contrib.toFixed(2)}</span>
         <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', display: 'block' }}>PTS</span>
       </div>
     </div>
@@ -607,7 +608,7 @@ function ContributionRow({ label, score, weight, color, subtext }) {
 
 function StaticWeight({ label, value, color, icon }) {
   return (
-    <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', transition: 'transform 0.2s' }}>
+    <div style={{ padding: '12px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', transition: 'transform 0.2s' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ color }}>{icon}</div>
@@ -615,7 +616,7 @@ function StaticWeight({ label, value, color, icon }) {
         </div>
         <span style={{ fontSize: '13px', fontWeight: 800, color }}>{value}%</span>
       </div>
-      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '6px', background: 'var(--divider)', borderRadius: '3px', overflow: 'hidden' }}>
         <div 
           style={{ 
             width: `${value}%`, 
