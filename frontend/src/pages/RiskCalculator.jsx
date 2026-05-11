@@ -332,13 +332,13 @@ export default function RiskCalculator() {
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', position: 'relative' }}>
                   <div style={{ textAlign: 'center', zIndex: 2 }}>
-                    <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(selectedVillage.riskScore).color }}>
-                      {(selectedVillage.riskScore || 0).toFixed(1)}
+                    <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(auditScore).color }}>
+                      {auditScore.toFixed(1)}
                     </div>
                     <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '2px', color: 'var(--text-tertiary)', marginTop: '8px' }}>DR INDEX</div>
                   </div>
                   {/* Decorative background glow */}
-                  <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(selectedVillage.riskScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
+                  <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(auditScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '32px' }}>
@@ -533,32 +533,6 @@ export default function RiskCalculator() {
                   </div>
                 </div>
 
-                {/* Audit Export */}
-                <div style={{ marginTop: '24px' }}>
-                  <button style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--divider)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                    <Download size={18} /> DOWNLOAD CALCULATION PROOF (PDF)
-                  </button>
-                </div>
-              </div>
-
-              {/* Weights */}
-              <div className="glass-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--accent-blue)15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Calculator size={18} color="var(--accent-blue)" />
-                    </div>
-                    <h3 className="section-header" style={{ fontSize: '16px', margin: 0 }}>Regional Parameters</h3>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <StaticWeight label="Rainfall Intensity" value={activeWeights.rdi} color="var(--accent-blue)" icon={<Droplets size={14} />} />
-                  <StaticWeight label="Dryness Severity" value={activeWeights.cdd} color="var(--accent-amber)" icon={<TrendingUp size={14} />} />
-                  <StaticWeight label="Groundwater Health" value={activeWeights.sma} color="var(--accent-cyan)" icon={<Waves size={14} />} />
-                  <StaticWeight label="Socio-Economic Demand" value={activeWeights.ppa} color="#8b5cf6" icon={<Users size={14} />} />
-                </div>
-              </div>
-            </>
           ) : (
             <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
               <Search size={48} color="var(--text-tertiary)" style={{ marginBottom: '16px', opacity: 0.5 }} />
