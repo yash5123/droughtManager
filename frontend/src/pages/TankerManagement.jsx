@@ -582,27 +582,6 @@ export default function TankerManagement() {
             <div style={{ width: '100%', height: '1px', background: 'var(--accent-red)', position: 'absolute', top: '0', left: 0, animation: 'scan 4s linear infinite' }} />
           </div>
           
-          <div className="glass-card" style={{ 
-            width: '440px', 
-            padding: '40px', 
-            textAlign: 'center', 
-            border: '1px solid rgba(239, 68, 68, 0.3)', 
-            boxShadow: '0 40px 100px -20px rgba(239, 68, 68, 0.2), inset 0 0 40px rgba(239, 68, 68, 0.05)', 
-            background: 'rgba(15, 23, 42, 0.95)',
-            borderRadius: '32px'
-          }}>
-            <div style={{ 
-              width: '80px', 
-              height: '80px', 
-              borderRadius: '24px', 
-              background: 'rgba(239, 68, 68, 0.15)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              margin: '0 auto 24px', 
-              color: '#ef4444',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              position: 'relative'
           <div className="glass-card" style={{ width: '480px', padding: '40px', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow-elevated)', textAlign: 'center', position: 'relative', background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '24px', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
               <AlertTriangle size={32} color="var(--accent-red)" />
