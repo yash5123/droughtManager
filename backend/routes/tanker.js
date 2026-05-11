@@ -65,4 +65,17 @@ router.post('/', [
   }
 });
 
+// Delete tanker assignment
+router.delete('/:id', async (req, res) => {
+  try {
+    const tanker = await Tanker.findByIdAndDelete(req.params.id);
+    if (!tanker) {
+      return res.status(404).json({ error: 'Tanker mission not found' });
+    }
+    res.json({ message: 'Tanker mission deleted successfully', id: req.params.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

@@ -3,7 +3,7 @@ import {
   Truck, Plus, RefreshCw, Download, CheckCircle, Clock, 
   Navigation, MapPin, Activity, X, Loader2, ChevronDown,
   Droplets, Fuel, Gauge, AlertTriangle, ShieldCheck, 
-  ArrowRight, Search, Filter, Layers, Zap
+  ArrowRight, Search, Filter, Layers, Zap, Trash2
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polyline } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
@@ -17,28 +17,28 @@ import api from '../services/api.js';
 
 const STATUS_CONFIG = {
   Pending: { 
-    bg: 'var(--risk-severe-tint)', 
+    bg: 'rgba(245, 158, 11, 0.12)', 
     text: 'var(--accent-amber)', 
     icon: Clock,
     glow: 'glow-amber',
     label: 'Deployment Pending'
   },
   Enroute: { 
-    bg: 'var(--accent-blue-tint)', 
+    bg: 'rgba(59, 130, 246, 0.12)', 
     text: 'var(--accent-blue)', 
     icon: Navigation,
     glow: 'glow-blue',
     label: 'Tactical Transit'
   },
   Delivered: { 
-    bg: 'var(--risk-normal-tint)', 
+    bg: 'rgba(16, 185, 129, 0.12)', 
     text: 'var(--accent-green)', 
     icon: ShieldCheck,
     glow: 'glow-green',
     label: 'Payload Transferred'
   },
   Maintenance: { 
-    bg: 'rgba(139, 92, 246, 0.15)', 
+    bg: 'rgba(139, 92, 246, 0.12)', 
     text: '#8b5cf6', 
     icon: RefreshCw,
     glow: '',
@@ -47,7 +47,6 @@ const STATUS_CONFIG = {
 };
 
 const INDIA_CENTER = [22.5, 78.5];
-const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 // Sub-component for map size handling
 function MapUpdater({ theme }) {
@@ -169,6 +168,21 @@ export default function TankerManagement() {
     } catch (err) { addToast('Logistics update failed', 'error'); }
   };
 
+  const handleDelete = async (id, e) => {
+    e.stopPropagation();
+    if (!window.confirm('Terminate mission and scrub from system records?')) return;
+    try {
+      await api.delete(`/tanker/${id}`);
+      addToast('Mission record purged', 'success');
+      if (selectedId === id) setSelectedId(null);
+      fetchTankers();
+    } catch (err) { addToast('Purge failed', 'error'); }
+  };
+
+  const TILE_URL = theme === 'dark' 
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%', paddingBottom: '24px' }}>
       
@@ -215,9 +229,9 @@ export default function TankerManagement() {
               </div>
             </div>
             
-            <MapContainer center={INDIA_CENTER} zoom={5} style={{ height: '100%', width: '100%', background: 'transparent' }} zoomControl={false}>
+            <MapContainer center={INDIA_CENTER} zoom={5} style={{ height: '100%', width: '100%', background: 'var(--bg-card)' }} zoomControl={false}>
               <MapUpdater theme={theme} />
-              <TileLayer url={OSM_TILES} opacity={0.7} />
+              <TileLayer url={TILE_URL} />
               {filteredTankers.map(t => {
                 const village = riskData.find(v => v.name === t.village);
                 if (!village || !village.location) return null;
@@ -228,12 +242,12 @@ export default function TankerManagement() {
                   <CircleMarker 
                     key={t._id} 
                     center={[village.location.lat, village.location.lng]}
-                    radius={isSelected ? 12 : 8}
+                    radius={isSelected ? 14 : 10}
                     eventHandlers={{ click: () => setSelectedId(t._id) }}
                     pathOptions={{ 
                       color: config.text, 
                       fillColor: config.text, 
-                      fillOpacity: 0.8, 
+                      fillOpacity: 0.85, 
                       weight: isSelected ? 4 : 2,
                       className: t.status === 'Enroute' ? 'live-pulse' : ''
                     }}
@@ -320,7 +334,7 @@ export default function TankerManagement() {
                 <div 
                   key={t._id} 
                   onClick={() => setSelectedId(t._id)}
-                  className={`tactical-feed-item ${config.glow}`}
+                  className={`tactical-feed-item ${isSelected ? 'glow-blue' : ''}`}
                   style={{ 
                     padding: '20px', borderRadius: '20px', background: isSelected ? 'var(--nav-active-bg)' : 'rgba(255,255,255,0.02)', 
                     border: '1px solid', borderColor: isSelected ? 'var(--accent-blue)40' : 'var(--divider)',
@@ -342,9 +356,19 @@ export default function TankerManagement() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 800, color: config.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{config.label}</span>
-                      <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatDate(t.dispatchDate)}</p>
+                    <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '12px', alignItems: 'center' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: config.text, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{config.label}</span>
+                        <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatDate(t.dispatchDate)}</p>
+                      </div>
+                      <button 
+                        onClick={(e) => handleDelete(t._id, e)}
+                        className="glass-btn"
+                        style={{ padding: '8px', borderRadius: '10px', color: 'var(--accent-red)', borderColor: 'rgba(239, 68, 68, 0.1)' }}
+                        title="Delete Record"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
 
@@ -383,52 +407,52 @@ export default function TankerManagement() {
 
       {/* Modern Deployment Wizard (Modal) */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}>
-          <div className="glass-card" style={{ width: '600px', padding: '40px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', position: 'relative' }}>
-            <button onClick={() => setShowForm(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer' }}>
-              <X size={24} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)' }}>
+          <div className="glass-card" style={{ width: '560px', padding: '40px', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)', position: 'relative', background: theme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)' }}>
+            <button onClick={() => setShowForm(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '8px', borderRadius: '50%' }}>
+              <X size={20} />
             </button>
             
             <div style={{ marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'var(--accent-blue-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Navigation size={24} color="var(--accent-blue)" />
+                <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'var(--accent-blue-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                  <Navigation size={26} color="var(--accent-blue)" />
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Strategic Deployment</h2>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Configure emergency water resource allocation</p>
+                  <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Strategic Deployment</h2>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Tactical water resource allocation</p>
                 </div>
               </div>
             </div>
 
-            <form onSubmit={handleDispatch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <form onSubmit={handleDispatch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label className="card-label" style={{ marginBottom: '8px', display: 'block' }}>Target Crisis Zone</label>
+                <label className="card-label" style={{ marginBottom: '8px', display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>TARGET CRISIS ZONE</label>
                 <div style={{ position: 'relative' }}>
                   <select 
                     value={form.village} 
                     onChange={e => setForm(p => ({ ...p, village: e.target.value }))} 
                     required 
                     className="glass-input" 
-                    style={{ width: '100%', appearance: 'none', paddingRight: '40px', height: '48px' }}
+                    style={{ width: '100%', appearance: 'none', paddingRight: '40px', height: '50px', fontSize: '14px' }}
                   >
                     <option value="">Select Target District...</option>
                     {riskData.map(v => (
                       <option key={v._id} value={v.name}>{v.name} ({v.state}) — {v.riskScore.toFixed(1)} Risk</option>
                     ))}
                   </select>
-                  <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                  <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-tertiary)' }} />
                 </div>
               </div>
 
-              <FormInput label="Capacity (Liters)" type="number" value={form.capacityLiters} onChange={v => setForm(p => ({ ...p, capacityLiters: v }))} />
-              <FormInput label="Vehicle ID" value={form.tankerNumber} onChange={v => setForm(p => ({ ...p, tankerNumber: v }))} placeholder="TNK-000-X" />
-              <FormInput label="Operator Name" value={form.driverName} onChange={v => setForm(p => ({ ...p, driverName: v }))} />
-              <FormInput label="Comms Channel" value={form.driverContact} onChange={v => setForm(p => ({ ...p, driverContact: v }))} placeholder="+91..." />
+              <FormInput label="CAPACITY (LITERS)" type="number" value={form.capacityLiters} onChange={v => setForm(p => ({ ...p, capacityLiters: v }))} />
+              <FormInput label="VEHICLE ID" value={form.tankerNumber} onChange={v => setForm(p => ({ ...p, tankerNumber: v }))} placeholder="TNK-000-X" />
+              <FormInput label="OPERATOR NAME" value={form.driverName} onChange={v => setForm(p => ({ ...p, driverName: v }))} />
+              <FormInput label="COMMS CHANNEL" value={form.driverContact} onChange={v => setForm(p => ({ ...p, driverContact: v }))} placeholder="+91..." />
 
-              <div style={{ gridColumn: '1 / -1', marginTop: '16px', display: 'flex', gap: '16px' }}>
-                <button type="button" onClick={() => setShowForm(false)} className="glass-btn" style={{ flex: 1, height: '48px', fontWeight: 800 }}>ABORT</button>
-                <button type="submit" disabled={submitting} className="primary-btn" style={{ flex: 2, height: '48px', fontWeight: 900, background: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+              <div style={{ gridColumn: '1 / -1', marginTop: '20px', display: 'flex', gap: '16px' }}>
+                <button type="button" onClick={() => setShowForm(false)} className="glass-btn" style={{ flex: 1, height: '52px', fontWeight: 700, fontSize: '14px' }}>ABORT</button>
+                <button type="submit" disabled={submitting} className="primary-btn" style={{ flex: 2, height: '52px', fontWeight: 800, background: 'var(--accent-blue)', boxShadow: '0 10px 20px -5px rgba(59, 130, 246, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                   {submitting ? <Loader2 size={18} className="spinning" /> : <Zap size={18} />}
                   {submitting ? 'EXECUTING...' : 'CONFIRM DEPLOYMENT'}
                 </button>
@@ -479,14 +503,14 @@ function TelemetryStat({ label, value, icon: Icon, color }) {
 function FormInput({ label, type = 'text', value, onChange, placeholder }) {
   return (
     <div>
-      <label className="card-label" style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{label}</label>
+      <label className="card-label" style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>{label}</label>
       <input 
         type={type} 
         value={value} 
         onChange={e => onChange(e.target.value)} 
         placeholder={placeholder} 
         className="glass-input" 
-        style={{ width: '100%', height: '48px' }} 
+        style={{ width: '100%', height: '50px', padding: '0 16px', fontSize: '14px' }} 
       />
     </div>
   );
