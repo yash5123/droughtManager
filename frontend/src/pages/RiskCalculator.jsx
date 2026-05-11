@@ -28,9 +28,11 @@ export default function RiskCalculator() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [showFormulaInfo, setShowFormulaInfo] = useState(false);
-  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
+  const [sortOrder, setSortOrder] = useState('desc'); 
+  const [riskFilter, setRiskFilter] = useState('All');
+  const [limitFilter, setLimitFilter] = useState('All');
 
-  // Fixed Weights (Read-only as per user request)
+  // Official Weights (For display only)
   const activeWeights = { 
     rdi: 35, 
     cdd: 20, 
@@ -40,55 +42,9 @@ export default function RiskCalculator() {
 
   // Sorting & Filtering
   const filteredVillages = useMemo(() => {
-    let list = allVillages.map(v => {
-      // Calculate score dynamically to avoid zero-score issues from backend
-      const rdiScore = v.metricsSnapshot?.rdiScore ?? v.rainfallDeficit ?? 0;
-      const cddScore = v.metricsSnapshot?.cddScore ?? (v.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0); // fallback
-      const smaScore = v.metricsSnapshot?.smaScore ?? v.soilMoistureDepletion ?? 0;
-      const ppaScore = v.metricsSnapshot?.ppaScore ?? v.populationDemandGap ?? 0;
-      const tam = v.metricsSnapshot?.tamAdjustment ?? 0;
+    let list = [...allVillages];
 
-      // Apply custom weights
-      const totalWeight = Object.values(activeWeights).reduce((a, b) => a + b, 0);
-      let raw;
-      
-      if (smaScore === 0 && v.metricsSnapshot?.missing) {
-         const factor = (totalWeight / (totalWeight - activeWeights.sma)) || 1;
-         raw = (
-          (rdiScore * activeWeights.rdi * factor) + 
-          (cddScore * activeWeights.cdd * factor) + 
-          (ppaScore * activeWeights.ppa * factor)
-        ) / totalWeight;
-      } else {
-        raw = (
-          (rdiScore * activeWeights.rdi) + 
-          (cddScore * activeWeights.cdd) + 
-          (smaScore * activeWeights.sma) + 
-          (ppaScore * activeWeights.ppa)
-        ) / totalWeight;
-      }
-
-      const adjusted = raw + tam;
-      
-      // Piecewise compression
-      let final = adjusted;
-      const x = Math.max(0, adjusted);
-      if (x <= 20)  final = x * 1.20;
-      else if (x <= 45)  final = 24 + (x - 20) * 1.04;
-      else if (x <= 70)  final = 50 + (x - 45) * 0.80;
-      else if (x <= 90)  final = 70 + (x - 70) * 1.30;
-      else final = 96 + (x - 90) * 0.39;
-
-      return { 
-        ...v, 
-        calculatedScore: Math.round(Math.min(99.9, final) * 10) / 10,
-        rdiVal: rdiScore,
-        smaVal: smaScore,
-        ppaVal: ppaScore,
-        cddVal: cddScore
-      };
-    });
-
+    // 1. Search Filter
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
       list = list.filter(v => 
@@ -98,22 +54,32 @@ export default function RiskCalculator() {
       );
     }
 
-    // Sort by calculated score
+    // 2. Risk Level Filter
+    if (riskFilter !== 'All') {
+      list = list.filter(v => getRiskLevel(v.riskScore).label === riskFilter);
+    }
+
+    // 3. Sorting (Always sort before limiting)
     list.sort((a, b) => {
-      return sortOrder === 'desc' 
-        ? b.calculatedScore - a.calculatedScore 
-        : a.calculatedScore - b.calculatedScore;
+      const scoreA = a.riskScore || 0;
+      const scoreB = b.riskScore || 0;
+      return sortOrder === 'desc' ? scoreB - scoreA : scoreA - scoreB;
     });
 
+    // 4. Limit Filter
+    if (limitFilter !== 'All') {
+      list = list.slice(0, parseInt(limitFilter));
+    }
+
     return list;
-  }, [allVillages, searchTerm, sortOrder]);
+  }, [allVillages, searchTerm, sortOrder, riskFilter, limitFilter]);
 
   // Set default selection
   useEffect(() => {
     if (filteredVillages.length > 0 && !selectedVillage) {
       setSelectedVillage(filteredVillages[0]);
     }
-  }, [filteredVillages]);
+  }, [filteredVillages, selectedVillage]);
 
   const toggleSort = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
@@ -168,26 +134,73 @@ export default function RiskCalculator() {
         
         {/* Main Audit List */}
         <div className="glass-card" style={{ flex: 1, padding: '0', overflow: 'hidden', minHeight: '700px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '24px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+          <div style={{ padding: '24px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px', gap: '4px' }}>
+              {['All', 'Extreme', 'Severe', 'Normal'].map(label => (
+                <button 
+                  key={label}
+                  onClick={() => setRiskFilter(label)}
+                  style={{ 
+                    padding: '8px 16px', 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    background: riskFilter === label ? 'var(--accent-blue)' : 'transparent',
+                    color: riskFilter === label ? '#fff' : 'var(--text-secondary)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {label.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span className="caption-text" style={{ color: 'var(--text-tertiary)' }}>SHOW:</span>
+              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px', gap: '4px' }}>
+                {['10', '25', 'All'].map(limit => (
+                  <button 
+                    key={limit}
+                    onClick={() => setLimitFilter(limit)}
+                    style={{ 
+                      padding: '8px 12px', 
+                      borderRadius: '8px', 
+                      border: 'none', 
+                      background: limitFilter === limit ? 'rgba(255,255,255,0.1)' : 'transparent',
+                      color: limitFilter === limit ? '#fff' : 'var(--text-secondary)',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {limit}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ position: 'relative', flexGrow: 1, maxWidth: '300px' }}>
+              <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} size={16} />
               <input 
                 type="text" 
-                placeholder="Search 732 districts by name, state, or district..." 
-                className="glass-input" 
-                style={{ width: '100%', paddingLeft: '48px', height: '48px' }}
+                placeholder="Search districts..." 
+                className="glass-input"
+                style={{ paddingLeft: '40px', width: '100%' }}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
+            
             <div 
               style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}
               onClick={toggleSort}
             >
-              <span className="caption-text" style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>
-                {sortOrder === 'desc' ? 'HIGHEST RISK FIRST' : 'LOWEST RISK FIRST'}
-              </span>
               <Filter size={16} color="var(--accent-blue)" style={{ transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
+              <span className="caption-text" style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>
+                {sortOrder === 'desc' ? 'HIGHEST' : 'LOWEST'}
+              </span>
             </div>
           </div>
 
@@ -206,7 +219,7 @@ export default function RiskCalculator() {
               </thead>
               <tbody>
                 {filteredVillages.map(v => {
-                  const score = v.calculatedScore;
+                  const score = v.riskScore || 0;
                   const level = getRiskLevel(score);
                   return (
                     <tr 
@@ -226,9 +239,9 @@ export default function RiskCalculator() {
                           {level.label}
                         </div>
                       </td>
-                      <td><MetricBar value={v.rdiVal} color="var(--accent-blue)" /></td>
-                      <td><MetricBar value={v.smaVal} color="var(--accent-cyan)" /></td>
-                      <td><MetricBar value={v.ppaVal} color="#8b5cf6" /></td>
+                      <td><MetricBar value={v.rainfallDeficit} color="var(--accent-blue)" /></td>
+                      <td><MetricBar value={v.soilMoistureDepletion} color="var(--accent-cyan)" /></td>
+                      <td><MetricBar value={v.populationDemandGap} color="#8b5cf6" /></td>
                       <td><ChevronRight size={18} color="var(--text-tertiary)" /></td>
                     </tr>
                   );
@@ -259,25 +272,25 @@ export default function RiskCalculator() {
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', position: 'relative' }}>
                   <div style={{ textAlign: 'center', zIndex: 2 }}>
-                    <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(selectedVillage.calculatedScore).color }}>
-                      {selectedVillage.calculatedScore}
+                    <div style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: getRiskLevel(selectedVillage.riskScore).color }}>
+                      {selectedVillage.riskScore || 0}
                     </div>
                     <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '2px', color: 'var(--text-tertiary)', marginTop: '8px' }}>DR INDEX</div>
                   </div>
                   {/* Decorative background glow */}
-                  <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(selectedVillage.calculatedScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
+                  <div style={{ position: 'absolute', width: '120px', height: '120px', borderRadius: '50%', background: getRiskLevel(selectedVillage.riskScore).color, filter: 'blur(60px)', opacity: 0.15 }} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
                   <h4 className="card-label" style={{ color: 'var(--text-tertiary)' }}>Logic Contribution</h4>
-                  <ContributionRow label="RDI (Rainfall Deficit)" score={selectedVillage.rdiVal} weight={activeWeights.rdi} color="var(--accent-blue)" />
-                  <ContributionRow label="CDD (Dry Streak)" score={selectedVillage.cddVal} weight={activeWeights.cdd} color="var(--accent-amber)" />
-                  <ContributionRow label="SMA (Soil Anomaly)" score={selectedVillage.smaVal} weight={activeWeights.sma} color="var(--accent-cyan)" />
-                  <ContributionRow label="PPA (Pop Demand)" score={selectedVillage.ppaVal} weight={activeWeights.ppa} color="#8b5cf6" />
+                  <ContributionRow label="RDI (Rainfall Deficit)" score={selectedVillage.metricsSnapshot?.rdiScore ?? selectedVillage.rainfallDeficit} weight={activeWeights.rdi} color="var(--accent-blue)" />
+                  <ContributionRow label="CDD (Dry Streak)" score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} weight={activeWeights.cdd} color="var(--accent-amber)" />
+                  <ContributionRow label="SMA (Soil Anomaly)" score={selectedVillage.metricsSnapshot?.smaScore ?? selectedVillage.soilMoistureDepletion} weight={activeWeights.sma} color="var(--accent-cyan)" />
+                  <ContributionRow label="PPA (Pop Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? selectedVillage.populationDemandGap} weight={activeWeights.ppa} color="#8b5cf6" />
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
                     <span className="caption-text">Trend Adjustment (TAM)</span>
-                    <span className="caption-text" style={{ color: selectedVillage.metricsSnapshot?.tamAdjustment >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                      {selectedVillage.metricsSnapshot?.tamAdjustment >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot?.tamAdjustment || 0} pts
+                    <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                      {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot?.tamAdjustment || 0} pts
                     </span>
                   </div>
                 </div>
