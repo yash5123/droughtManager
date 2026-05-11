@@ -28,17 +28,67 @@ export default function RiskCalculator() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVillage, setSelectedVillage] = useState(null);
   const [showFormulaInfo, setShowFormulaInfo] = useState(false);
-  const [activeWeights, setActiveWeights] = useState({ 
+  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
+
+  // Fixed Weights (Read-only as per user request)
+  const activeWeights = { 
     rdi: 35, 
     cdd: 20, 
     sma: 30, 
-    ppa: 10 
-  });
-  const [isSimulating, setIsSimulating] = useState(false);
+    ppa: 15 
+  };
 
   // Sorting & Filtering
   const filteredVillages = useMemo(() => {
-    let list = [...allVillages];
+    let list = allVillages.map(v => {
+      // Calculate score dynamically to avoid zero-score issues from backend
+      const rdiScore = v.metricsSnapshot?.rdiScore ?? v.rainfallDeficit ?? 0;
+      const cddScore = v.metricsSnapshot?.cddScore ?? (v.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0); // fallback
+      const smaScore = v.metricsSnapshot?.smaScore ?? v.soilMoistureDepletion ?? 0;
+      const ppaScore = v.metricsSnapshot?.ppaScore ?? v.populationDemandGap ?? 0;
+      const tam = v.metricsSnapshot?.tamAdjustment ?? 0;
+
+      // Apply custom weights
+      const totalWeight = Object.values(activeWeights).reduce((a, b) => a + b, 0);
+      let raw;
+      
+      if (smaScore === 0 && v.metricsSnapshot?.missing) {
+         const factor = (totalWeight / (totalWeight - activeWeights.sma)) || 1;
+         raw = (
+          (rdiScore * activeWeights.rdi * factor) + 
+          (cddScore * activeWeights.cdd * factor) + 
+          (ppaScore * activeWeights.ppa * factor)
+        ) / totalWeight;
+      } else {
+        raw = (
+          (rdiScore * activeWeights.rdi) + 
+          (cddScore * activeWeights.cdd) + 
+          (smaScore * activeWeights.sma) + 
+          (ppaScore * activeWeights.ppa)
+        ) / totalWeight;
+      }
+
+      const adjusted = raw + tam;
+      
+      // Piecewise compression
+      let final = adjusted;
+      const x = Math.max(0, adjusted);
+      if (x <= 20)  final = x * 1.20;
+      else if (x <= 45)  final = 24 + (x - 20) * 1.04;
+      else if (x <= 70)  final = 50 + (x - 45) * 0.80;
+      else if (x <= 90)  final = 70 + (x - 70) * 1.30;
+      else final = 96 + (x - 90) * 0.39;
+
+      return { 
+        ...v, 
+        calculatedScore: Math.round(Math.min(99.9, final) * 10) / 10,
+        rdiVal: rdiScore,
+        smaVal: smaScore,
+        ppaVal: ppaScore,
+        cddVal: cddScore
+      };
+    });
+
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
       list = list.filter(v => 
@@ -48,70 +98,25 @@ export default function RiskCalculator() {
       );
     }
 
-    // If simulation is active, re-calculate and re-sort
-    if (isSimulating) {
-      list = list.map(v => {
-        const snap = v.metricsSnapshot || {};
-        const rdiScore = snap.rdiScore || 0;
-        const cddScore = snap.cddScore || 0;
-        const smaScore = snap.smaScore || 0;
-        const ppaScore = snap.ppaScore || 0;
-        const tam = snap.tamAdjustment || 0;
-
-        // Apply custom weights
-        const totalWeight = Object.values(activeWeights).reduce((a, b) => a + b, 0);
-        let raw;
-        
-        if (smaScore === 0 && snap.missing) {
-           // Redistribute SMA weight if missing (maritime)
-           const factor = (totalWeight / (totalWeight - activeWeights.sma)) || 1;
-           raw = (
-            (rdiScore * activeWeights.rdi * factor) + 
-            (cddScore * activeWeights.cdd * factor) + 
-            (ppaScore * activeWeights.ppa * factor)
-          ) / (totalWeight || 1);
-        } else {
-          raw = (
-            (rdiScore * activeWeights.rdi) + 
-            (cddScore * activeWeights.cdd) + 
-            (smaScore * activeWeights.sma) + 
-            (ppaScore * activeWeights.ppa)
-          ) / (totalWeight || 1);
-        }
-
-        const adjusted = raw + tam;
-        
-        // Piecewise compression - Exact backend parity
-        let final = adjusted;
-        const x = Math.max(0, adjusted);
-        if (x <= 20)  final = x * 1.20;
-        else if (x <= 45)  final = 24 + (x - 20) * 1.04;
-        else if (x <= 70)  final = 50 + (x - 45) * 0.80;
-        else if (x <= 90)  final = 70 + (x - 70) * 1.30;
-        else final = 96 + (x - 90) * 0.39;
-
-        return { ...v, simulatedScore: Math.round(Math.min(99.9, final) * 10) / 10 };
-      }).sort((a, b) => b.simulatedScore - a.simulatedScore);
-    }
+    // Sort by calculated score
+    list.sort((a, b) => {
+      return sortOrder === 'desc' 
+        ? b.calculatedScore - a.calculatedScore 
+        : a.calculatedScore - b.calculatedScore;
+    });
 
     return list;
-  }, [allVillages, searchTerm, activeWeights, isSimulating]);
+  }, [allVillages, searchTerm, sortOrder]);
 
   // Set default selection
   useEffect(() => {
-    if (allVillages.length > 0 && !selectedVillage) {
-      setSelectedVillage(allVillages[0]);
+    if (filteredVillages.length > 0 && !selectedVillage) {
+      setSelectedVillage(filteredVillages[0]);
     }
-  }, [allVillages]);
+  }, [filteredVillages]);
 
-  const handleWeightChange = (key, val) => {
-    setIsSimulating(true);
-    setActiveWeights(prev => ({ ...prev, [key]: parseInt(val) }));
-  };
-
-  const resetWeights = () => {
-    setActiveWeights({ rdi: 35, cdd: 20, sma: 30, ppa: 10 });
-    setIsSimulating(false);
+  const toggleSort = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
   };
 
   return (
@@ -175,9 +180,14 @@ export default function RiskCalculator() {
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="caption-text" style={{ color: 'var(--text-tertiary)' }}>SORTED BY RISK</span>
-              <Filter size={16} color="var(--text-tertiary)" />
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}
+              onClick={toggleSort}
+            >
+              <span className="caption-text" style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>
+                {sortOrder === 'desc' ? 'HIGHEST RISK FIRST' : 'LOWEST RISK FIRST'}
+              </span>
+              <Filter size={16} color="var(--accent-blue)" style={{ transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
             </div>
           </div>
 
@@ -196,7 +206,7 @@ export default function RiskCalculator() {
               </thead>
               <tbody>
                 {filteredVillages.map(v => {
-                  const score = isSimulating ? v.simulatedScore : v.riskScore;
+                  const score = v.calculatedScore;
                   const level = getRiskLevel(score);
                   return (
                     <tr 
@@ -216,9 +226,9 @@ export default function RiskCalculator() {
                           {level.label}
                         </div>
                       </td>
-                      <td><MetricBar value={v.rainfallDeficit} color="var(--accent-blue)" /></td>
-                      <td><MetricBar value={v.soilMoistureDepletion} color="var(--accent-cyan)" /></td>
-                      <td><MetricBar value={v.populationDemandGap} color="#8b5cf6" /></td>
+                      <td><MetricBar value={v.rdiVal} color="var(--accent-blue)" /></td>
+                      <td><MetricBar value={v.smaVal} color="var(--accent-cyan)" /></td>
+                      <td><MetricBar value={v.ppaVal} color="#8b5cf6" /></td>
                       <td><ChevronRight size={18} color="var(--text-tertiary)" /></td>
                     </tr>
                   );
@@ -260,10 +270,10 @@ export default function RiskCalculator() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
                   <h4 className="card-label" style={{ color: 'var(--text-tertiary)' }}>Logic Contribution</h4>
-                  <ContributionRow label="RDI (Rainfall Deficit)" score={selectedVillage.metricsSnapshot?.rdiScore} weight={activeWeights.rdi} color="var(--accent-blue)" />
-                  <ContributionRow label="CDD (Dry Streak)" score={selectedVillage.metricsSnapshot?.cddScore} weight={activeWeights.cdd} color="var(--accent-amber)" />
-                  <ContributionRow label="SMA (Soil Anomaly)" score={selectedVillage.metricsSnapshot?.smaScore} weight={activeWeights.sma} color="var(--accent-cyan)" />
-                  <ContributionRow label="PPA (Pop Demand)" score={selectedVillage.metricsSnapshot?.ppaScore} weight={activeWeights.ppa} color="#8b5cf6" />
+                  <ContributionRow label="RDI (Rainfall Deficit)" score={selectedVillage.rdiVal} weight={activeWeights.rdi} color="var(--accent-blue)" />
+                  <ContributionRow label="CDD (Dry Streak)" score={selectedVillage.cddVal} weight={activeWeights.cdd} color="var(--accent-amber)" />
+                  <ContributionRow label="SMA (Soil Anomaly)" score={selectedVillage.smaVal} weight={activeWeights.sma} color="var(--accent-cyan)" />
+                  <ContributionRow label="PPA (Pop Demand)" score={selectedVillage.ppaVal} weight={activeWeights.ppa} color="#8b5cf6" />
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
                     <span className="caption-text">Trend Adjustment (TAM)</span>
                     <span className="caption-text" style={{ color: selectedVillage.metricsSnapshot?.tamAdjustment >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
@@ -273,35 +283,29 @@ export default function RiskCalculator() {
                 </div>
               </div>
 
-              {/* Weight Simulation Panel */}
-              <div className="glass-card" style={{ padding: '24px', border: isSimulating ? '1px solid var(--accent-blue)60' : 'none' }}>
+              {/* Fixed Weight Panel */}
+              <div className="glass-card" style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Calculator size={18} color="var(--accent-blue)" />
-                    <h3 className="section-header" style={{ fontSize: '16px' }}>Weight Simulation</h3>
+                    <h3 className="section-header" style={{ fontSize: '16px' }}>Simulation Weights</h3>
                   </div>
-                  {isSimulating && (
-                    <button className="caption-text" style={{ color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }} onClick={resetWeights}>
-                      RESET
-                    </button>
-                  )}
+                  <div style={{ padding: '4px 8px', borderRadius: '4px', background: 'var(--accent-blue)20', color: 'var(--accent-blue)', fontSize: '10px', fontWeight: 800 }}>LOCKED</div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <WeightControl label="Rainfall (RDI)" value={activeWeights.rdi} color="var(--accent-blue)" onChange={v => handleWeightChange('rdi', v)} />
-                  <WeightControl label="Dry Streak (CDD)" value={activeWeights.cdd} color="var(--accent-amber)" onChange={v => handleWeightChange('cdd', v)} />
-                  <WeightControl label="Groundwater (SMA)" value={activeWeights.sma} color="var(--accent-cyan)" onChange={v => handleWeightChange('sma', v)} />
-                  <WeightControl label="Population (PPA)" value={activeWeights.ppa} color="#8b5cf6" onChange={v => handleWeightChange('ppa', v)} />
+                  <StaticWeight label="Rainfall (RDI)" value={activeWeights.rdi} color="var(--accent-blue)" />
+                  <StaticWeight label="Dry Streak (CDD)" value={activeWeights.cdd} color="var(--accent-amber)" />
+                  <StaticWeight label="Groundwater (SMA)" value={activeWeights.sma} color="var(--accent-cyan)" />
+                  <StaticWeight label="Population (PPA)" value={activeWeights.ppa} color="#8b5cf6" />
                 </div>
 
-                {isSimulating && (
-                  <div style={{ marginTop: '20px', padding: '12px', borderRadius: '10px', background: 'var(--accent-blue)10', border: '1px solid var(--accent-blue)20', display: 'flex', gap: '12px' }}>
-                    <AlertTriangle size={18} color="var(--accent-blue)" style={{ flexShrink: 0 }} />
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                      Simulation active. All 732 districts re-ranked based on your custom weight matrix.
-                    </p>
-                  </div>
-                )}
+                <div style={{ marginTop: '20px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--divider)', display: 'flex', gap: '12px' }}>
+                  <Info size={18} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
+                  <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+                    Weights are locked to official regional model parameters. All scores are computed in real-time.
+                  </p>
+                </div>
               </div>
             </>
           ) : (
@@ -357,27 +361,16 @@ function ContributionRow({ label, score, weight, color }) {
   );
 }
 
-function WeightControl({ label, value, color, onChange }) {
+function StaticWeight({ label, value, color }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
         <span className="caption-text" style={{ fontWeight: 600 }}>{label}</span>
         <span style={{ fontSize: '12px', fontWeight: 800, color }}>{value}%</span>
       </div>
-      <input 
-        type="range" 
-        min={0} max={100} 
-        value={value} 
-        onChange={e => onChange(e.target.value)}
-        style={{ 
-          width: '100%', 
-          height: '4px', 
-          appearance: 'none', 
-          background: `linear-gradient(to right, ${color} ${value}%, rgba(255,255,255,0.05) ${value}%)`,
-          borderRadius: '2px',
-          outline: 'none'
-        }}
-      />
+      <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
+        <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: '2px', boxShadow: `0 0 8px ${color}40` }} />
+      </div>
     </div>
   );
 }
