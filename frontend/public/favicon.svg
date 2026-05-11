@@ -2,6 +2,9 @@
   <!-- Rounded Square Background -->
   <rect width="512" height="512" rx="120" fill="#0066FF"/>
   
-  <!-- Solid Water Drop Silhouette (Swoosh removed as requested) -->
+  <!-- Organic Water Drop Silhouette -->
   <path d="M256 85C256 85 140 220 140 315C140 385 191.9 430 256 430C320.1 430 372 385 372 315C372 220 256 85 256 85Z" fill="white"/>
+  
+  <!-- Elegant "Inside Curve" Design (Subtle modern reflection) -->
+  <path d="M305 240C330 280 330 360 295 405C315 375 325 300 290 240Z" fill="#0066FF"/>
 </svg>
