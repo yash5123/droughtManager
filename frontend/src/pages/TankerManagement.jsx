@@ -343,25 +343,74 @@ export default function TankerManagement() {
           {/* Detailed Telemetry Panel */}
           {selectedTanker && (
             <div className="glass-card" style={{ padding: '24px', border: 'var(--glass-border)', background: 'var(--glass-bg-bright)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Navigation size={20} color="var(--accent-blue)" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-blue)30' }}>
+                    <Truck size={24} color="var(--accent-blue)" />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>{selectedTanker.tankerNumber || 'TNK-992-ALPHA'}</h4>
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Mission ID: {selectedId.slice(-8)}</p>
+                    <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{selectedTanker.tankerNumber || 'TNK-UNIT-01'}</h4>
+                    <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Mission ID: {selectedId.slice(-8).toUpperCase()}</p>
                   </div>
                 </div>
-                <div className="glass-pill" style={{ background: STATUS_CONFIG[selectedTanker.status]?.bg, color: STATUS_CONFIG[selectedTanker.status]?.text, fontWeight: 800, padding: '6px 14px', fontSize: '10px', border: '1px solid currentColor' }}>
-                  {selectedTanker.status.toUpperCase()}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div className="glass-pill" style={{ background: STATUS_CONFIG[selectedTanker.status]?.bg, color: STATUS_CONFIG[selectedTanker.status]?.text, fontWeight: 800, padding: '8px 16px', fontSize: '11px', border: '1px solid currentColor' }}>
+                    {selectedTanker.status.toUpperCase()}
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                <TelemetryStat label="Water Level" value={`${(telemetry[selectedId]?.water || 100).toFixed(0)}%`} icon={Droplets} color="var(--accent-blue)" />
-                <TelemetryStat label="Fuel Level" value={`${(telemetry[selectedId]?.fuel || 85).toFixed(1)}%`} icon={Fuel} color="var(--accent-amber)" />
-                <TelemetryStat label="Avg Speed" value={`${(telemetry[selectedId]?.speed || 0).toFixed(0)} km/h`} icon={Gauge} color="var(--accent-cyan)" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                {/* Operator Intelligence */}
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <ShieldCheck size={14} color="var(--accent-blue)" />
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>OPERATOR INFO</span>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{selectedTanker.driverName || 'Command Control'}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Activity size={10} /> {selectedTanker.driverContact || 'Direct Link Active'}
+                  </div>
+                </div>
+
+                {/* Tactical Payload */}
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <Droplets size={14} color="var(--accent-cyan)" />
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>PAYLOAD STATUS</span>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{(selectedTanker.capacityLiters / 1000).toFixed(1)}k Liters</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Gauge size={10} /> {(telemetry[selectedId]?.water || 100).toFixed(0)}% Reservoir Capacity
+                  </div>
+                </div>
+
+                {/* Live Telemetry */}
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                    <Zap size={14} color="var(--accent-amber)" />
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TELEMETRY HUB</span>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(0)} km/h</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Fuel size={10} /> {(telemetry[selectedId]?.fuel || 85).toFixed(1)}% Fuel Level
+                  </div>
+                </div>
+              </div>
+
+              {/* Target Zone Intelligence Overlay */}
+              <div style={{ marginTop: '20px', padding: '16px', borderRadius: '16px', background: 'var(--nav-active-bg)', border: '1px dashed var(--accent-blue)40', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <MapPin size={18} color="var(--accent-blue)" />
+                  <div>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Target Destination</span>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{selectedTanker.village}</p>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Mission Priority</span>
+                  <p style={{ fontSize: '13px', fontWeight: 800, color: 'var(--accent-blue)' }}>{selectedTanker.priority?.toUpperCase() || 'STANDARD'}</p>
+                </div>
               </div>
             </div>
           )}
