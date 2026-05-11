@@ -38,8 +38,8 @@ export default function RiskCalculator() {
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  // Resolve audit data: prefer official cached audit if it has real data, otherwise fall back to live audit
-  const hasCachedAudit = detailData?.cachedAudit && Object.keys(detailData.cachedAudit).length > 2;
+  // Resolve audit data: prefer official cached audit if it has the full breakdown data, otherwise fall back to live audit
+  const hasCachedAudit = detailData?.cachedAudit?.rdiScore != null;
   const audit = hasCachedAudit ? detailData.cachedAudit : (detailData?.liveAudit || selectedVillage?.metricsSnapshot || {});
   const auditScore = (hasCachedAudit ? (detailData.cachedScore ?? selectedVillage?.riskScore) : (detailData?.liveScore ?? selectedVillage?.riskScore)) ?? 0;
 
