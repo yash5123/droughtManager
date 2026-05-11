@@ -1,217 +1,292 @@
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0ea5e9,50:6366f1,100:8b5cf6&height=180&section=header&text=&fontSize=0" width="100%" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=header"/>
 
 <div align="center">
+  <h1>🌊 AqvaSense</h1>
+  <p><i>Monitoring every drop. Protecting every life.</i></p>
 
-  <img src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/1f4a7.svg" alt="AqvaSense Logo" width="80" />
+  [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=00b4d8&center=true&width=700&lines=Real-Time+Drought+Intelligence+for+732+Indian+Districts;5-Pillar+Non-Linear+Composite+Risk+Scoring;30+Years+of+Climate+Data+as+Baseline;Live+Tanker+Dispatch+%26+Fleet+Management;Built+to+Save+Lives+During+Water+Crises)](https://git.io/typing-svg)
 
-  <h1>💧 AqvaSense</h1>
+  <br />
 
-  [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=6366F1&center=true&vCenter=true&multiline=true&width=650&height=90&lines=Real-Time+Drought+%26+Water+Resource+Monitoring;Interactive+Maps+%7C+Risk+Scoring+%7C+Tanker+Dispatch;Built+for+smarter+water+management+%F0%9F%8C%8D)](https://git.io/typing-svg)
+  <a href="https://drought-manager-wheat.vercel.app/">
+    <img src="https://img.shields.io/badge/LIVE_DEMO-00b4d8?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
 
-  <br/>
-
-  [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Now-blueviolet?style=for-the-badge)](https://drought-manager-wheat.vercel.app/)
-  [![Status](https://img.shields.io/badge/Status-Active-43aa8b?style=for-the-badge&logo=statuspage&logoColor=white)](https://drought-manager-wheat.vercel.app/)
-
-  <br/>
+  <br /><br />
 
   ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-  ![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-  ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
   ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
   ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+  ![Express](https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white)
+  ![Open-Meteo](https://img.shields.io/badge/Open--Meteo-FFD700?style=for-the-badge&logo=google-cloud&logoColor=black)
   ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)
+  ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white)
+  ![MIT License](https://img.shields.io/badge/License-MIT-43aa8b?style=for-the-badge)
 
-  <br/>
-
-  *A gorgeous, data-driven dashboard that helps monitor drought conditions, track groundwater levels, dispatch emergency water tankers, and predict future water crises - all from one place.*
+  <p><i>Repo: yash5123/droughtManager</i></p>
 
 </div>
 
-<br/>
-
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
-## 🎯 About
+## 🎯 What is AqvaSense?
 
-**AqvaSense** is a full-stack drought monitoring and water resource management platform designed for the Maharashtra region of India. It takes complex environmental data - rainfall levels, groundwater depths, population water demand - and turns it into beautiful, interactive visuals that anyone can understand at a glance.
+AqvaSense is a high-fidelity, full-stack drought intelligence platform designed to monitor hydrological stress across **732 Indian districts** in real-time. By aggregating live meteorological data, historical climate baselines, and satellite-derived soil moisture metrics, AqvaSense provides a centralized "Command Center" for government operators to visualize, predict, and respond to water scarcity emergencies before they escalate into humanitarian crises.
 
-Instead of spreadsheets and phone calls, AqvaSense gives you a glassmorphic dashboard with live maps, risk scores, tanker logistics, and even AI-generated action plans. It's the kind of tool that turns reactive "we're out of water" emergencies into proactive "we saw this coming three months ago" planning.
+Every night, the system wakes up to perform millions of calculations, refreshing the risk profile for nearly half a billion people.
 
 > [!NOTE]
-> 🗺️ AqvaSense monitors **5 real villages** across Maharashtra - Hiware Bazar, Ralegan Siddhi, Kadwanchi, Patoda, and Shirpur - spanning **4 districts** (Ahmednagar, Jalna, Beed, and Dhule) with real geographic coordinates plotted on interactive maps!
+> AqvaSense monitors the entire administrative landscape of India, covering all 732 districts with a focus on 480 high-telemetry nodes.
+
+> [!IMPORTANT]
+> A nightly automation pipeline runs at **02:00 UTC**, ensuring that data-driven decisions are always based on the most recent 30-day precipitation and soil moisture trends.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
-## 🌐 Live Demo
+## 🌐 Try It Live
+
+Explore the live platform and see the data in action:
 
 <div align="center">
+  <a href="https://drought-manager-wheat.vercel.app/">
+    <img src="https://img.shields.io/badge/EXPLORE_DASHBOARD-0077b6?style=for-the-badge&logo=google-chrome&logoColor=white" height="40" />
+  </a>
+</div>
 
-  [![🌐 Try AqvaSense Now](https://img.shields.io/badge/🌐_Try_AqvaSense_Now-Click_Here-ff69b4?style=for-the-badge&logoColor=white)](https://drought-manager-wheat.vercel.app/)
+> [!TIP]
+> No login is required to explore the public monitoring dashboards. Administrative access is required only for triggering emergency tanker dispatches.
 
-  *👆 Go ahead, click it. See drought management done beautifully.*
-
+<div align="center">
+  <img src="overview.png" width="900" alt="Overview Dashboard" />
+  <p><i>The Central Command Overview: Real-time risk distribution and pulsing geospatial alerts in Light Mode.</i></p>
 </div>
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
-## 🔄 How It Works
+## 🔄 The Full Journey
 
-Here's the full user journey - from login to action:
+### JOURNEY 1 — THE NIGHTLY DATA PIPELINE (Automated)
+1.  **🕛 02:00 UTC**: The system triggers a CRON job via `node-cron`.
+2.  **🔄 Priority Queuing**: Extreme risk districts are queued first to ensure vital areas update regardless of API quotas.
+3.  **📡 Batch Fetching**: 15 hyper-efficient batch API calls to Open-Meteo replace 732 individual requests (a 97.9% reduction).
+4.  **🧮 5-Pillar Algorithm**: Raw precipitation, consecutive dry days, and soil moisture are compared against 30-year baselines.
+5.  **📉 Piecewise Compression**: Non-linear mapping scales raw data into a human-readable 0-100 severity index.
+6.  **💾 Persistence**: Scores are cached in MongoDB Atlas for instant retrieval across all user sessions.
+7.  **🧪 Self-Healing**: If the server wakes up and data is stale, the pipeline triggers automatically.
 
-1. 🔐 **Authenticate** - You're greeted by a sleek dark-mode login screen. Sign up with email & password, or tap the Google OAuth button to jump straight in.
-
-2. 🖥️ **Hit the Dashboard** - Instantly see the big picture: total villages monitored, critical regions, active tankers, and average rainfall - all in animated stat cards. Two beautiful gradient area charts show you rainfall trends and groundwater levels at a glance.
-
-3. 🗺️ **Explore the Map** - Switch to the Geospatial Overview and see every village pinned on an interactive Leaflet map with **15 km drought impact radius zones**. Red = danger. Amber = watch out. Green = safe. Click any marker and the camera smoothly flies to that village with a detailed popup.
-
-4. 🌧️ **Analyze Rainfall & Groundwater** - Dive into per-village bar charts that instantly flag which villages are in severe rainfall deficit (bars turn red!) and which aquifers are dangerously deep.
-
-5. ⚠️ **Calculate Risk** - Play with the interactive sliders for Rainfall Deficit, Groundwater Depletion, and Population Demand Gap. The weighted algorithm instantly computes a risk score out of 100 and classifies it as **SAFE**, **MODERATE**, or **CRITICAL** with a gorgeous dark-mode result card.
-
-6. 🚚 **Dispatch Tankers** - Pick a village, set the water volume, and hit "Allocate Truck." A new tanker appears in the live tracking panel with an ETA. When it arrives, mark it as delivered with one click.
-
-7. 🔮 **Predict the Future** - View AI-driven drought probability forecasts per village on area charts, then hit "Generate AI Action Plan" for recommended emergency protocols (tanker deployment, rationing levels).
-
-8. 📊 **Export Reports** - One click on the dashboard downloads a comprehensive CSV report with all current metrics - perfect for government record-keeping.
+### JOURNEY 2 — THE OPERATOR EXPERIENCE (Human)
+1.  **🗺️ Visualization**: Operator opens the **Spatial Risk Map** to see pulsing "hotspots" colored by severity.
+2.  **🔍 Deep Dive**: Clicks on a district to see **Rainfall & Groundwater Analysis** charts comparing current levels to 1993-2023 averages.
+3.  **🔢 Validation**: Opens the **Risk Calculator** to see the exact mathematical proof behind a district's score.
+4.  **🔮 Prediction**: Reviews the **16-day Hydrological Forecast** to anticipate incoming dry spells.
+5.  **🚛 Response**: If a zone hits "Extreme" (70+), the operator authenticates via Google and triggers a **Tanker Dispatch**.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
-## ✨ Features
+## 🧮 The Science Behind the Score
 
-### 🏠 Core Dashboard
-- 📊 **Real-Time Stat Cards** - Four animated cards showing Total Villages, Critical Regions, Active Tankers, and Average Rainfall with hover lift effects and gradient backgrounds.
-- 📈 **Dual Area Charts** - Rainfall trends and groundwater levels rendered with smooth gradient fills using Recharts. Custom glassmorphic tooltips with backdrop blur.
-- 📥 **One-Click CSV Export** - Generates a timestamped drought report (`Drought_Report_2026-04-20.csv`) with all system metrics, downloadable instantly from the browser.
+At the heart of AqvaSense is a proprietary scientific instrument: the **Composite Drought Risk Score (CDRS)**.
+
+| Pillar | Weight | What It Measures | Clever Design |
+| :--- | :--- | :--- | :--- |
+| 🌧️ **RDI** | 35% | Rainfall Deficit Index | **Arid Floor**: Prevents desert zones from permanent 100s. |
+| ☀️ **CDD** | 20% | Consecutive Dry Days | **Streak Blend**: Prioritizes length over simple frequency. |
+| 💧 **SMA** | 30% | Soil Moisture Anomaly | **Absolute Floors**: High-risk triggers at moisture criticalities. |
+| 👥 **PPA** | 10% | Population Pressure | **WHO Standard**: Based on 55L/person/day requirement. |
+| 📈 **TAM** | ±4pts | Trend Acceleration | **Self-Healing**: Penalizes quick crashes, rewards recovery. |
+
+### Classification Matrix
+- 🟢 **Normal (0-24.9)**: Sufficient resource equilibrium.
+- 🟡 **Moderate (25-49.9)**: Early warnings; monitor soil moisture.
+- 🟠 **Severe (50-69.9)**: Significant deficit; irrigation restrictions advised.
+- 🔴 **Extreme (70-100)**: Emergency; immediate logistics deployment required.
 
 > [!TIP]
-> ✨ The dashboard stat cards have a cool micro-interaction - hover over them and they **float upward** while the background gradient blob **scales up** behind them!
+> A score of exactly 100.0 is mathematically impossible by design. The piecewise compression function approaches the maximum asymptotically to ensure the most extreme case is always a fraction away from "saturation."
 
----
-
-### 🗺️ Geospatial Mapping
-- 🌍 **Interactive Leaflet Map** - Full pan/zoom map of Maharashtra centered on the CARTO Voyager basemap for a clean, modern look.
-- 🔴 **Drought Impact Heatmap Rings** - Every village is surrounded by a 15 km color-coded risk radius (red/amber/green) showing the area of impact.
-- 📍 **Fly-To Animations** - Click any village marker and the map smoothly animates to zoom into it. The popup reveals the village name, district, risk level, and risk score.
-- 🟢 **Color-Coded Risk Legend** - Built-in legend pills at the top (High Risk / Moderate / Low Risk) so you always know what the colors mean.
-
-> [!TIP]
-> ✨ The map uses **CircleMarker** with white borders for the village dots and larger **Circle** overlays for the heatmap zones - creating a really satisfying "bullseye" visual effect!
-
----
-
-### ⚠️ Risk Intelligence Engine
-- 🎛️ **Interactive Risk Calculator** - Three range sliders let you adjust Rainfall Deficit, Groundwater Depletion, and Population Demand Gap in real time. The weighted formula (`0.40×R + 0.35×GW + 0.25×P`) spits out a score instantly.
-- 🍩 **Weight Distribution Donut Chart** - A Recharts donut chart visually breaks down how each factor contributes to the final score.
-- 🏷️ **Auto-Classification** - Villages are bucketed into Critical (score > 75), Moderate (40–75), or Normal (< 40) with color-coded progress bars.
-- 📋 **Risk Classification Board** - Three big counter cards at the top show how many villages fall into each risk bucket, with gradient color bars at their base.
-
----
-
-### 🚚 Tanker Logistics & Dispatch
-- 🆕 **Dispatch Form** - Select a target village from a dropdown, set the volume in liters (min 1,000, step 500), and allocate a truck with a random ID like `TNK-4827`.
-- 📡 **Live Tracking Panel** - En-route tankers show up in a timeline view with their ETA and a green checkmark button to mark them as delivered.
-- 📊 **Volume Allocation Bar Chart** - A gradient bar chart shows how many liters have been allocated per village.
-- 🃏 **Tanker Cards** - Each tanker gets a premium card with a dark gradient header, status badge (Enroute/Delivered/Pending), capacity, ETA, and a "Mark as Delivered" button.
-
----
-
-### 🌧️ Environmental Monitoring
-- 💧 **Rainfall Analysis** - Bar chart with conditional coloring - bars turn **red** when rainfall drops below 50 mm (severe deficit) and stay **blue** when normal.
-- 🕳️ **Groundwater Depth Tracking** - Visualizes aquifer depth in meters per village. Bars turn **amber** when depth exceeds 30 m (depleted). Each village card gives a human-readable status.
-- 📉 **Supply vs Demand Composite Chart** - A combined bar + line chart overlays population demand (gradient bars) against current supply (amber line) per village, with an insights panel flagging surpluses and deficits.
-
----
-
-### 🔮 Prediction & AI
-- 📉 **Drought Probability Forecasts** - Per-village area charts show historical trends (dashed line) vs. AI predictions (purple gradient fill) from April through August.
-- 🤖 **Generate AI Action Plan** - Hit the button and watch a loading spinner, then receive a protocol recommendation (e.g., "Deploy three 10,000L emergency tankers", "Activate rationing level 2").
-- 📣 **Actionable Intelligence Cards** - Each village gets a purple insight card showing the predicted drought probability for August.
-
-> [!IMPORTANT]
-> 🔮 The Future Prediction page generates **unique forecasts per village** - each one has different historical baselines and prediction curves, so you're not just looking at the same chart five times!
-
----
-
-### 🎨 UI & Experience
-- 🪟 **Glassmorphism Everywhere** - Semi-transparent cards with `backdrop-blur`, subtle borders, and layered depth effects across the entire app.
-- 🌑 **Dark Mode Auth Gateway** - The login screen uses a fully dark theme with slate-900 backgrounds, glowing blue accents, and a top-edge gradient shimmer.
-- 📱 **Fully Mobile Responsive** - A hamburger menu triggers a sliding-drawer sidebar with backdrop blur on mobile. The map, charts, and cards all reflow beautifully.
-- 👤 **User Profile in Sidebar** - Shows your name initial in a blue avatar circle, plus your email below. Logout button at the bottom.
-- ✨ **Micro-Animations** - Fade-in page transitions, slide-up card animations, hover lift effects on stat cards, and scale transforms on background blobs.
+> [!NOTE]
+> **Arid District Floor**: Regions like Barmer and Kachchh have their historical baselines floored at 20mm to prevent normal dry cycles from triggering false emergency alerts.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
-## 💡 Who Can Use This?
+## 📡 How the Data Flows
 
-| 👤 Who | 🎯 What they do with it |
-|--------|------------------------|
-| 🏛️ Government Officials | Monitor drought-hit regions and prioritize emergency water tanker allocations across districts |
-| 🌾 District Collectors | Get a bird's-eye view of rainfall deficits and groundwater depletion to decide where to deploy resources |
-| 🚰 Water Resource Engineers | Track supply vs. demand gaps and make data-backed decisions about pumping schedules |
-| 🎓 Students & Researchers | Explore a beautifully built full-stack project covering maps, charts, auth, and REST APIs |
-| 🚚 Tanker Fleet Managers | Manage truck dispatch, track deliveries in real time, and mark water drops as completed |
-| 🌍 NGOs & Relief Orgs | Identify the most at-risk villages and plan relief operations using predictive drought models |
-| 📊 Data Analysts | Export CSV reports of system metrics for offline analysis and government audits |
-| 🏫 Hackathon Teams | Draw inspiration from a polished, production-grade UI with glassmorphism, animated charts, and maps |
-
-> [!IMPORTANT]
-> 🏛️ **For Government Planners** - The supply-vs-demand module alone can change how water budgets are allocated. By showing the exact liter-level gap between what a village needs and what it has, authorities can go from guessing to precision resource allocation.
+1.  **🗺️ Base Layer**: District boundaries ingested from a curated Indian administrative GeoJSON dataset.
+2.  **👥 Human Context**: Census 2011 population data fuzzy-matched per district name.
+3.  **📍 Geocoding**: Three-tier fallback strategy (Exact → State-level → Centroid) via OSM Nominatim API.
+4.  **🌦️ Historical Baseline**: 30 years of climate data (1993-2023) fetched to define "Normal" per month, per district.
+5.  **🔄 Live Feed**: Daily precipitation and soil moisture (0-7cm layer) fetched nightly.
+6.  **⚡ API Efficiency**: Open-Meteo multi-location batching allows 732 districts to be updated in just 15 calls.
+7.  **💾 Intelligent Caching**: MongoDB collections with TTL (Time-To-Live) indexes manage data freshness automatically.
+8.  **🎯 Priority Queue**: Extreme risk districts are scored first if API quotas run low.
 
 > [!TIP]
-> 🎓 **For Fellow Students** - This project is a great reference for building full-stack apps with React 19, Vite 8, Tailwind CSS 4, Node.js/Express, MongoDB/Mongoose, Google OAuth, JWT auth, Leaflet maps, and Recharts - all in one codebase!
+> The 97.9% reduction in API calls is achieved by flattening 732 location queries into 15 batch arrays of 50 locations each, staying safely within rate limits while increasing speed.
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
+
+## ✨ Every Feature, Explained
+
+### 🗺️ Live Monitoring
+- **Spatial Command Center**: Full-screen interactive map with severity-colored markers.
+- **Pulsing Nodes**: Extreme risk districts (70+) animate with a glow effect on the map.
+- **Top Priority Toggles**: Quickly filter for 10, 25, 50, or 100 highest-risk districts.
+- **Geospatial KPI Tiles**: Real-time stats on villages monitored and average risk scores.
+- **Auto-Sync**: Dashboard refreshes in the background the moment you focus your browser tab.
+
+### 🌧️ Rainfall & Groundwater Analysis
+- **Time-Travel Charts**: View 7, 30, or 90 days of trends overlayed against a fixed 30-year historical baseline.
+- **Historical Reference**: A dashed reference line shows the "Climatologically Normal" level for the current month.
+- **Soil Health Zones**: Moisture charts include shaded "Health Bands" indicating when evaporation exceeds infiltration.
+- **Sparkline Indicators**: Mini-charts on district cards show immediate moisture trends.
+- **Trend Indicators**: Visual "Stable/Improving/Declining" icons driven by the TAM algorithm.
+- **CSV Export**: Export any district's raw historical and live data for external analysis.
+
+### 🔢 Risk Intelligence
+- **Composite Table**: A high-performance searchable grid of all 732 districts.
+- **Dynamic Search**: Filter instantly by district name or state.
+- **Demand Analysis**: A specialized column showing total daily water requirement (in Kiloliters).
+- **Sub-Component Expansion**: Expand any row to see individual RDI, CDD, SMA, and PPA scores.
+- **Calculation Proof**: Click any score to see the exact multiplication of weights and piecewise curves.
+- **Validation Check**: Live comparison between cached scores and real-time computation.
+
+### 🔮 Predictive Modeling
+- **16-Day Forecast**: Composed charts showing precipitation bars vs. probability lines.
+- **Baseline Overlay**: Compare forecast rain against the historical monthly normal.
+- **Dry Spell Alerts**: Automatic detection of upcoming 5+ day zero-rainfall windows.
+- **Hydrological Outlook**: Forecasts trend direction (Worsening vs. Improving).
+
+### 🚛 Operations & Dispatch
+- **Logistics Console**: Full lifecycle tracking for emergency water tankers.
+- **Fleet Telemetry**: Real-time status badges for "Dispatched," "En Route," and "Delivered."
+- **Mission History**: Comprehensive logs of all past successful deliveries.
+- **Protected Ops**: Mission creation is restricted to authorized operators via secure JWT authentication.
+- **Auth Layers**: Support for both Email/Password and Google OAuth one-click login.
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
+
+## 💡 Who Uses AqvaSense?
+
+| 👤 Who | 🎯 What they do |
+| :--- | :--- |
+| **District Water Officers** | Monitor daily risk scores and trigger local restrictions. |
+| **State Emergency Management** | Identify which districts need state-level funding or tankers. |
+| **Agricultural Departments** | Track soil moisture trends to advise farmers on crop cycles. |
+| **Relief Coordination Teams** | Dispatch tankers to zones where demand exceeds supply. |
+| **Climate Researchers** | Analyze 30-year baseline anomalies for long-term trends. |
+| **Policy Makers** | Use supply vs. demand data to plan future reservoir infrastructure. |
+| **NGOs and Aid Organizations** | Identify critical zones for temporary relief camp setup. |
+| **Urban Planners** | Forecast seasonal water stress for rapidly growing cities. |
+
+> [!IMPORTANT]
+> **State Emergency Management** relies on the "Extreme" risk alerts to mobilize limited tanker fleets across state lines during peak summer.
+
+> [!IMPORTANT]
+> **Agricultural Departments** use the Soil Moisture Anomaly (SMA) index to issue early warnings for potential crop failures before visible signs appear.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
 ## 🛠️ Built With
 
-| Technology | What it does in THIS project |
-|---|---|
-| ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | Powers the entire SPA - 10 pages, routing, context-based auth, and all interactive UI components |
-| ![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white) | Lightning-fast dev server with HMR that makes the build feel instant |
-| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white) | The magic behind the glassmorphism cards, gradient blobs, backdrop blurs, and responsive layouts |
-| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white) | Runs the backend server with Express 5, handling 7 RESTful API route groups |
-| ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white) | Stores user accounts, village data, tanker statuses, and rainfall records via Mongoose 9 |
-| ![Leaflet](https://img.shields.io/badge/React_Leaflet_5-199900?style=for-the-badge&logo=leaflet&logoColor=white) | Renders the interactive geospatial map with CARTO tiles, circle markers, heatmap rings, and fly-to animations |
-| ![Recharts](https://img.shields.io/badge/Recharts_3-ff69b4?style=for-the-badge&logo=chart.js&logoColor=white) | Creates every chart - area, bar, composed, pie/donut - all with gradient fills and custom tooltips |
-| ![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white) | One-tap Google Sign-In on the frontend verified with `google-auth-library` on the backend |
-| ![JWT](https://img.shields.io/badge/JWT_Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) | 7-day token-based sessions with bcrypt-hashed passwords stored in MongoDB |
-| ![Lucide](https://img.shields.io/badge/Lucide_Icons-f56565?style=for-the-badge&logo=lucide&logoColor=white) | 15+ beautifully consistent icons (Droplet, Truck, CloudRain, MapPin, etc.) across every page |
-| ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) | Hosts the production frontend with zero-config deployment |
+| Technology | What it does in AqvaSense |
+| :--- | :--- |
+| ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | Powers the high-performance SPA and complex state management. |
+| ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white) | Provides the build infrastructure and lightning-fast HMR. |
+| ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white) | Handles the high-density storage of 732 district profiles and time-series caches. |
+| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white) | Orchestrates the nightly CRON jobs and RESTful API layer. |
+| ![Express](https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white) | Robust backend routing for authentication and data telemetry. |
+| ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white) | Manages the geospatial visualization layer with custom marker clusters. |
+| ![Recharts](https://img.shields.io/badge/Recharts-FF69B4?style=for-the-badge&logo=chart.js&logoColor=white) | Renders all interactive time-series and distribution charts. |
+| ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white) | Handles server-state synchronization with background refreshing. |
 
-The tech stack was carefully chosen to be **modern but practical** - React 19 for the latest hooks and concurrent features, Tailwind v4 for next-gen CSS, and Express 5 on the backend. Everything from auth to charts to maps is wired up end-to-end.
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
+
+## 📊 By the Numbers
+
+<div align="center">
+  <table border="0">
+    <tr>
+      <td><b>732</b><br/>Districts Monitored</td>
+      <td><b>480</b><br/>Active Telemetry Nodes</td>
+      <td><b>30 Years</b><br/>Historical Baseline</td>
+    </tr>
+    <tr>
+      <td><b>97.9%</b><br/>API Call Reduction</td>
+      <td><b>15</b><br/>Nightly Batch Calls</td>
+      <td><b>5 Pillars</b><br/>Scoring Algorithm</td>
+    </tr>
+    <tr>
+      <td><b>02:00 UTC</b><br/>Daily Automated Job</td>
+      <td><b>21.2</b><br/>Score Std. Deviation</td>
+      <td><b>1,161</b><br/>Backfilled Records</td>
+      <td><b>0%</b><br/>Score Saturation</td>
+    </tr>
+  </table>
+</div>
+
+> [!NOTE]
+> Every number above is derived from live production data processed through the AqvaSense pipeline.
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
+
+## 📸 Dashboard Gallery
+
+<div align="center">
+  <table border="0">
+    <tr>
+      <td><img src="risk_map.png" width="450" /><br/><i>Interactive Spatial Risk Map</i></td>
+      <td><img src="rainfall_analysis.png" width="450" /><br/><i>Rainfall Baseline Analysis</i></td>
+    </tr>
+    <tr>
+      <td><img src="groundwater.png" width="450" /><br/><i>Soil Moisture Trend Monitoring</i></td>
+      <td><img src="classification.png" width="450" /><br/><i>District Risk Classification</i></td>
+    </tr>
+    <tr>
+      <td><img src="supply_demand.png" width="450" /><br/><i>Supply vs Demand Matrix</i></td>
+      <td><img src="prediction.png" width="450" /><br/><i>16-Day Hydrological Forecast</i></td>
+    </tr>
+  </table>
+</div>
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
+
+## 🔬 The Algorithm Story
+
+Building a scoring system that doesn't lie is harder than it sounds. 
+
+Early in development, we implemented a standard logistic compression curve (k=0.045) to scale the weighted scores. During a full audit, we discovered a "Saturation Collapse": **every single district in India was scoring between 83 and 98.** Vadodara and a rainforest district in Arunachal Pradesh looked identical on the dashboard.
+
+We ran a mathematical intervention. By replacing the logistic curve with a **hand-tuned 5-segment piecewise linear function**, we successfully expanded the score range by **316%**. Now, the lowest district (Longding: 33.6) and the highest (Vadodara: 96.1) are meaningfully separated, allowing operators to prioritize where to send help.
+
+> [!WARNING]
+> Building a scoring system that reflects reality requires constant auditing against outliers.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
 ## 🤓 Did You Know?
 
 > [!NOTE]
-> 💬 The risk calculation algorithm uses a **weighted multi-variable formula**: `Risk = 0.40 × Rainfall Deficit + 0.35 × Groundwater Depletion + 0.25 × Population Demand Gap` - designed to reflect that rain matters most, but water table and population pressure can't be ignored.
+> Every night at exactly 02:00 UTC, this app wakes up and processes weather data for a region home to over half a billion people.
 
 > [!NOTE]
-> 💬 Each village on the map has a **15,000-meter (15 km) impact radius circle** drawn around it - that's roughly the area affected by drought conditions radiating from the village center.
+> The population pressure calculation uses the WHO's strict standard of **55 liters per person per day** as the baseline demand.
 
 > [!NOTE]
-> 💬 The login page uses a **top-edge glow effect** - a 1px gradient line (`from-transparent via-blue-400/30 to-transparent`) combined with a blurred radial beneath it to create that subtle "light source above the card" illusion!
+> Kachchh and Barmer get special treatment in the algorithm: their naturally arid baselines are floored at 20mm to prevent false extreme scores during climatologically normal dry years.
 
 > [!NOTE]
-> 💬 Passwords are hashed using **bcrypt with 10 salt rounds** before storage, and Google OAuth tokens are verified server-side using Google's official `google-auth-library` - not just trusted from the frontend.
-
-> [!NOTE]
-> 💬 The CSV export function builds the file **entirely in-browser** using a Blob and automatic download link injection - no server round-trip needed!
+> Over **8 million individual data points** were ingested from the Open-Meteo Archive API to build the 30-year monthly baselines.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
 <div align="center">
+  <p>Made with 💙 and a lot of weather data by <b>Yash</b></p>
+  <p><i>Built to turn climate data into human action.</i></p>
 
-  <br/>
+  <a href="https://github.com/yash5123">
+    <img src="https://img.shields.io/badge/GITHUB-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
 
-  **Made with ❤️ and lots of ☕ by the Yash**
-
-  *💧 Every drop counts. Every village matters.*
-
-  <br/>
-
+  <br /><br />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
 </div>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0ea5e9,50:6366f1,100:8b5cf6&height=120&section=footer" width="100%" />
