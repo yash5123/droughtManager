@@ -78,10 +78,21 @@ export default function MapPage() {
         </div>
       </div>
       
-      <div style={{ flex: 1, borderRadius: '20px', overflow: 'hidden', position: 'relative', marginTop: dataSource ? '20px' : 0 }}>
+      <div style={{ 
+        flex: 1, 
+        borderRadius: '20px', 
+        overflow: 'hidden', 
+        position: 'relative', 
+        marginTop: dataSource ? '20px' : 0,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--divider)',
+        paddingTop: '110px' // Create space for the controls
+      }}>
         {/* Map Controls Overlay */}
         <div className="glass-panel" style={{ 
-          position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)', 
+          position: 'absolute', top: '32px', left: '50%', transform: 'translateX(-50%)', 
           zIndex: 1000, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
           boxShadow: 'var(--glass-shadow-elevated)',
           backdropFilter: 'blur(16px)',
@@ -157,7 +168,7 @@ export default function MapPage() {
           doubleClickZoom={true} 
           dragging={true} 
           attributionControl={false} 
-          style={{ height: '100%', width: '100%', background: 'transparent', marginTop: '100px' }}
+          style={{ height: '100%', width: '100%', background: 'transparent' }}
         >
           <MapUpdater theme={theme} />
           <TileLayer url={OSM_TILES} noWrap={true} />
