@@ -621,18 +621,74 @@ export default function TankerManagement() {
         </div>
       </div>
 
-      {/* Custom Delete Confirmation Modal */}
+      {/* Tactical Hazard Protocol Modal */}
       {deleteId && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)' }}>
-          <div className="glass-card" style={{ width: '400px', padding: '32px', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)', boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)', background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--accent-red)' }}>
-              <AlertCircle size={32} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(16px)' }}>
+          {/* Scanning Line Effect */}
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', opacity: 0.05 }}>
+            <div style={{ width: '100%', height: '1px', background: 'var(--accent-red)', position: 'absolute', top: '0', left: 0, animation: 'scan 4s linear infinite' }} />
+          </div>
+          
+          <div className="glass-card" style={{ 
+            width: '440px', 
+            padding: '40px', 
+            textAlign: 'center', 
+            border: '1px solid rgba(239, 68, 68, 0.3)', 
+            boxShadow: '0 40px 100px -20px rgba(239, 68, 68, 0.2), inset 0 0 40px rgba(239, 68, 68, 0.05)', 
+            background: 'rgba(15, 23, 42, 0.95)',
+            borderRadius: '32px'
+          }}>
+            <div style={{ 
+              width: '80px', 
+              height: '80px', 
+              borderRadius: '24px', 
+              background: 'rgba(239, 68, 68, 0.15)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              margin: '0 auto 24px', 
+              color: '#ef4444',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              position: 'relative'
+            }}>
+              <AlertCircle size={40} />
+              <div className="live-pulse" style={{ position: 'absolute', inset: '-4px', borderRadius: '28px', border: '1px solid rgba(239, 68, 68, 0.3)' }} />
             </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Terminate Mission?</h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '32px', lineHeight: '1.5' }}>This will permanently scrub the mission telemetry and deployment records from the command registry.</p>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setDeleteId(null)} className="glass-btn" style={{ flex: 1, height: '48px', fontWeight: 700 }}>CANCEL</button>
-              <button onClick={confirmDelete} className="primary-btn" style={{ flex: 1, height: '48px', fontWeight: 800, background: 'var(--accent-red)', boxShadow: '0 10px 20px -5px rgba(239, 68, 68, 0.4)' }}>CONFIRM PURGE</button>
+            
+            <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', color: '#ef4444', fontSize: '10px', fontWeight: 900, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>
+              Mission Critical Action
+            </div>
+            
+            <h3 style={{ fontSize: '24px', fontWeight: 900, color: '#fff', marginBottom: '12px', letterSpacing: '-0.5px' }}>Terminate Mission?</h3>
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '40px', lineHeight: '1.6' }}>
+              This protocol will permanently <span style={{ color: '#fff', fontWeight: 700 }}>scrub</span> mission telemetry and deployment records from the command registry. This action cannot be reversed.
+            </p>
+            
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <button onClick={() => setDeleteId(null)} className="glass-btn" style={{ flex: 1, height: '54px', fontWeight: 700, color: '#fff', borderColor: 'rgba(255,255,255,0.1)' }}>ABORT</button>
+              <button 
+                onClick={confirmDelete} 
+                className="primary-btn" 
+                style={{ 
+                  flex: 1.5, 
+                  height: '54px', 
+                  fontWeight: 900, 
+                  background: '#ef4444', 
+                  color: '#fff',
+                  boxShadow: '0 15px 30px -10px rgba(239, 68, 68, 0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                <Zap size={18} />
+                CONFIRM PURGE
+              </button>
+            </div>
+            
+            <div style={{ marginTop: '24px', fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, letterSpacing: '0.5px' }}>
+              SECURE_AUTH_LEVEL: COMMAND_OVERRIDE
             </div>
           </div>
         </div>
