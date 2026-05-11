@@ -334,69 +334,64 @@ export default function RiskCalculator() {
                     <span>Logic Pillars</span>
                     <span style={{ fontSize: '10px', opacity: 0.6 }}>WEIGHTED</span>
                   </h4>
-                  {(() => {
-                    const rdi = selectedVillage.metricsSnapshot?.rdiScore ?? (selectedVillage.rainfallDeficit || 0);
-                    const sma = selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0);
-                    const ppa = selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0);
-                    const cdd = selectedVillage.metricsSnapshot?.cddScore;
-                    const tam = selectedVillage.metricsSnapshot?.tamAdjustment;
-                    
-                    // Logic to handle legacy records where CDD/TAM weren't saved separately
-                    const isLegacy = cdd === undefined;
-                    const weightedKnown = (rdi * 0.35) + (sma * 0.30) + (ppa * 0.15);
-                    const residual = Math.max(0, selectedVillage.riskScore - weightedKnown);
 
-                    return (
-                      <>
-                        <ContributionRow label="RDI (Rainfall)" score={rdi} weight={activeWeights.rdi} color="var(--accent-blue)" />
-                        
-                        {isLegacy ? (
-                          <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,191,0,0.05)', border: '1px solid rgba(255,191,0,0.2)', margin: '8px 0' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-amber)' }}>Trend & Dryness (Legacy)</span>
-                              <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent-amber)' }}>+{residual.toFixed(1)} PTS</span>
-                            </div>
-                            <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>This record was calculated with a previous engine. Residual risk accounts for dry streaks and trajectory trends.</p>
-                          </div>
-                        ) : (
-                          <>
-                            <ContributionRow 
-                              label="CDD (Dryness)" 
-                              score={cdd} 
-                              weight={activeWeights.cdd} 
-                              color="var(--accent-amber)" 
-                              subtext={selectedVillage.metricsSnapshot?.maxDryStreak > 0 ? `${selectedVillage.metricsSnapshot.maxDryStreak} days` : null}
-                            />
-                            <ContributionRow label="SMA (Soil)" score={sma} weight={activeWeights.sma} color="var(--accent-cyan)" />
-                            <ContributionRow label="PPA (Demand)" score={ppa} weight={activeWeights.ppa} color="#8b5cf6" />
-                            
-                            <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <TrendingUp size={14} color="var(--accent-green)" />
-                                  <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend Adjustment (TAM)</span>
-                                </div>
-                                <span style={{ fontSize: '14px', fontWeight: 800, color: (tam || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                                  {(tam || 0) >= 0 ? '+' : ''}{(tam || 0).toFixed(1)} PTS
-                                </span>
-                              </div>
-                              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>Based on 7-day risk trajectory acceleration.</p>
-                            </div>
-                          </>
-                        )}
-                        
-                        {/* Always show SMA/PPA if not already shown in legacy block */}
-                        {isLegacy && (
-                          <>
-                            <ContributionRow label="SMA (Soil)" score={sma} weight={activeWeights.sma} color="var(--accent-cyan)" />
-                            <ContributionRow label="PPA (Demand)" score={ppa} weight={activeWeights.ppa} color="#8b5cf6" />
-                          </>
-                        )}
-                      </>
-                    );
-                  })()}
+                  <ContributionRow 
+                    label="RDI (Rainfall)" 
+                    score={selectedVillage.metricsSnapshot?.rdiScore ?? (selectedVillage.rainfallDeficit || 0)} 
+                    weight={activeWeights.rdi} 
+                    color="var(--accent-blue)" 
+                  />
+
+                  {selectedVillage.metricsSnapshot?.cddScore === undefined ? (
+                    <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,191,0,0.05)', border: '1px solid rgba(255,191,0,0.2)', margin: '8px 0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-amber)' }}>Trend & Dryness (Legacy)</span>
+                        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent-amber)' }}>
+                          +{Math.max(0, (selectedVillage.riskScore - ((selectedVillage.rainfallDeficit || 0) * 0.35 + (selectedVillage.soilMoistureDepletion || 0) * 0.30 + (selectedVillage.populationDemandGap || 0) * 0.15))).toFixed(1)} PTS
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', margin: 0 }}>This record was calculated with a previous engine. Audit data is pending refresh.</p>
+                    </div>
+                  ) : (
+                    <ContributionRow 
+                      label="CDD (Dryness)" 
+                      score={selectedVillage.metricsSnapshot.cddScore} 
+                      weight={activeWeights.cdd} 
+                      color="var(--accent-amber)" 
+                      subtext={selectedVillage.metricsSnapshot.maxDryStreak > 0 ? `${selectedVillage.metricsSnapshot.maxDryStreak} days` : null}
+                    />
+                  )}
+
+                  <ContributionRow 
+                    label="SMA (Soil)" 
+                    score={selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0)} 
+                    weight={activeWeights.sma} 
+                    color="var(--accent-cyan)" 
+                  />
+                  <ContributionRow 
+                    label="PPA (Demand)" 
+                    score={selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} 
+                    weight={activeWeights.ppa} 
+                    color="#8b5cf6" 
+                  />
+
+                  {selectedVillage.metricsSnapshot?.tamAdjustment !== undefined && (
+                    <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <TrendingUp size={14} color="var(--accent-green)" />
+                          <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend Adjustment (TAM)</span>
+                        </div>
+                        <span style={{ fontSize: '14px', fontWeight: 800, color: selectedVillage.metricsSnapshot.tamAdjustment >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                          {selectedVillage.metricsSnapshot.tamAdjustment >= 0 ? '+' : ''}{selectedVillage.metricsSnapshot.tamAdjustment.toFixed(1)} PTS
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>Based on 7-day risk trajectory acceleration.</p>
+                    </div>
+                  )}
                 </div>
-                {/* Audit Verification Actions */}
+
+                {/* Audit Actions */}
                 <div style={{ margin: '16px 0 24px 0', display: 'flex', gap: '10px' }}>
                   <button 
                     onClick={() => handleCalculate(selectedVillage._id)}
@@ -419,56 +414,30 @@ export default function RiskCalculator() {
                       transition: 'all 0.2s'
                     }}
                   >
-                    <RefreshCw size={16} className={isCalculating ? 'spin' : ''} style={{ animation: isCalculating ? 'spin 1s linear infinite' : 'none' }} />
+                    <RefreshCw size={16} style={{ animation: isCalculating ? 'spin 1s linear infinite' : 'none' }} />
                     {isCalculating ? 'Recalculating...' : 'Trigger Live Audit'}
                   </button>
-                  <button 
-                    style={{ 
-                      width: '44px', 
-                      height: '44px', 
-                      borderRadius: '12px', 
-                      background: 'rgba(255,255,255,0.02)', 
-                      border: '1px solid var(--divider)', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      cursor: 'pointer'
-                    }}
-                  >
+                  <button style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Download size={18} color="var(--text-secondary)" />
                   </button>
                 </div>
-                <style>{`
-                  @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                  }
-                  .spin { animation: spin 1s linear infinite; }
-                `}</style>
+              </div>
 
-              {/* Fixed Weight Panel */}
+              {/* Weights */}
               <div className="glass-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--accent-blue)15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Calculator size={18} color="var(--accent-blue)" />
                     </div>
-                    <h3 className="section-header" style={{ fontSize: '16px', margin: 0, letterSpacing: '0.5px' }}>Regional Parameters</h3>
+                    <h3 className="section-header" style={{ fontSize: '16px', margin: 0 }}>Regional Parameters</h3>
                   </div>
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <StaticWeight label="Rainfall Intensity" value={activeWeights.rdi} color="var(--accent-blue)" icon={<Droplets size={14} />} />
                   <StaticWeight label="Dryness Severity" value={activeWeights.cdd} color="var(--accent-amber)" icon={<TrendingUp size={14} />} />
                   <StaticWeight label="Groundwater Health" value={activeWeights.sma} color="var(--accent-cyan)" icon={<Waves size={14} />} />
                   <StaticWeight label="Socio-Economic Demand" value={activeWeights.ppa} color="#8b5cf6" icon={<Users size={14} />} />
-                </div>
-
-                <div style={{ marginTop: '20px', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--divider)', display: 'flex', gap: '12px' }}>
-                  <Info size={18} color="var(--text-tertiary)" style={{ flexShrink: 0 }} />
-                  <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-                    Weights are locked to official regional model parameters. All scores are computed in real-time.
-                  </p>
                 </div>
               </div>
             </>
@@ -479,6 +448,9 @@ export default function RiskCalculator() {
             </div>
           )}
         </div>
+        <style>{`
+          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        `}</style>
 
       </div>
     </div>
