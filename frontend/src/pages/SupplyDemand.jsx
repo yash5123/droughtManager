@@ -126,10 +126,6 @@ export default function SupplyDemand() {
         <div className="header-text">
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <h1 className="header-title" style={{ fontSize: '34px', letterSpacing: '-1.5px' }}>Resource Matrix</h1>
-            <div className="glass-pill" style={{ padding: '4px 12px', fontSize: '10px', color: 'var(--accent-green)', background: 'var(--risk-normal-tint)', border: '1px solid var(--accent-green)40', fontWeight: 800 }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-green)', marginRight: '8px', display: 'inline-block' }} className="live-pulse" />
-              LIVE TELEMETRY
-            </div>
           </div>
           <p className="header-subtitle" style={{ fontSize: '15px', opacity: 0.8 }}>Real-time Supply-Demand differential analysis across {villages.length} administrative domains.</p>
         </div>
