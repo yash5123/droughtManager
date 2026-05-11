@@ -79,19 +79,8 @@ export default function GroundwaterAnalysis() {
     
     // Sort by moisture (lowest moisture first)
     list.sort((a, b) => {
-      // For sorting, also apply the maritime baseline if data is missing
-      let valA = a.avgSoilMoisturePct;
-      let valB = b.avgSoilMoisturePct;
-      
-      const isLaksA = a.state?.toLowerCase().includes('lakshadweep');
-      const isLaksB = b.state?.toLowerCase().includes('lakshadweep');
-      
-      if ((valA === 0 || valA == null) && isLaksA) valA = 18.0;
-      if ((valB === 0 || valB == null) && isLaksB) valB = 18.0;
-      
-      const scoreA = (valA != null && valA > 0) ? valA : 999;
-      const scoreB = (valB != null && valB > 0) ? valB : 999;
-      
+      const scoreA = (a.avgSoilMoisturePct != null && a.avgSoilMoisturePct > 0) ? a.avgSoilMoisturePct : 999;
+      const scoreB = (b.avgSoilMoisturePct != null && b.avgSoilMoisturePct > 0) ? b.avgSoilMoisturePct : 999;
       return sortAscending ? scoreA - scoreB : scoreB - scoreA;
     });
     
@@ -204,14 +193,7 @@ export default function GroundwaterAnalysis() {
               filteredList.map((v, i) => {
                 const isSelected = selectedVillage?._id === v._id;
                 
-                // OPTION 1 BRIDGE: Display synthesized maritime estimate while DB re-syncs
-                let displayMoisture = v.avgSoilMoisturePct;
-                const isMaritime = v.state?.toLowerCase().includes('lakshadweep');
-                
-                if ((displayMoisture === 0 || displayMoisture == null) && isMaritime) {
-                  displayMoisture = 18.0; // Show the baseline immediately
-                }
-                
+                const displayMoisture = v.avgSoilMoisturePct;
                 const level = displayMoisture != null && displayMoisture > 0 ? getSoilMoistureLevel(displayMoisture) : null;
                 const color = level?.color || 'var(--text-tertiary)';
                 
@@ -244,16 +226,14 @@ export default function GroundwaterAnalysis() {
               {selectedVillage && (
                 <div style={{ textAlign: 'right' }}>
                   {(() => {
-                    let displayMoisture = selectedVillage.avgSoilMoisturePct;
-                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
-                    if ((displayMoisture === 0 || displayMoisture == null) && isMaritime) {
-                      displayMoisture = 18.0;
-                    }
+                    const displayMoisture = selectedVillage.avgSoilMoisturePct;
+                    const level = displayMoisture != null && displayMoisture > 0 ? getSoilMoistureLevel(displayMoisture) : null;
+                    const color = level?.color || 'var(--text-tertiary)';
                     return (
                       <>
                         <div className="data-value" style={{ 
-                          color: displayMoisture <= 0 ? 'var(--text-tertiary)' : (displayMoisture < 7 ? 'var(--accent-red)' : displayMoisture < 15 ? 'var(--accent-amber)' : 'var(--accent-green)'), 
-                          filter: displayMoisture <= 0 ? 'none' : 'drop-shadow(0 0 8px currentColor)', 
+                          color: color, 
+                          filter: displayMoisture <= 0 ? 'none' : `drop-shadow(0 0 8px ${color}80)`, 
                           fontSize: '24px' 
                         }}>
                           {displayMoisture > 0 ? `${displayMoisture.toFixed(1)}%` : 'N/A'}
@@ -269,24 +249,21 @@ export default function GroundwaterAnalysis() {
             {villageTrend && villageTrend.length > 0 && (
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                 {[
-                  { label: 'Current Moisture', value: (() => {
-                    let val = latestMoisture;
-                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
-                    if ((val === 0 || val == null) && isMaritime) val = 18.0;
-                    return val > 0 ? `${val.toFixed(1)}%` : 'N/A';
-                  })(), color: (() => {
-                    let val = latestMoisture;
-                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
-                    if ((val === 0 || val == null) && isMaritime) val = 18.0;
-                    return val <= 0 ? 'var(--text-tertiary)' : (val < 7 ? 'var(--accent-red)' : val < 15 ? 'var(--accent-amber)' : 'var(--accent-green)');
-                  })() },
-                  { label: '30-Day Average', value: (() => {
-                    let val = avg30;
-                    const isMaritime = selectedVillage.state?.toLowerCase().includes('lakshadweep');
-                    if ((val === 0 || val == null) && isMaritime) val = 18.0;
-                    return val > 0 ? `${val.toFixed(1)}%` : 'N/A';
-                  })(), color: 'var(--text-secondary)' },
-                  { label: 'Trend Direction', value: (latestMoisture > 0 || (selectedVillage.state?.toLowerCase().includes('lakshadweep'))) ? trendLabel : 'N/A', color: (latestMoisture > 0 || (selectedVillage.state?.toLowerCase().includes('lakshadweep'))) ? trendColor : 'var(--text-tertiary)' }
+                  { 
+                    label: 'Current Moisture', 
+                    value: latestMoisture > 0 ? `${latestMoisture.toFixed(1)}%` : 'N/A', 
+                    color: latestMoisture > 0 ? getSoilMoistureLevel(latestMoisture).color : 'var(--text-tertiary)' 
+                  },
+                  { 
+                    label: '30-Day Average', 
+                    value: avg30 > 0 ? `${avg30.toFixed(1)}%` : 'N/A', 
+                    color: 'var(--text-secondary)' 
+                  },
+                  { 
+                    label: 'Trend Direction', 
+                    value: latestMoisture > 0 ? trendLabel : 'N/A', 
+                    color: latestMoisture > 0 ? trendColor : 'var(--text-tertiary)' 
+                  }
                 ].map(chip => (
                   <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
                     <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{chip.label}</span>

@@ -91,17 +91,7 @@ export default function Overview() {
   const displayVillages = React.useMemo(() => {
     let filtered = [...riskData];
     
-    // DATA BRIDGE: Deprioritize districts that have 0% moisture in maritime regions (Lakshadweep)
-    // because they currently have incorrectly high risk scores in the database.
-    filtered.sort((a, b) => {
-      const isMissingA = a.avgSoilMoisturePct === 0 && a.state?.includes('Lakshadweep');
-      const isMissingB = b.avgSoilMoisturePct === 0 && b.state?.includes('Lakshadweep');
-      
-      if (isMissingA && !isMissingB) return 1;
-      if (!isMissingA && isMissingB) return -1;
-      
-      return (b.riskScore || 0) - (a.riskScore || 0);
-    });
+    filtered.sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0));
 
     if (riskFilter !== 'All') {
       filtered = filtered.filter(v => {
@@ -129,9 +119,9 @@ export default function Overview() {
   const chartData = displayVillages.map(v => {
     const risk = getRiskLevel(v.riskScore);
     let gradientId = 'colorNormal';
-    if (v.riskScore >= 76) gradientId = 'colorExtreme';
-    else if (v.riskScore >= 51) gradientId = 'colorSevere';
-    else if (v.riskScore >= 26) gradientId = 'colorModerate';
+    if (v.riskScore >= 70) gradientId = 'colorExtreme';
+    else if (v.riskScore >= 50) gradientId = 'colorSevere';
+    else if (v.riskScore >= 25) gradientId = 'colorModerate';
     
     // UI BRIDGE: For display only, if moisture is 0 and it's maritime, 
     // it shouldn't be at the top of the risk chart anyway due to our new sorting.
@@ -297,9 +287,9 @@ export default function Overview() {
                 const lat = v.lat || v.location?.lat;
                 const lon = v.lon || v.location?.lng;
                 let color = '#10b981';
-                if (v.riskScore >= 76) color = '#ef4444';
-                else if (v.riskScore >= 51) color = '#f59e0b';
-                else if (v.riskScore >= 26) color = '#eab308';
+                if (v.riskScore >= 70) color = '#ef4444';
+                else if (v.riskScore >= 50) color = '#f59e0b';
+                else if (v.riskScore >= 25) color = '#eab308';
                 
                 return lat && lon ? (
                   <CircleMarker key={v._id || i} center={[lat, lon]}
@@ -338,9 +328,9 @@ export default function Overview() {
             {displayVillages.map((v, i) => {
               let color = 'var(--accent-green)';
               let bgTint = 'var(--risk-normal-tint)';
-              if (v.riskScore >= 76) { color = 'var(--accent-red)'; bgTint = 'var(--risk-extreme-tint)'; }
-              else if (v.riskScore >= 51) { color = 'var(--accent-amber)'; bgTint = 'var(--risk-severe-tint)'; }
-              else if (v.riskScore >= 26) { color = '#eab308'; bgTint = 'var(--risk-moderate-tint)'; }
+              if (v.riskScore >= 70) { color = 'var(--accent-red)'; bgTint = 'var(--risk-extreme-tint)'; }
+              else if (v.riskScore >= 50) { color = 'var(--accent-amber)'; bgTint = 'var(--risk-severe-tint)'; }
+              else if (v.riskScore >= 25) { color = '#eab308'; bgTint = 'var(--risk-moderate-tint)'; }
 
               return (
                 <div key={v._id || i} style={{ display: 'flex', alignItems: 'center', padding: '12px', borderRadius: '12px', transition: 'var(--transition-default)', cursor: 'pointer' }}

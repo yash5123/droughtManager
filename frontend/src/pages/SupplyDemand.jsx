@@ -47,7 +47,7 @@ export default function SupplyDemand() {
     const pop = (v.population && v.population > 0) ? v.population : EST_POPULATION;
     const isEstimated = !v.population || v.population === 0;
     const dailyDemand = pop * LITERS_PER_PERSON_DAY;
-    const supplyFactor = v.riskScore >= 76 ? 0.3 : v.riskScore >= 51 ? 0.5 : v.riskScore >= 26 ? 0.75 : 0.95;
+    const supplyFactor = v.riskScore >= 70 ? 0.3 : v.riskScore >= 50 ? 0.5 : v.riskScore >= 25 ? 0.75 : 0.95;
     const dailySupply = Math.round(dailyDemand * supplyFactor);
     const deficit = Math.max(0, dailyDemand - dailySupply);
     const coverage = dailyDemand > 0 ? (dailySupply / dailyDemand) * 100 : 100;

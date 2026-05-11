@@ -33,9 +33,9 @@ export default function RiskCalculator() {
   const weightSum = Object.values(weights).reduce((s, v) => s + v, 0);
 
   const recommendations = [
-    { maxScore: 25, text: 'Low risk. Maintain monitoring frequency and prepare seasonal contingency plans.' },
-    { maxScore: 50, text: 'Moderate risk. Increase water hauling frequency and activate conservation advisories.' },
-    { maxScore: 75, text: 'Severe drought conditions. Deploy tanker fleet and issue public rationing directives.' },
+    { maxScore: 24, text: 'Low risk. Maintain monitoring frequency and prepare seasonal contingency plans.' },
+    { maxScore: 49, text: 'Moderate risk. Increase water hauling frequency and activate conservation advisories.' },
+    { maxScore: 69, text: 'Severe drought conditions. Deploy tanker fleet and issue public rationing directives.' },
     { maxScore: 100, text: 'Extreme emergency. Immediate state-level intervention required. Activate disaster relief protocol.' },
   ];
   const recommendation = result?.score != null ? recommendations.find(r => result.score <= r.maxScore)?.text : null;

@@ -57,9 +57,9 @@ export default function RiskClassification() {
       // Special handling for Status sorting
       if (sortField === 'riskLevel') {
         const getRank = (score) => {
-          if (score >= 76) return 4;
-          if (score >= 51) return 3;
-          if (score >= 26) return 2;
+          if (score >= 70) return 4;
+          if (score >= 50) return 3;
+          if (score >= 25) return 2;
           return 1;
         };
         av = getRank(a.riskScore);
