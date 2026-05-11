@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Truck, Plus, RefreshCw, Download, CheckCircle, Clock, 
   Navigation, MapPin, Activity, X, Loader2, ChevronDown,
   Droplets, Fuel, Gauge, AlertTriangle, ShieldCheck, 
-  ArrowRight, Search, Filter, Layers, Zap, Trash2
+  ArrowRight, Search, Filter, Layers, Zap, Trash2, AlertCircle
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polyline } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
@@ -70,6 +70,14 @@ export default function TankerManagement() {
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Custom Confirmation State
+  const [deleteId, setDeleteId] = useState(null);
+  
+  // Custom Dropdown State
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownSearch, setDropdownSearch] = useState('');
+  const dropdownRef = useRef(null);
+
   // Advanced Dispatch State
   const [form, setForm] = useState({ 
     village: '', 
@@ -100,6 +108,17 @@ export default function TankerManagement() {
 
   useEffect(() => { fetchTankers(); }, []);
 
+  // Click outside for dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Simulate telemetry for enroute tankers
   useEffect(() => {
     const timer = setInterval(() => {
@@ -110,7 +129,7 @@ export default function TankerManagement() {
             const current = next[t._id] || { fuel: 85, water: 100, speed: 45 };
             next[t._id] = {
               fuel: Math.max(0, current.fuel - Math.random() * 0.1),
-              water: current.water, // Water stays full until delivered
+              water: current.water, 
               speed: 40 + Math.random() * 15
             };
           }
@@ -143,6 +162,13 @@ export default function TankerManagement() {
     });
   }, [tankers, searchQuery, tab]);
 
+  const filteredDistricts = useMemo(() => {
+    return riskData.filter(v => 
+      v.name.toLowerCase().includes(dropdownSearch.toLowerCase()) ||
+      v.state.toLowerCase().includes(dropdownSearch.toLowerCase())
+    ).slice(0, 50);
+  }, [riskData, dropdownSearch]);
+
   const handleDispatch = async (e) => {
     e.preventDefault();
     if (!form.village) { addToast('Target zone required', 'warning'); return; }
@@ -168,13 +194,13 @@ export default function TankerManagement() {
     } catch (err) { addToast('Logistics update failed', 'error'); }
   };
 
-  const handleDelete = async (id, e) => {
-    e.stopPropagation();
-    if (!window.confirm('Terminate mission and scrub from system records?')) return;
+  const confirmDelete = async () => {
+    if (!deleteId) return;
     try {
-      await api.delete(`/tanker/${id}`);
+      await api.delete(`/tanker/${deleteId}`);
       addToast('Mission record purged', 'success');
-      if (selectedId === id) setSelectedId(null);
+      if (selectedId === deleteId) setSelectedId(null);
+      setDeleteId(null);
       fetchTankers();
     } catch (err) { addToast('Purge failed', 'error'); }
   };
@@ -229,7 +255,16 @@ export default function TankerManagement() {
               </div>
             </div>
             
-            <MapContainer center={INDIA_CENTER} zoom={5} style={{ height: '100%', width: '100%', background: 'var(--bg-card)' }} zoomControl={false}>
+            <MapContainer 
+              center={INDIA_CENTER} 
+              zoom={5} 
+              minZoom={4}
+              maxZoom={12}
+              zoomSnap={0.5}
+              zoomDelta={0.5}
+              style={{ height: '100%', width: '100%', background: 'var(--bg-card)' }} 
+              zoomControl={false}
+            >
               <MapUpdater theme={theme} />
               <TileLayer url={TILE_URL} />
               {filteredTankers.map(t => {
@@ -362,7 +397,7 @@ export default function TankerManagement() {
                         <p style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{formatDate(t.dispatchDate)}</p>
                       </div>
                       <button 
-                        onClick={(e) => handleDelete(t._id, e)}
+                        onClick={(e) => { e.stopPropagation(); setDeleteId(t._id); }}
                         className="glass-btn"
                         style={{ padding: '8px', borderRadius: '10px', color: 'var(--accent-red)', borderColor: 'rgba(239, 68, 68, 0.1)' }}
                         title="Delete Record"
@@ -405,6 +440,23 @@ export default function TankerManagement() {
         </div>
       </div>
 
+      {/* Custom Delete Confirmation Modal */}
+      {deleteId && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)' }}>
+          <div className="glass-card" style={{ width: '400px', padding: '32px', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)', boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)', background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--accent-red)' }}>
+              <AlertCircle size={32} />
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Terminate Mission?</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '32px', lineHeight: '1.5' }}>This will permanently scrub the mission telemetry and deployment records from the command registry.</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setDeleteId(null)} className="glass-btn" style={{ flex: 1, height: '48px', fontWeight: 700 }}>CANCEL</button>
+              <button onClick={confirmDelete} className="primary-btn" style={{ flex: 1, height: '48px', fontWeight: 800, background: 'var(--accent-red)', boxShadow: '0 10px 20px -5px rgba(239, 68, 68, 0.4)' }}>CONFIRM PURGE</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modern Deployment Wizard (Modal) */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)' }}>
@@ -426,23 +478,60 @@ export default function TankerManagement() {
             </div>
 
             <form onSubmit={handleDispatch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div style={{ gridColumn: '1 / -1' }}>
+              <div style={{ gridColumn: '1 / -1', position: 'relative' }} ref={dropdownRef}>
                 <label className="card-label" style={{ marginBottom: '8px', display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>TARGET CRISIS ZONE</label>
-                <div style={{ position: 'relative' }}>
-                  <select 
-                    value={form.village} 
-                    onChange={e => setForm(p => ({ ...p, village: e.target.value }))} 
-                    required 
-                    className="glass-input" 
-                    style={{ width: '100%', appearance: 'none', paddingRight: '40px', height: '50px', fontSize: '14px' }}
-                  >
-                    <option value="">Select Target District...</option>
-                    {riskData.map(v => (
-                      <option key={v._id} value={v.name}>{v.name} ({v.state}) — {v.riskScore.toFixed(1)} Risk</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-tertiary)' }} />
+                
+                {/* Custom Styled Dropdown */}
+                <div 
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="glass-input" 
+                  style={{ width: '100%', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', cursor: 'pointer', border: showDropdown ? '1px solid var(--accent-blue)' : '1px solid var(--divider)' }}
+                >
+                  <span style={{ color: form.village ? 'var(--text-primary)' : 'var(--text-tertiary)', fontSize: '14px' }}>
+                    {form.village || 'Search & Select District...'}
+                  </span>
+                  <ChevronDown size={18} style={{ color: 'var(--text-tertiary)', transition: 'transform 0.3s', transform: showDropdown ? 'rotate(180deg)' : 'rotate(0)' }} />
                 </div>
+
+                {showDropdown && (
+                  <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 100, background: theme === 'dark' ? 'rgba(30, 41, 59, 0.98)' : '#fff', border: '1px solid var(--divider)', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ padding: '12px', borderBottom: '1px solid var(--divider)', background: 'rgba(0,0,0,0.02)' }}>
+                      <input 
+                        autoFocus
+                        type="text" 
+                        placeholder="Type to filter districts..." 
+                        value={dropdownSearch}
+                        onChange={e => setDropdownSearch(e.target.value)}
+                        style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', fontSize: '13px' }}
+                        onClick={e => e.stopPropagation()}
+                      />
+                    </div>
+                    <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                      {filteredDistricts.length > 0 ? (
+                        filteredDistricts.map(v => (
+                          <div 
+                            key={v._id} 
+                            onClick={() => { setForm(p => ({ ...p, village: v.name })); setShowDropdown(false); setDropdownSearch(''); }}
+                            className="dropdown-item"
+                            style={{ padding: '12px 16px', cursor: 'pointer', transition: 'background 0.2s' }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{v.name}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{v.state}</div>
+                              </div>
+                              <div style={{ fontSize: '12px', fontWeight: 800, color: v.riskScore > 80 ? 'var(--accent-red)' : 'var(--accent-amber)' }}>
+                                {v.riskScore.toFixed(1)}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-tertiary)' }}>No matching districts found</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <FormInput label="CAPACITY (LITERS)" type="number" value={form.capacityLiters} onChange={v => setForm(p => ({ ...p, capacityLiters: v }))} />

@@ -721,3 +721,11 @@ body {
   height: 100%;
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.dropdown-item:hover {
+  background: var(--nav-hover-bg) !important;
+}
+
+.dropdown-item:active {
+  background: var(--nav-active-bg) !important;
+}
