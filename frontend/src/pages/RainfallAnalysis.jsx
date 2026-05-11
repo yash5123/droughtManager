@@ -114,15 +114,15 @@ export default function RainfallAnalysis() {
       <DataSourceBanner dataSource={dataSource} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div className="page-header" style={{ marginBottom: 0 }}>
-          <div className="header-icon-container">
-            <CloudRain size={32} />
-          </div>
-          <div className="header-text">
-            <h1 className="header-title">Hydrological Precipitation</h1>
-            <p className="header-subtitle">Surface Rainfall Analysis & Temporal Variance</p>
-          </div>
+      <div className="page-header">
+        <div className="header-icon-container">
+          <CloudRain size={32} />
         </div>
+        <div className="header-text">
+          <h1 className="header-title">Hydrological Precipitation</h1>
+          <p className="header-subtitle">Surface Rainfall Analysis & Temporal Variance</p>
+        </div>
+      </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>

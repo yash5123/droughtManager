@@ -119,15 +119,13 @@ export default function SupplyDemand() {
       <DataSourceBanner dataSource={dataSource} />
 
       {/* Standardized Header with Live Status */}
-      <div className="page-header" style={{ position: 'relative', background: 'rgba(255,255,255,0.01)', padding: '24px', borderRadius: '24px', border: '1px solid var(--divider)', backdropFilter: 'blur(10px)' }}>
-        <div className="header-icon-container" style={{ background: 'linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-cyan) 100%)', boxShadow: '0 8px 24px -6px var(--accent-blue)', width: '64px', height: '64px', borderRadius: '20px' }}>
-          <ArrowRightLeft size={34} color="#fff" />
+      <div className="page-header">
+        <div className="header-icon-container">
+          <ArrowRightLeft size={34} />
         </div>
         <div className="header-text">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <h1 className="header-title" style={{ fontSize: '34px', letterSpacing: '-1.5px' }}>Resource Matrix</h1>
-          </div>
-          <p className="header-subtitle" style={{ fontSize: '15px', opacity: 0.8 }}>Real-time Supply-Demand differential analysis across {villages.length} administrative domains.</p>
+          <h1 className="header-title">Resource Matrix</h1>
+          <p className="header-subtitle">Real-time Supply-Demand differential analysis across {villages.length} administrative domains.</p>
         </div>
         
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -153,16 +151,16 @@ export default function SupplyDemand() {
       </div>
 
       {/* Analytics Command Center - Risk Filtering */}
-      <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--divider)' }}>
+      <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'var(--glass-bg)', borderRadius: '16px', border: '1px solid var(--divider)' }}>
         {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(cat => (
           <button
             key={cat}
             onClick={() => setRiskFilter(cat)}
             style={{
               flex: 1, padding: '12px', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-              background: riskFilter === cat ? 'var(--glass-bg-bright)' : 'transparent',
+              background: riskFilter === cat ? 'var(--nav-active-bg)' : 'transparent',
               border: '1px solid',
-              borderColor: riskFilter === cat ? 'var(--accent-blue)60' : 'transparent',
+              borderColor: riskFilter === cat ? 'var(--accent-blue)40' : 'transparent',
               color: riskFilter === cat ? 'var(--text-primary)' : 'var(--text-tertiary)',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'all 0.2s',
               letterSpacing: '0.5px'
@@ -193,7 +191,7 @@ export default function SupplyDemand() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }}>
         
         {/* Differential Map/Chart */}
-        <div className="glass-card" style={{ padding: '32px', border: '1px solid var(--divider)', background: 'linear-gradient(165deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)', boxShadow: 'var(--glass-shadow-elevated)' }}>
+        <div className="glass-card" style={{ padding: '32px', border: 'var(--glass-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(59, 130, 246, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
@@ -204,7 +202,7 @@ export default function SupplyDemand() {
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>Volumetric differential across top priority zones</p>
               </div>
             </div>
-            <div className="glass-pill" style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700, color: 'var(--accent-blue)', background: 'rgba(59, 130, 246, 0.08)' }}>
+            <div className="glass-pill" style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700, color: 'var(--accent-blue)', background: 'var(--accent-blue-tint)' }}>
               UNIT: KILOLITERS / DAY
             </div>
           </div>
@@ -229,11 +227,11 @@ export default function SupplyDemand() {
                   <Tooltip 
                     cursor={{ fill: 'rgba(255,255,255,0.04)', radius: 8 }}
                     contentStyle={{ 
-                      background: 'rgba(15, 23, 42, 0.95)', 
-                      border: '1px solid rgba(255,255,255,0.15)', 
+                      background: 'var(--glass-bg-bright)', 
+                      border: 'var(--glass-border)', 
                       borderRadius: '16px', 
                       backdropFilter: 'blur(20px)',
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+                      boxShadow: 'var(--glass-shadow-elevated)',
                       padding: '16px'
                     }}
                     itemStyle={{ fontSize: '13px', fontWeight: 800, padding: '4px 0' }}
@@ -248,13 +246,13 @@ export default function SupplyDemand() {
         </div>
 
         {/* Priority Action List */}
-        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '560px', border: '1px solid var(--divider)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '560px', border: 'var(--glass-border)', overflow: 'hidden' }}>
+          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glass-bg)' }}>
             <div>
               <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 800 }}>Priority Hotspots</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>Critical nodes requiring immediate dispatch</p>
             </div>
-            <div style={{ textAlign: 'right', background: 'rgba(59, 130, 246, 0.1)', padding: '8px 16px', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+            <div style={{ textAlign: 'right', background: 'var(--accent-blue-tint)', padding: '8px 16px', borderRadius: '12px', border: '1px solid var(--accent-blue)20' }}>
               <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--accent-blue)', display: 'block', lineHeight: 1 }}>{filteredData.length}</span>
               <span style={{ fontSize: '9px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 800 }}>Targets</span>
             </div>
@@ -263,12 +261,12 @@ export default function SupplyDemand() {
           <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filteredData.length === 0 ? <EmptyState /> : filteredData.map((v, i) => (
               <div key={v._id || i} style={{ 
-                padding: '24px', borderRadius: '20px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--divider)',
+                padding: '24px', borderRadius: '20px', background: 'var(--glass-bg)', border: 'var(--glass-border)',
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative', overflow: 'hidden'
               }} className="list-item hover-glow">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', gap: '16px' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--text-secondary)', border: 'var(--glass-border)' }}>
                       {i + 1}
                     </div>
                     <div>
@@ -283,7 +281,7 @@ export default function SupplyDemand() {
                   <RiskBadge score={v.riskScore} />
                 </div>
 
-                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--nav-active-bg)', padding: '20px', borderRadius: '16px', border: 'var(--glass-border)', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Supply Coverage</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -292,7 +290,7 @@ export default function SupplyDemand() {
                       </span>
                     </div>
                   </div>
-                  <div style={{ height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', overflow: 'hidden' }}>
+                  <div style={{ height: '10px', background: 'var(--glass-bg)', borderRadius: '5px', overflow: 'hidden' }}>
                     <div style={{ 
                       width: `${Math.min(100, v.coverage)}%`, height: '100%', 
                       background: v.coverage < 50 ? 'linear-gradient(90deg, var(--accent-red) 0%, #ff6b6b 100%)' : 
@@ -344,23 +342,21 @@ function MetricCard({ label, value, icon: Icon, color, subtext, isCount, isAlert
   return (
     <div className="glass-card" style={{ 
       padding: '28px', position: 'relative', overflow: 'hidden',
-      background: isAlert ? 'linear-gradient(165deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.02) 100%)' : 'linear-gradient(165deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
-      border: isAlert ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--divider)',
-      boxShadow: 'var(--glass-shadow)',
-      borderRadius: '24px'
+      background: isAlert ? 'var(--risk-extreme-tint)' : 'var(--glass-bg)',
+      border: isAlert ? '1px solid var(--accent-red)40' : 'var(--glass-border)',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', position: 'relative', zIndex: 2 }}>
         <div style={{ 
-          width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)',
+          width: '44px', height: '44px', borderRadius: '12px', background: `${color}15`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color,
-          border: '1px solid rgba(255,255,255,0.05)'
+          border: `1px solid ${color}30`
         }}>
           <Icon size={22} />
         </div>
       </div>
       
       <div style={{ position: 'relative', zIndex: 2 }}>
-        <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1.2px', opacity: 0.7 }}>{label}</p>
+        <p style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1.2px' }}>{label}</p>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '10px' }}>
           <h2 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-1px' }}>
             {isCount ? value : formatIndian(value)}
@@ -370,10 +366,9 @@ function MetricCard({ label, value, icon: Icon, color, subtext, isCount, isAlert
         <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '6px', fontWeight: 500 }}>{subtext}</p>
       </div>
 
-      {/* Decorative large icon background */}
       <Icon size={140} style={{ 
         position: 'absolute', right: '-30px', bottom: '-30px', 
-        color, opacity: 0.03, transform: 'rotate(-12deg)' 
+        color, opacity: 0.04, transform: 'rotate(-12deg)' 
       }} />
     </div>
   );
