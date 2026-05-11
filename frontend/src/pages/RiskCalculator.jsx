@@ -38,9 +38,9 @@ export default function RiskCalculator() {
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  // Resolve audit data: prefer live detail API, fall back to ranked metricsSnapshot
-  const audit = detailData?.liveAudit || selectedVillage?.metricsSnapshot || {};
-  const auditScore = detailData?.liveScore ?? selectedVillage?.riskScore ?? 0;
+  // Resolve audit data: prefer official cached audit, fall back to live only if cache is missing
+  const audit = detailData?.cachedAudit || selectedVillage?.metricsSnapshot || detailData?.liveAudit || {};
+  const auditScore = detailData?.cachedScore ?? selectedVillage?.riskScore ?? detailData?.liveScore ?? 0;
 
   useEffect(() => {
     if (!selectedVillage?._id) return;
@@ -350,7 +350,7 @@ export default function RiskCalculator() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Calculator size={16} color="var(--accent-cyan)" />
                           <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '1px', color: 'var(--text-secondary)' }}>
-                            {detailData ? 'LIVE CALCULATION BREAKDOWN' : 'CACHED CALCULATION BREAKDOWN'}
+                            {detailData ? 'OFFICIAL NIGHTLY AUDIT' : 'CACHED RISK BREAKDOWN'}
                           </span>
                         </div>
                         <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
@@ -505,17 +505,17 @@ export default function RiskCalculator() {
                               marginTop: '8px', 
                               padding: '8px', 
                               borderRadius: '8px', 
-                              background: Math.abs(detailData.liveScore - detailData.cachedScore) < 0.5 ? 'var(--risk-normal-tint)' : 'var(--risk-severe-tint)',
+                              background: Math.abs(detailData.liveScore - detailData.cachedScore) < 0.1 ? 'var(--risk-normal-tint)' : 'var(--risk-severe-tint)',
                               border: `1px solid var(--divider)`,
                               display: 'flex',
                               alignItems: 'center',
                               gap: '8px',
                               fontSize: '11px'
                             }}>
-                              {Math.abs(detailData.liveScore - detailData.cachedScore) < 0.5 ? (
+                              {Math.abs(detailData.liveScore - detailData.cachedScore) < 0.1 ? (
                                 <>
                                   <CheckCircle size={14} color="var(--accent-green)" />
-                                  <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>Matches nightly cached score</span>
+                                  <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>Math matches official cache</span>
                                 </>
                               ) : (
                                 <>
