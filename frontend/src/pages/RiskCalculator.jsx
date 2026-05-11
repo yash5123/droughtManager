@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
+import api from '../services/api.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
 import { 
   Calculator, 
@@ -37,16 +38,19 @@ export default function RiskCalculator() {
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  // Resolve audit data: prefer live detail API, fall back to ranked metricsSnapshot
+  const audit = detailData?.liveAudit || selectedVillage?.metricsSnapshot || {};
+  const auditScore = detailData?.liveScore ?? selectedVillage?.riskScore ?? 0;
+
   useEffect(() => {
     if (!selectedVillage?._id) return;
 
     setDetailData(null);
     setDetailLoading(true);
 
-    fetch(`/api/villages/${selectedVillage._id}/detail`)
-      .then(res => res.json())
-      .then(data => {
-        setDetailData(data);
+    api.get(`/villages/${selectedVillage._id}/detail`)
+      .then(res => {
+        setDetailData(res.data);
       })
       .catch(err => {
         console.error('Detail fetch failed:', err);
@@ -389,16 +393,18 @@ export default function RiskCalculator() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {/* NEW LIVE AUDIT PANEL */}
+                    {/* CALCULATION BREAKDOWN PANEL — uses `audit` which falls back to metricsSnapshot */}
                     <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow-elevated)', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent-cyan), transparent)' }} />
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--divider)', paddingBottom: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Calculator size={16} color="var(--accent-cyan)" />
-                          <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '1px', color: 'var(--text-secondary)' }}>LIVE CALCULATION BREAKDOWN</span>
+                          <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '1px', color: 'var(--text-secondary)' }}>
+                            {detailData ? 'LIVE CALCULATION BREAKDOWN' : 'CACHED CALCULATION BREAKDOWN'}
+                          </span>
                         </div>
                         <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>
-                          {detailData?.liveAudit?.calculatedAt ? new Date(detailData.liveAudit.calculatedAt).toLocaleTimeString() : 'REAL-TIME'}
+                          {audit.calculatedAt ? new Date(audit.calculatedAt).toLocaleTimeString() : ''}
                         </span>
                       </div>
 
@@ -409,33 +415,33 @@ export default function RiskCalculator() {
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                          {/* Pillars */}
+                          {/* Step 1: Pillar Scores */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>RDI (Rainfall)</span>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {detailData?.liveAudit?.rdiScore?.toFixed(1) || '0.0'} × 35%</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{detailData?.liveAudit?.rdiWeighted?.toFixed(2) || '0.00'} pts</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.rdiScore ?? 0).toFixed(1)} × 35%</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.rdiWeighted ?? (audit.rdiScore ?? 0) * 0.35).toFixed(2)} pts</div>
                               </div>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>CDD (Dryness)</span>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {detailData?.liveAudit?.cddScore?.toFixed(1) || '0.0'} × 20%</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{detailData?.liveAudit?.cddWeighted?.toFixed(2) || '0.00'} pts</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.cddScore ?? 0).toFixed(1)} × 20%</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.cddWeighted ?? (audit.cddScore ?? 0) * 0.20).toFixed(2)} pts</div>
                               </div>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>SMA (Soil)</span>
                               <div style={{ textAlign: 'right' }}>
-                                {detailData?.liveAudit?.smaWasMissing ? (
-                                  <div style={{ fontSize: '10px', color: 'var(--accent-amber)', fontStyle: 'italic' }}>N/A — Missing Data (weights redistributed)</div>
+                                {audit.smaWasMissing ? (
+                                  <div style={{ fontSize: '10px', color: 'var(--accent-amber)', fontStyle: 'italic' }}>N/A - Missing Data (weights redistributed)</div>
                                 ) : (
                                   <>
-                                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {detailData?.liveAudit?.smaScore?.toFixed(1) || '0.0'} × 30%</div>
-                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{detailData?.liveAudit?.smaWeighted?.toFixed(2) || '0.00'} pts</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.smaScore ?? 0).toFixed(1)} × 30%</div>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.smaWeighted ?? (audit.smaScore ?? 0) * 0.30).toFixed(2)} pts</div>
                                   </>
                                 )}
                               </div>
@@ -444,55 +450,65 @@ export default function RiskCalculator() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>PPA (Demand)</span>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {detailData?.liveAudit?.ppaScore?.toFixed(1) || '0.0'} × 10%</div>
-                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{detailData?.liveAudit?.ppaWeighted?.toFixed(2) || '0.00'} pts</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>RAW: {(audit.ppaScore ?? 0).toFixed(1)} × 10%</div>
+                                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>= +{(audit.ppaWeighted ?? (audit.ppaScore ?? 0) * 0.10).toFixed(2)} pts</div>
                               </div>
                             </div>
                           </div>
 
                           <div style={{ height: '1px', background: 'var(--divider)', margin: '4px 0' }} />
 
-                          {/* Composites */}
+                          {/* Step 2: Composite Assembly */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                               <span style={{ color: 'var(--text-secondary)' }}>Raw Weighted Sum</span>
-                              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>= {detailData?.liveAudit?.rawComposite?.toFixed(3) || '0.000'}</span>
+                              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>= {(audit.rawComposite ?? 0).toFixed(3)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                               <span style={{ color: 'var(--text-secondary)' }}>TAM Adjustment (7-day trend)</span>
-                              <span style={{ fontWeight: 600, color: (detailData?.liveAudit?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                                {detailData?.liveAudit?.tamAdjustment >= 0 ? '+' : ''}{detailData?.liveAudit?.tamAdjustment?.toFixed(3) || '0.000'}
+                              <span style={{ fontWeight: 600, color: (audit.tamAdjustment ?? 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                                {(audit.tamAdjustment ?? 0) >= 0 ? '+' : ''}{(audit.tamAdjustment ?? 0).toFixed(3)}
                               </span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700 }}>
                               <span style={{ color: 'var(--text-primary)' }}>Adjusted Composite</span>
-                              <span style={{ color: 'var(--text-primary)' }}>= {detailData?.liveAudit?.adjustedComposite?.toFixed(3) || '0.000'}</span>
+                              <span style={{ color: 'var(--text-primary)' }}>= {(audit.adjustedComposite ?? 0).toFixed(3)}</span>
                             </div>
                           </div>
 
                           <div style={{ height: '1px', background: 'var(--divider)', margin: '4px 0' }} />
 
-                          {/* Final Index */}
+                          {/* Step 3: Compression (the missing step!) */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
-                              Scaling Applied: {detailData?.liveAudit?.compressionBand || 'N/A'}
+                              Non-linear compression: {audit.compressionBand || 'N/A'}
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>FINAL RISK INDEX</span>
-                              <span style={{ fontSize: '24px', fontWeight: 900, color: getRiskLevel(detailData?.liveScore).color }}>
-                                {detailData?.liveScore?.toFixed(1) || '0.0'}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>{(audit.adjustedComposite ?? 0).toFixed(1)} → compressed →</span>
+                              <span style={{ fontWeight: 800, fontSize: '14px', color: getRiskLevel(auditScore).color }}>
+                                {auditScore.toFixed(1)}
                               </span>
                             </div>
                           </div>
 
-                          {/* Validation Row */}
+                          <div style={{ height: '1px', background: 'var(--divider)', margin: '4px 0' }} />
+
+                          {/* Step 4: Final Risk Index */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>FINAL RISK INDEX</span>
+                            <span style={{ fontSize: '24px', fontWeight: 900, color: getRiskLevel(auditScore).color }}>
+                              {auditScore.toFixed(1)}
+                            </span>
+                          </div>
+
+                          {/* Validation Row — only when live detail data is available */}
                           {detailData?.cachedScore != null && detailData?.liveScore != null && (
                             <div style={{ 
                               marginTop: '8px', 
                               padding: '8px', 
                               borderRadius: '8px', 
-                              background: Math.abs(detailData.liveScore - detailData.cachedScore) < 0.5 ? 'rgba(0,255,100,0.05)' : 'rgba(255,191,0,0.1)',
-                              border: `1px solid ${Math.abs(detailData.liveScore - detailData.cachedScore) < 0.5 ? 'rgba(0,255,100,0.2)' : 'rgba(255,191,0,0.2)'}`,
+                              background: Math.abs(detailData.liveScore - detailData.cachedScore) < 0.5 ? 'var(--risk-normal-tint)' : 'var(--risk-severe-tint)',
+                              border: `1px solid var(--divider)`,
                               display: 'flex',
                               alignItems: 'center',
                               gap: '8px',
@@ -507,7 +523,7 @@ export default function RiskCalculator() {
                                 <>
                                   <AlertTriangle size={14} color="var(--accent-amber)" />
                                   <span style={{ color: 'var(--accent-amber)', fontWeight: 600 }}>
-                                    Live score ({detailData.liveScore?.toFixed(1) || '0.0'}) differs from cached ({detailData.cachedScore?.toFixed(1) || '0.0'}). Cache updates nightly.
+                                    Live ({detailData.liveScore?.toFixed(1)}) differs from cached ({detailData.cachedScore?.toFixed(1)}). Cache updates nightly.
                                   </span>
                                 </>
                               )}
