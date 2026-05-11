@@ -46,10 +46,10 @@ const STATUS_CONFIG = {
   },
 };
 
-const INDIA_CENTER = [22.5, 78.5];
+const INDIA_CENTER = [22.8, 80.0];
 const INDIA_BOUNDS = [
-  [6.5, 68.1], // Southwest corner
-  [35.5, 97.4]  // Northeast corner
+  [6.75, 68.1], 
+  [35.5, 97.4] 
 ];
 
 // Sub-component for map size handling
@@ -282,7 +282,7 @@ export default function TankerManagement() {
         
         {/* Left Panel: Tactical Map & Telemetry */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minHeight: 0 }}>
-          <div className="glass-card" style={{ flex: 1, overflow: 'hidden', position: 'relative', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
+          <div className="glass-card" style={{ height: '420px', overflow: 'hidden', position: 'relative', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)' }}>
             <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 1000, display: 'flex', gap: '8px' }}>
               <div className="glass-pill" style={{ padding: '8px 16px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-green)', boxShadow: '0 0 10px var(--accent-green)' }} />
@@ -292,14 +292,14 @@ export default function TankerManagement() {
             
             <MapContainer 
               center={INDIA_CENTER} 
-              zoom={5} 
-              minZoom={4.5}
+              zoom={5.5} 
+              minZoom={5.5}
               maxZoom={12}
               zoomSnap={0.5}
               zoomDelta={0.5}
               maxBounds={INDIA_BOUNDS}
               maxBoundsViscosity={1.0}
-              style={{ height: '100%', width: '100%', background: 'var(--bg-card)' }} 
+              style={{ height: '100%', width: '100%', background: '#f8fafc' }} 
               zoomControl={false}
             >
               <MapUpdater theme={theme} />
@@ -361,7 +361,7 @@ export default function TankerManagement() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-                {/* Operator Intelligence */}
+                {/* Operator Intelligence - Always Visible */}
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                     <ShieldCheck size={14} color="var(--accent-blue)" />
@@ -373,29 +373,48 @@ export default function TankerManagement() {
                   </div>
                 </div>
 
-                {/* Tactical Payload */}
-                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <Droplets size={14} color="var(--accent-cyan)" />
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>PAYLOAD STATUS</span>
-                  </div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{(selectedTanker.capacityLiters / 1000).toFixed(1)}k Liters</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Gauge size={10} /> {(telemetry[selectedId]?.water || 100).toFixed(0)}% Reservoir Capacity
-                  </div>
-                </div>
+                {/* Tactical Payload & Telemetry - Only for ENROUTE */}
+                {selectedTanker.status === 'Enroute' ? (
+                  <>
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <Droplets size={14} color="var(--accent-cyan)" />
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>LIVE PAYLOAD</span>
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{(selectedTanker.capacityLiters / 1000).toFixed(1)}k Liters</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Gauge size={10} /> {(telemetry[selectedId]?.water || 100).toFixed(0)}% Reservoir
+                      </div>
+                    </div>
 
-                {/* Live Telemetry */}
-                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <Zap size={14} color="var(--accent-amber)" />
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TELEMETRY HUB</span>
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '20px', border: '1px solid var(--divider)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <Zap size={14} color="var(--accent-amber)" />
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>TELEMETRY HUB</span>
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(0)} km/h</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Fuel size={10} /> {(telemetry[selectedId]?.fuel || 85).toFixed(1)}% Fuel Level
+                      </div>
+                    </div>
+                  </>
+                ) : selectedTanker.status === 'Pending' ? (
+                  <div style={{ gridColumn: 'span 2', background: 'var(--nav-hover-bg)', padding: '20px', borderRadius: '20px', border: '1px dashed var(--divider)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                    <div style={{ opacity: 0.6 }}>
+                      <Clock size={20} style={{ marginBottom: '8px' }} />
+                      <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>MISSION IN QUEUE</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Telemetry will activate once transit is initiated.</p>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>{(telemetry[selectedId]?.speed || 0).toFixed(0)} km/h</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Fuel size={10} /> {(telemetry[selectedId]?.fuel || 85).toFixed(1)}% Fuel Level
+                ) : (
+                  <div style={{ gridColumn: 'span 2', background: 'rgba(16, 185, 129, 0.05)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <CheckCircle size={32} color="var(--accent-green)" />
+                    <div>
+                      <p style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>MISSION SUCCESSFUL</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{(selectedTanker.capacityLiters / 1000).toFixed(1)}k Liters delivered to {selectedTanker.village}.</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Target Zone Intelligence Overlay */}
