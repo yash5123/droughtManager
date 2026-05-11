@@ -39,6 +39,7 @@ export default function RiskClassification() {
   const [filterLevel, setFilterLevel] = useState('all');
   const [sortField, setSortField] = useState('riskScore');
   const [sortDir, setSortDir] = useState('desc');
+  const [limit, setLimit] = useState('All');
 
   const counts = useMemo(() => ({
     Extreme: riskData.filter(v => v.riskScore >= 70).length,
@@ -78,8 +79,11 @@ export default function RiskClassification() {
 
       return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
     });
+    if (limit !== 'All') {
+      list = list.slice(0, Number(limit));
+    }
     return list;
-  }, [riskData, search, filterLevel, sortField, sortDir]);
+  }, [riskData, search, filterLevel, sortField, sortDir, limit]);
 
   const toggleSort = (field) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -115,8 +119,8 @@ export default function RiskClassification() {
           <div className="glass-card" style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '24px', overflow: 'hidden' }}>
             
             {/* Controls Section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', zIndex: 20 }}>
-              <div style={{ position: 'relative', width: '300px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', zIndex: 20, gap: '24px' }}>
+              <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
                 <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                 <input 
                   type="text" 
@@ -128,29 +132,39 @@ export default function RiskClassification() {
                 />
               </div>
               
-              <div className="glass-pill" style={{ display: 'flex', padding: '4px', background: 'rgba(255,255,255,0.03)' }}>
-                <button onClick={() => setFilterLevel('all')}
-                  style={{
-                    padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
-                    background: filterLevel === 'all' ? 'var(--accent-blue)' : 'transparent',
-                    color: filterLevel === 'all' ? '#fff' : 'var(--text-secondary)',
-                    transition: 'all 0.2s',
-                    boxShadow: filterLevel === 'all' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none'
-                  }}>
-                  ALL
-                </button>
-                {Object.entries(RISK_LEVELS).map(([key, def]) => (
-                  <button key={key} onClick={() => setFilterLevel(def.label)}
-                    style={{
-                      padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
-                      background: filterLevel === def.label ? 'var(--accent-blue)' : 'transparent',
-                      color: filterLevel === def.label ? '#fff' : 'var(--text-secondary)',
-                      transition: 'all 0.2s',
-                      boxShadow: filterLevel === def.label ? '0 4px 12px rgba(59,130,246,0.3)' : 'none'
-                    }}>
-                    {def.label.toUpperCase()}
-                  </button>
-                ))}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px', background: 'var(--nav-hover-bg)', padding: '4px', borderRadius: '14px' }}>
+                  {['25', '50', '100', 'All'].map(n => (
+                    <button key={n} onClick={() => setLimit(n)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 800,
+                        background: limit === n ? 'var(--glass-bg-bright)' : 'transparent',
+                        color: limit === n ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                        transition: 'all 0.2s'
+                      }}>
+                      {n === 'All' ? 'ALL' : `TOP ${n}`}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ width: '1px', height: '24px', background: 'var(--divider)' }} />
+
+                <div className="glass-pill" style={{ display: 'flex', padding: '4px', background: 'rgba(255,255,255,0.03)' }}>
+                  {['all', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(lvl => {
+                    const isActive = filterLevel.toLowerCase() === lvl.toLowerCase();
+                    return (
+                      <button key={lvl} onClick={() => setFilterLevel(lvl)}
+                        style={{
+                          padding: '6px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
+                          background: isActive ? 'var(--accent-blue)' : 'transparent',
+                          color: isActive ? '#fff' : 'var(--text-secondary)',
+                          transition: 'all 0.2s',
+                        }}>
+                        {lvl.toUpperCase()}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

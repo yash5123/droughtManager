@@ -7,6 +7,7 @@ import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import { exportToCSV } from '../utils/csv.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
+import { getRiskLevel } from '../utils/riskLevels.js';
 
 const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, { label: '90 Days', days: 90 }];
 
@@ -80,7 +81,7 @@ export default function RainfallAnalysis() {
   const filteredList = useMemo(() => {
     let list = activeVillages;
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
-    if (filter !== 'All') list = list.filter(v => v.riskLevel === filter);
+    if (filter !== 'All') list = list.filter(v => getRiskLevel(v.riskScore).label === filter);
     
     // Sort by risk score
     list.sort((a, b) => {
@@ -93,15 +94,6 @@ export default function RainfallAnalysis() {
     return list;
   }, [activeVillages, search, filter, countLimit, sortDescending]);
 
-  const getRiskColor = (level) => {
-    switch(level) {
-      case 'Extreme': return '#ef4444';
-      case 'Severe': return '#f97316';
-      case 'Moderate': return '#eab308';
-      case 'Normal': return '#22c55e';
-      default: return '#3b82f6';
-    }
-  };
 
   const dailyAvg = selectedVillageMetrics?.expected ? Math.round((selectedVillageMetrics.expected / period) * 10) / 10 : 0;
   const anomalyPct = selectedVillageMetrics?.anomalyPct ?? 0;
@@ -113,25 +105,86 @@ export default function RainfallAnalysis() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
       <DataSourceBanner dataSource={dataSource} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div className="page-header">
+      {/* Dynamic Strategic Header */}
+      <div className="page-header" style={{ marginBottom: '32px' }}>
         <div className="header-icon-container">
-          <CloudRain size={32} />
+          <CloudRain size={34} />
         </div>
         <div className="header-text">
-          <h1 className="header-title">Hydrological Precipitation</h1>
-          <p className="header-subtitle">Surface Rainfall Analysis & Temporal Variance</p>
+          <h1 className="header-title">Precipitation Analytics</h1>
+          <p className="header-subtitle">Temporal variance & hydrological deficit mapping across administrative clusters.</p>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+          {[25, 50, 100].map(n => (
+            <button
+              key={n}
+              onClick={() => setCountLimit(String(n))}
+              style={{
+                padding: '10px 20px', borderRadius: '12px', fontSize: '12px', fontWeight: 800,
+                background: countLimit === String(n) ? 'var(--nav-active-bg)' : 'var(--glass-bg-bright)',
+                border: '1px solid',
+                borderColor: countLimit === String(n) ? 'var(--accent-blue)50' : 'var(--divider)',
+                color: countLimit === String(n) ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: countLimit === String(n) ? '0 4px 12px var(--accent-blue)20' : 'none'
+              }}
+              className="hover-glow"
+            >
+              TOP {n}
+            </button>
+          ))}
+          <button
+            onClick={() => setCountLimit('All')}
+            style={{
+              padding: '10px 20px', borderRadius: '12px', fontSize: '12px', fontWeight: 800,
+              background: countLimit === 'All' ? 'var(--nav-active-bg)' : 'var(--glass-bg-bright)',
+              border: '1px solid',
+              borderColor: countLimit === 'All' ? 'var(--accent-blue)50' : 'var(--divider)',
+              color: countLimit === 'All' ? 'var(--accent-blue)' : 'var(--text-secondary)',
+              cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+            className="hover-glow"
+          >
+            VIEW ALL
+          </button>
         </div>
       </div>
+
+      {/* Control Bar: Risk Filters & Period */}
+      <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '24px', border: 'var(--glass-border)', background: 'var(--glass-bg-bright)' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => {
+            const isActive = filter === level;
+            const config = getRiskLevel(level === 'All' ? 0 : level === 'Extreme' ? 90 : level === 'Severe' ? 70 : level === 'Moderate' ? 40 : 10);
+            return (
+              <button
+                key={level}
+                onClick={() => setFilter(level)}
+                style={{
+                  padding: '10px 20px', borderRadius: '14px', fontSize: '12px', fontWeight: 700,
+                  background: isActive ? config.color + '15' : 'transparent',
+                  border: '1px solid',
+                  borderColor: isActive ? config.color + '40' : 'transparent',
+                  color: isActive ? config.color : 'var(--text-secondary)',
+                  cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px'
+                }}
+              >
+                {level !== 'All' && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: config.color }} />}
+                {level}
+              </button>
+            );
+          })}
+        </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div className="glass-pill" style={{ display: 'flex', padding: '4px', background: 'var(--nav-hover-bg)' }}>
             {PERIODS.map(p => (
-              <button key={p.days} onClick={() => setPeriod(p.days)} style={{ padding: '6px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, background: period === p.days ? 'rgba(59,130,246,0.2)' : 'transparent', color: period === p.days ? 'var(--accent-blue)' : 'var(--text-secondary)', transition: 'all 0.2s' }}>{p.label}</button>
+              <button key={p.days} onClick={() => setPeriod(p.days)} style={{ padding: '6px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, background: period === p.days ? 'var(--glass-bg-bright)' : 'transparent', color: period === p.days ? 'var(--accent-blue)' : 'var(--text-tertiary)', transition: 'all 0.2s' }}>{p.label}</button>
             ))}
           </div>
-          <button className="glass-btn" onClick={() => exportToCSV(activeVillages.map(v => ({ District: v.name, State: v.state, 'Risk Level': v.riskLevel, 'Risk Score': Math.round(v.riskScore) })), `rainfall_classification`)} style={{ padding: '6px 16px', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
-            <Download size={14} /> Export CSV
+          
+          <button className="glass-btn" onClick={() => exportToCSV(activeVillages.map(v => ({ District: v.name, State: v.state, 'Risk Level': getRiskLevel(v.riskScore).label, 'Risk Score': (v.riskScore || 0).toFixed(1) })), `rainfall_analysis`)} style={{ padding: '10px 16px', gap: '8px', fontSize: '11px', fontWeight: 700 }}>
+            <Download size={14} /> EXPORT CSV
           </button>
         </div>
       </div>
@@ -149,48 +202,6 @@ export default function RainfallAnalysis() {
             <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {/* All button on top, big */}
-            <button 
-              onClick={() => setFilter('All')} 
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                borderRadius: '12px', 
-                border: 'none', 
-                cursor: 'pointer', 
-                fontSize: '11px', 
-                fontWeight: 700, 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.5px', 
-                transition: 'all 0.2s', 
-                background: filter === 'All' ? 'rgba(59,130,246,0.2)' : 'transparent', 
-                color: filter === 'All' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
-                border: filter === 'All' ? '1px solid rgba(59,130,246,0.4)' : '1px solid transparent',
-                boxShadow: filter === 'All' ? 'var(--accent-blue-glow)' : 'none',
-                textShadow: filter === 'All' ? '0 0 8px rgba(59,130,246,0.4)' : 'none'
-              }}
-            >
-              Show All Districts
-            </button>
-            
-            {/* Other filters in 4 columns */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', paddingBottom: '2px' }}>
-              {['Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
-                const color = getRiskColor(f);
-                return (
-                  <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 0', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)', textAlign: 'center', border: filter === f ? `1px solid ${color}40` : '1px solid transparent' }}>{f}</button>
-                );
-              })}
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
-            {['10', '25', 'All'].map(c => (
-              <button key={c} onClick={() => setCountLimit(c)} style={{ flex: 1, padding: '4px 0', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', transition: 'all 0.2s', background: countLimit === c ? 'rgba(255,255,255,0.08)' : 'transparent', color: countLimit === c ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
-                {c === 'All' ? 'All Districts' : `Top ${c}`}
-              </button>
-            ))}
-          </div>
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 320px)', display: 'flex', flexDirection: 'column', gap: '3px', paddingRight: '2px' }}>
             {loading ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 className="spinning" size={24} style={{ color: 'var(--accent-blue)' }} /></div>
@@ -206,8 +217,8 @@ export default function RainfallAnalysis() {
                     <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', color: getRiskColor(v.riskLevel), fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {v.riskLevel || 'Pending'}
+                  <div style={{ display: 'flex', alignItems: 'center', color: getRiskLevel(v.riskScore).color, fontWeight: 800, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {(v.riskScore || 0).toFixed(1)}
                   </div>
                 </button>
               );

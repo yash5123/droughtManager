@@ -1,10 +1,11 @@
-import { TrendingUp, AlertTriangle, Truck, CloudRain, Sun, Activity, Loader2, ArrowUpDown, ArrowRightLeft, Filter } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ComposedChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp, AlertTriangle, Truck, CloudRain, Sun, Activity, Loader2, ArrowUpDown, Filter } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../components/ui/Toast.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
-import LoginPrompt from '../components/ui/LoginPrompt.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
 import { fetchForecast } from '../services/weatherService.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
@@ -20,10 +21,10 @@ export default function FuturePrediction() {
   const [sortOrder, setSortOrder] = useState('desc');
   
   const riskData = rankedData?.data || [];
-  const villages = React.useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
+  const villages = useMemo(() => riskData.slice(0, villageCount), [riskData, villageCount]);
 
   // Apply filters and sorting
-  const filteredVillages = React.useMemo(() => {
+  const filteredVillages = useMemo(() => {
     let list = [...villages];
     
     // 1. Risk Filter
