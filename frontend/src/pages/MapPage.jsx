@@ -64,6 +64,7 @@ export default function MapPage() {
     return matching.slice(0, villageCount);
   }, [riskData, riskFilter, villageCount]);
 
+  return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
       <DataSourceBanner dataSource={dataSource} />
 
