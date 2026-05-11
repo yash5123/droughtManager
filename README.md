@@ -104,9 +104,6 @@ At the heart of AqvaSense is a proprietary scientific instrument: the **Composit
 > [!TIP]
 > A score of exactly 100.0 is mathematically impossible by design. The piecewise compression function approaches the maximum asymptotically to ensure the most extreme case is always a fraction away from "saturation."
 
-> [!NOTE]
-> **Arid District Floor**: Regions like Barmer and Kachchh have their historical baselines floored at 20mm to prevent normal dry cycles from triggering false emergency alerts.
-
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
 ## 📡 How the Data Flows
@@ -270,9 +267,6 @@ We ran a mathematical intervention. By replacing the logistic curve with a **han
 
 > [!NOTE]
 > The population pressure calculation uses the WHO's strict standard of **55 liters per person per day** as the baseline demand.
-
-> [!NOTE]
-> Kachchh and Barmer get special treatment in the algorithm: their naturally arid baselines are floored at 20mm to prevent false extreme scores during climatologically normal dry years.
 
 > [!NOTE]
 > Over **8 million individual data points** were ingested from the Open-Meteo Archive API to build the 30-year monthly baselines.
