@@ -82,7 +82,7 @@ export default function SupplyDemand() {
     }
     
     return list;
-  }, [villages, riskFilter, limit]);
+  }, [villages, riskFilter, limit, sortOrder]);
 
   // Totals (based on current filtered view or global?) — User said "Show all distinct... top 25 top 50"
   // Let's calculate totals based on the filtered view to reflect the context
@@ -309,7 +309,7 @@ export default function SupplyDemand() {
 
         {/* Priority Action List */}
         <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '660px', border: 'var(--glass-border)', overflow: 'hidden', boxShadow: 'var(--glass-shadow)' }}>
-          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glass-bg-bright)' }}>
+          <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Priority Hotspots</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>Critical nodes requiring immediate dispatch</p>
