@@ -282,14 +282,53 @@ export default function TankerManagement() {
         
         {/* Left Panel: Tactical Map & Telemetry */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minHeight: 0 }}>
-          <div style={{ height: '450px', borderRadius: '28px', overflow: 'hidden', border: '1px solid var(--divider)', position: 'relative', background: '#f1f5f9' }}>
-            {/* Vignette Overlay for Depth */}
-            <div style={{ position: 'absolute', inset: 0, zIndex: 999, pointerEvents: 'none', boxShadow: 'inset 0 0 100px rgba(0,0,0,0.05)' }} />
+          <div style={{ 
+            height: '550px', 
+            borderRadius: '32px', 
+            overflow: 'hidden', 
+            border: '1px solid var(--divider)', 
+            position: 'relative', 
+            background: 'var(--bg-card)',
+            boxShadow: 'var(--glass-shadow), inset 0 0 100px rgba(0,0,0,0.1)' 
+          }}>
+            {/* Tactical HUD Filters */}
+            <div style={{ 
+              position: 'absolute', 
+              inset: 0, 
+              zIndex: 999, 
+              pointerEvents: 'none', 
+              background: 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.1) 100%)',
+              mixBlendMode: 'multiply'
+            }} />
             
-            <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 1000, display: 'flex', gap: '10px' }}>
-              <div style={{ padding: '10px 20px', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-                <div className="live-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-green)' }} />
-                <span style={{ color: 'white', fontSize: '11px', fontWeight: 900, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Tactical Intel Overlay</span>
+            <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ 
+                padding: '12px 24px', 
+                background: 'rgba(15, 23, 42, 0.9)', 
+                backdropFilter: 'blur(20px)', 
+                border: '1px solid rgba(255,255,255,0.15)', 
+                borderRadius: '20px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px', 
+                boxShadow: '0 12px 40px rgba(0,0,0,0.3)' 
+              }}>
+                <div className="live-pulse" style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 15px var(--accent-cyan)' }} />
+                <span style={{ color: 'white', fontSize: '12px', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.9 }}>Operational Intelligence</span>
+              </div>
+              
+              <div style={{ 
+                padding: '8px 16px', 
+                background: 'rgba(255,255,255,0.05)', 
+                backdropFilter: 'blur(10px)', 
+                borderRadius: '12px', 
+                border: '1px solid rgba(255,255,255,0.05)',
+                color: 'rgba(255,255,255,0.6)',
+                fontSize: '10px',
+                fontWeight: 700,
+                width: 'fit-content'
+              }}>
+                REGION: INDIA_COORDINATE_LOCK
               </div>
             </div>
             
