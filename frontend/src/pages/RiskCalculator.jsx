@@ -405,6 +405,9 @@ function MetricBar({ value, color }) {
   );
 }
 
+function ContributionRow({ label, score, weight, color, subtext }) {
+  const contrib = Math.round((score || 0) * (weight / 100) * 10) / 10;
+  return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '4px 0' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <span className="caption-text" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{label}</span>
