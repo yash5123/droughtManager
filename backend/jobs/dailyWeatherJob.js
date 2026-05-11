@@ -7,12 +7,12 @@
  * Scheduled via node-cron at 02:00 UTC daily.
  * Can also be triggered manually via POST /api/weather/trigger-daily-job
  * 
- * Scoring Architecture (v3 — 5-Component Non-Linear Composite):
- *   RDI  (Rainfall Deficit Index)         — 35%
- *   CDD  (Consecutive Dry Days Index)     — 20%
- *   SMA  (Soil Moisture Anomaly Index)    — 30%
- *   PPA  (Population Pressure Amplifier)  — 10%
- *   TAM  (Trend Acceleration Modifier)    — additive ±4 pts
+ * Scoring Architecture (v3 - 5-Component Non-Linear Composite):
+ *   RDI  (Rainfall Deficit Index) - 35%
+ *   CDD  (Consecutive Dry Days Index) - 20%
+ *   SMA  (Soil Moisture Anomaly Index) - 30%
+ *   PPA  (Population Pressure Amplifier) - 10%
+ *   TAM  (Trend Acceleration Modifier) - additive ±4 pts
  *   Final = 100 * (1 - exp(-0.045 * adjustedComposite))
  */
 
@@ -52,7 +52,7 @@ function quadInterp(x, x0, x1, y0, y1) {
 
 // Caching service handles individual village weather fetching
 
-// ─── Sub-Component 1: Rainfall Deficit Index (RDI) — 35% ──────────
+// ─── Sub-Component 1: Rainfall Deficit Index (RDI) - 35% ──────────
 
 function computeRDI(weather, village) {
   const currentMonth = new Date().getMonth(); // 0-11
@@ -79,7 +79,7 @@ function computeRDI(weather, village) {
   return { score: clamp(score, 0, 97), anomalyPct, historicalAvg30, actual30 };
 }
 
-// ─── Sub-Component 2: Consecutive Dry Days Index (CDD) — 20% ─────
+// ─── Sub-Component 2: Consecutive Dry Days Index (CDD) - 20% ─────
 
 function computeCDD(precipArray) {
   const dryThreshold = 1.0; // mm
@@ -95,7 +95,7 @@ function computeCDD(precipArray) {
     }
   }
   
-  // Streak score — piecewise linear
+  // Streak score - piecewise linear
   let streakScore;
   if (maxStreak <= 4)       streakScore = lerp(maxStreak, 0, 4, 0, 8);
   else if (maxStreak <= 9)  streakScore = lerp(maxStreak, 5, 9, 8, 22);
@@ -105,21 +105,21 @@ function computeCDD(precipArray) {
   else if (maxStreak <= 28) streakScore = lerp(maxStreak, 25, 28, 76, 90);
   else                      streakScore = lerp(Math.min(maxStreak, 30), 29, 30, 90, 96);
   
-  // Frequency score — total dry days out of 30
+  // Frequency score - total dry days out of 30
   const frequencyScore = (totalDryDays / 30) * 85;
   
   const score = (streakScore * 0.65) + (frequencyScore * 0.35);
   return { score: clamp(score, 0, 96), maxStreak, totalDryDays, streakScore, frequencyScore };
 }
 
-// ─── Sub-Component 3: Soil Moisture Anomaly Index (SMA) — 30% ─────
+// ─── Sub-Component 3: Soil Moisture Anomaly Index (SMA) - 30% ─────
 
 /**
  * Estimate historical baseline soil moisture from annual rainfall class.
  * Used because the Village schema does not store historical soil moisture.
  */
 function estimateHistoricalSoilMoisture(village) {
-  // Universal rainfall-class-based estimation — no location-specific overrides.
+  // Universal rainfall-class-based estimation - no location-specific overrides.
   // Uses annual rainfall as the sole determinant of expected soil moisture.
   const annualRain = village.historicalAvgAnnualRainfall_mm || 0;
   if (annualRain < 200)  return 0.05;   // Hyper-arid (Thar)
@@ -139,7 +139,7 @@ function computeSMA(weather, village) {
     return { score: 0, soilAnomalyPct: 0, currentSM: null, historicalSM, absoluteMin: 0, missing: true };
   }
   
-  // Absolute thresholds — floor values regardless of anomaly
+  // Absolute thresholds - floor values regardless of anomaly
   let absoluteMin = 0;
   if (currentSM < 0.015)     absoluteMin = 92;
   else if (currentSM < 0.03) absoluteMin = 82;
@@ -166,7 +166,7 @@ function computeSMA(weather, village) {
   return { score: clamp(score, 0, 96), soilAnomalyPct, currentSM, historicalSM, absoluteMin };
 }
 
-// ─── Sub-Component 4: Population Pressure Amplifier (PPA) — 10% ───
+// ─── Sub-Component 4: Population Pressure Amplifier (PPA) - 10% ───
 
 function computePPA(weather, village) {
   const effectivePopulation = (!village.population || village.population === 0)
@@ -199,7 +199,7 @@ function computePPA(weather, village) {
   return { score: clamp(score, 0, 95), supplyRatio, dailyDemand, dailySupply };
 }
 
-// ─── Sub-Component 5: Trend Acceleration Modifier (TAM) — ±4 pts ──
+// ─── Sub-Component 5: Trend Acceleration Modifier (TAM) - ±4 pts ──
 
 async function computeTAM(villageId, currentRawComposite) {
   const sevenDaysAgo = new Date();
@@ -229,7 +229,7 @@ async function computeTAM(villageId, currentRawComposite) {
 // ─── Piecewise Linear Compression ─────────────────────────────────
 
 /**
- * Piecewise linear compression — maps raw composite to final score
+ * Piecewise linear compression - maps raw composite to final score
  * with precise control over each severity band.
  * Raw 0→0, 20→24, 45→50, 70→70, 90→94, 100→99
  */
@@ -286,7 +286,7 @@ export async function computeRiskScore(village, weather, avgPopulation) {
     rawComposite = (rdi.score * 0.35) + (cdd.score * 0.20) + (sma.score * 0.30) + (ppa.score * 0.10);
   }
   
-  // 3. TAM: trend-based additive modifier (async — reads 7-day-old record)
+  // 3. TAM: trend-based additive modifier (async - reads 7-day-old record)
   const tam = await computeTAM(village._id, rawComposite);
   const adjustedComposite = rawComposite + tam.adjustment;
   
@@ -489,7 +489,7 @@ export async function runDailyWeatherJob() {
         console.warn(`[DailyJob] Failed for ${village.name}: ${err.message}`);
       }
       
-      // Open-Meteo rate limit — 600ms to avoid 429s on shared hosting (Render)
+      // Open-Meteo rate limit - 600ms to avoid 429s on shared hosting (Render)
       await sleep(600);
     }
     

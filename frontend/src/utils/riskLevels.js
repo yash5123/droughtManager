@@ -1,5 +1,5 @@
 /**
- * Risk level definitions — single source of truth for colors, labels, thresholds.
+ * Risk level definitions - single source of truth for colors, labels, thresholds.
  * Used across every component that displays risk information.
  */
 

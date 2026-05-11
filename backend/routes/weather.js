@@ -64,7 +64,7 @@ router.post('/trigger-daily-job', async (req, res) => {
     return res.json({ message: 'Daily job already running', status: dailyJobStatus });
   }
   
-  // Fire and forget — don't block the response
+  // Fire and forget - don't block the response
   runDailyWeatherJob().catch(err => console.error('[API] Daily job trigger error:', err));
   
   res.json({

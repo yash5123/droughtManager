@@ -348,7 +348,7 @@ export default function RiskCalculator() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '32px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {/* CALCULATION BREAKDOWN PANEL — uses `audit` which falls back to metricsSnapshot */}
+                    {/* CALCULATION BREAKDOWN PANEL - uses `audit` which falls back to metricsSnapshot */}
                     <div style={{ padding: '16px', borderRadius: '12px', background: 'var(--glass-bg)', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow-elevated)', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent-cyan), transparent)' }} />
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--divider)', paddingBottom: '12px' }}>
@@ -504,7 +504,7 @@ export default function RiskCalculator() {
                             </span>
                           </div>
 
-                          {/* Validation Row — only when live detail data is available */}
+                          {/* Validation Row - only when live detail data is available */}
                           {detailData?.cachedScore != null && detailData?.liveScore != null && (
                             <div style={{ 
                               marginTop: '8px', 

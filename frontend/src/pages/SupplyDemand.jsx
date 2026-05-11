@@ -84,7 +84,7 @@ export default function SupplyDemand() {
     return list;
   }, [villages, riskFilter, limit, sortOrder]);
 
-  // Totals (based on current filtered view or global?) — User said "Show all distinct... top 25 top 50"
+  // Totals (based on current filtered view or global?) - User said "Show all distinct... top 25 top 50"
   // Let's calculate totals based on the filtered view to reflect the context
   const totalDemand = filteredData.reduce((s, v) => s + (v.demand || 0), 0);
   const totalSupply = filteredData.reduce((s, v) => s + (v.supply || 0), 0);

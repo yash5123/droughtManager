@@ -177,29 +177,29 @@ router.get('/seeding-status', (req, res) => {
  */
 router.get('/:id/detail', async (req, res) => {
   try {
-    // Step 1 — Fetch the village
+    // Step 1 - Fetch the village
     const village = await Village.findById(req.params.id).lean();
     if (!village) return res.status(404).json({ error: 'Village not found' });
     
-    // Step 2 — Get weather from cache (fast, <50ms DB hit)
+    // Step 2 - Get weather from cache (fast, <50ms DB hit)
     const weather = await getArchiveWeather(village._id, village.lat, village.lon);
     
-    // Step 3 — Get average population via aggregation
+    // Step 3 - Get average population via aggregation
     const totalPop = await Village.aggregate([
       { $group: { _id: null, avg: { $avg: '$population' } } }
     ]);
     const avgPopulation = totalPop[0]?.avg || 500000;
     
-    // Step 4 — Run live recalculation using the already-exported computeRiskScore
+    // Step 4 - Run live recalculation using the already-exported computeRiskScore
     const liveResult = await computeRiskScore(village, weather, avgPopulation);
     
-    // Step 5 — Fetch last 7 days of risk history
+    // Step 5 - Fetch last 7 days of risk history
     const riskHistory = await DroughtRisk.find({ village: village._id })
       .sort({ date: -1 })
       .limit(7)
       .lean();
     
-    // Step 6 — Return a combined response
+    // Step 6 - Return a combined response
     res.json({
       village,
       liveScore: liveResult.riskScore,

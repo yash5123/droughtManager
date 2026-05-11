@@ -227,7 +227,7 @@ describe('computePPA', () => {
   });
 });
 
-// ─── Suite 6: Integration — End-to-End Score Differentiation ──────
+// ─── Suite 6: Integration - End-to-End Score Differentiation ──────
 
 describe('Integration: End-to-End Score Differentiation', () => {
   test('raw composite 15 vs 65: gap is at least 35 points', () => {

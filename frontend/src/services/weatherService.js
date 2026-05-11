@@ -1,5 +1,5 @@
 /**
- * Weather Service — Thin Backend Wrapper
+ * Weather Service - Thin Backend Wrapper
  *
  * The frontend no longer fetches weather data or calculates risk scores.
  * All risk computation happens on the backend via the daily weather job.

@@ -5,9 +5,9 @@ export default function DataSourceBanner({ dataSource }) {
   if (dataSource === 'backend' || dataSource === 'pending') return null;
 
   const messages = {
-    'stale': 'Risk data may be outdated — the daily update job has not run recently.',
-    'seeding': 'Database initialization in progress — district data is being loaded.',
-    'error': 'Backend unreachable — unable to fetch risk data.',
+    'stale': 'Risk data may be outdated - the daily update job has not run recently.',
+    'seeding': 'Database initialization in progress - district data is being loaded.',
+    'error': 'Backend unreachable - unable to fetch risk data.',
   };
 
   const msg = messages[dataSource];

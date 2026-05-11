@@ -281,16 +281,16 @@ export default function RainfallAnalysis() {
                   <TrendingDown size={14} style={{ color: 'var(--accent-amber)' }} />
                   <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Driest Day</span>
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>{driestDay?.rain ?? '—'}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>mm</span></div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>{driestDay?.date || '—'}</div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>{driestDay?.rain ?? ' - '}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>mm</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>{driestDay?.date || ' - '}</div>
               </div>
               <div className="glass-card" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <TrendingUp size={14} style={{ color: 'var(--accent-blue)' }} />
                   <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>Wettest Day</span>
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-blue)' }}>{wettestDay?.rain ?? '—'}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>mm</span></div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>{wettestDay?.date || '—'}</div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-blue)' }}>{wettestDay?.rain ?? ' - '}<span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '3px' }}>mm</span></div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px' }}>{wettestDay?.date || ' - '}</div>
               </div>
               <div className="glass-card" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>

@@ -54,7 +54,7 @@ mongoose.connect(MONGO_URI)
       const count = await Village.countDocuments();
       if (count < 100) {
         console.log(`Database has ${count} villages. Starting district seeding in background...`);
-        // Fire and forget — seeding runs in background
+        // Fire and forget - seeding runs in background
         runSeedDistricts().catch(err => console.error('Seeding error:', err));
       } else {
         console.log(`Database has ${count} villages. Seeding not needed.`);

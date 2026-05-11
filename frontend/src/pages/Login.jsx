@@ -55,7 +55,7 @@ export default function Login() {
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '500px' }}>
-          {[{ icon: Globe, text: 'PUBLIC TELEMETRY ACCESS OPEN — NO CREDENTIALS REQUIRED', color: 'var(--accent-green)' },
+          {[{ icon: Globe, text: 'PUBLIC TELEMETRY ACCESS OPEN - NO CREDENTIALS REQUIRED', color: 'var(--accent-green)' },
             { icon: BarChart3, text: 'SERVER-SIDE ALGORITHMIC VALIDATION ACTIVE', color: 'var(--accent-cyan)' },
             { icon: Shield, text: 'SECURE CLEARANCE REQUIRED FOR LOGISTICS DEPLOYMENT', color: 'var(--accent-amber)' }].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', borderLeft: `3px solid ${item.color}` }}>

@@ -222,8 +222,8 @@ export default function MapPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <MetricCard icon={Users} label="Population" value={formatNumber(selected.population)} />
                 <MetricCard icon={MapPin} label="Region Type" value={selected.region} />
-                <MetricCard icon={CloudRain} label="Avg Rainfall" value={`${selected.avgAnnualRainfall || '—'} mm`} />
-                <MetricCard icon={Droplets} label="Water Level" value={`${selected.metricsSnapshot?.groundwaterAvg?.toFixed(1) || '—'} m`} />
+                <MetricCard icon={CloudRain} label="Avg Rainfall" value={`${selected.avgAnnualRainfall || ' - '} mm`} />
+                <MetricCard icon={Droplets} label="Water Level" value={`${selected.metricsSnapshot?.groundwaterAvg?.toFixed(1) || ' - '} m`} />
               </div>
 
               {selected.metricsSnapshot && (

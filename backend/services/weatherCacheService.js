@@ -7,7 +7,7 @@ const BATCH_SIZE = 50;
 const today = () => new Date().toISOString().split('T')[0];
 
 /**
- * 2A — Implement the archive data reader
+ * 2A - Implement the archive data reader
  */
 export async function getArchiveWeather(villageId, lat, lon) {
   const cacheDate = today();
@@ -21,7 +21,7 @@ export async function getArchiveWeather(villageId, lat, lon) {
     totalPrecipitation30d_mm = cached.totalPrecipitation30d_mm;
     avgSoilMoistureFrac = cached.avgSoilMoistureFrac;
   } else {
-    // Cache miss — fetch from API
+    // Cache miss - fetch from API
     const endDate = cacheDate;
     const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       .toISOString().split('T')[0];
@@ -69,7 +69,7 @@ export async function getArchiveWeather(villageId, lat, lon) {
 }
 
 /**
- * 2B — Implement the batch archive pre-loader
+ * 2B - Implement the batch archive pre-loader
  */
 export async function preloadArchiveCacheForAllVillages(villages) {
   const cacheDate = today();
@@ -137,7 +137,7 @@ export async function preloadArchiveCacheForAllVillages(villages) {
 }
 
 /**
- * 2C — Implement the forecast cache reader
+ * 2C - Implement the forecast cache reader
  */
 export async function getForecastWeather(villageId, lat, lon) {
   const cacheDate = today();
@@ -192,7 +192,7 @@ export async function getForecastWeather(villageId, lat, lon) {
 }
 
 /**
- * 2D — Implement the simulation cache reader
+ * 2D - Implement the simulation cache reader
  */
 export async function getSimulationWeather(lat, lon, timeHorizonDays) {
   const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}_${timeHorizonDays}d_${today()}`;
@@ -247,7 +247,7 @@ export async function getSimulationWeather(lat, lon, timeHorizonDays) {
 }
 
 /**
- * 2E — Shared fetch utility
+ * 2E - Shared fetch utility
  */
 async function fetchWithBackoff(url, maxRetries = 5) {
   const delays = [5000, 15000, 30000, 60000, 120000];

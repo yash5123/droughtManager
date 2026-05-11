@@ -5,7 +5,7 @@
  * Phase 2: Geocode each district via Nominatim (1 req/sec)
  * Phase 3: Fetch 30-year climate baselines from Open-Meteo Climate API
  * 
- * This job is idempotent — it can be re-run safely. Districts already
+ * This job is idempotent - it can be re-run safely. Districts already
  * processed (geocoded/baselined) will be skipped.
  */
 
@@ -15,7 +15,7 @@ import Village from '../models/Village.js';
 const DISTRICTS_URL = 'https://raw.githubusercontent.com/sab99r/Indian-States-And-Districts/master/states-and-districts.json';
 const CENSUS_URL = 'https://raw.githubusercontent.com/nishusharma1608/India-Census-2011-Analysis/master/india-districts-census-2011.csv';
 
-// Shared progress object — readable via API
+// Shared progress object - readable via API
 export const seedingProgress = {
   inProgress: false,
   phase: 'idle', // 'importing', 'geocoding', 'baselines', 'complete', 'error'
@@ -75,7 +75,7 @@ async function fetchCensusPopulation() {
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
     // CSV columns: District code, State name, District name, Population, ...
-    // Simple CSV parse — split by comma, handle that district/state names don't contain commas
+    // Simple CSV parse - split by comma, handle that district/state names don't contain commas
     const parts = line.split(',');
     if (parts.length < 4) continue;
     
@@ -337,7 +337,7 @@ async function fetchClimateBaselines() {
       
       let res = await fetch(url);
       if (res.status === 429) {
-        // Rate limited — retry with exponential backoff
+        // Rate limited - retry with exponential backoff
         for (let retry = 1; retry <= 3; retry++) {
           const backoff = Math.pow(2, retry) * 1000;
           console.warn(`[Seed] 429 rate-limited for ${v.name}. Retry ${retry}/3 in ${backoff/1000}s...`);
@@ -398,7 +398,7 @@ async function fetchClimateBaselines() {
     seedingProgress.baselinedCount = successCount;
     seedingProgress.failedBaseline = failCount;
     
-    // Open-Meteo rate limit — 800ms to avoid 429s on shared hosting
+    // Open-Meteo rate limit - 800ms to avoid 429s on shared hosting
     await sleep(800);
   }
   
@@ -407,7 +407,7 @@ async function fetchClimateBaselines() {
 
 /**
  * Main seeding entry point. Runs all three phases sequentially.
- * Safe to call multiple times — already-processed districts are skipped.
+ * Safe to call multiple times - already-processed districts are skipped.
  */
 export async function runSeedDistricts() {
   if (seedingProgress.inProgress) {
