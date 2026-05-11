@@ -108,16 +108,17 @@ async function fetchWeatherForVillage(village) {
   let avgSoilMoisture = null;
   if (validSm.length > 0) {
     avgSoilMoisture = validSm.reduce((s, v) => s + v, 0) / validSm.length;
-  } else if (village.state?.includes('Lakshadweep') || village.lat < 12) {
+  } else if (village.state?.includes('Lakshadweep') || (village.lat < 14 && village.lon < 75 && village.lon > 70)) {
     // MARITIME ESTIMATE (Option 1): 
-    // Small islands (Lakshadweep) or deep maritime coastal points often return null soil moisture.
-    // We synthesize a realistic value based on the Rainfall Deficit logic.
+    // Small islands (Lakshadweep) often return null soil moisture from satellite data.
+    // We synthesize a realistic value based on current Rainfall Deficit.
     const historical30 = (village.historicalAvgMonthlyRainfall_mm && village.historicalAvgMonthlyRainfall_mm[new Date().getMonth()]) || 30;
     const ratio = totalPrecip / Math.max(1, historical30);
     
-    // Baseline 18%. Heavy rain pushes it to ~25%. Severe drought drops it to ~12%.
-    avgSoilMoisture = 0.18 + (Math.min(2, ratio) - 1) * 0.07;
-    avgSoilMoisture = Math.max(0.12, Math.min(0.25, avgSoilMoisture));
+    // Baseline 18.5% (Typical for maritime coral/sand soil).
+    // Heavy rain pushes it towards 24%. Extreme dryness pulls it towards 14%.
+    avgSoilMoisture = 0.185 + (Math.min(2, ratio) - 1) * 0.055;
+    avgSoilMoisture = Math.max(0.14, Math.min(0.24, avgSoilMoisture));
   }
   
   return {
@@ -195,6 +196,12 @@ function computeCDD(precipArray) {
  * Used because the Village schema does not store historical soil moisture.
  */
 function estimateHistoricalSoilMoisture(village) {
+  // SPECIAL CASE: Maritime/Island regions (Lakshadweep)
+  // These have coral-sandy soil with high drainage; "normal" is 18-20%, not 30%.
+  if (village.state?.includes('Lakshadweep') || (village.lat < 14 && village.lon < 75 && village.lon > 70)) {
+    return 0.185;
+  }
+
   const annualRain = village.historicalAvgAnnualRainfall_mm || 0;
   if (annualRain < 500) return 0.08;   // Arid
   if (annualRain < 1000) return 0.15;  // Semi-arid
