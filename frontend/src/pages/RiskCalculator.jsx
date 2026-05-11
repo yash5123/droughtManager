@@ -477,7 +477,7 @@ export default function RiskCalculator() {
                             <>
                               <AlertTriangle size={14} color="var(--accent-amber)" />
                               <span style={{ color: 'var(--accent-amber)', fontWeight: 600 }}>
-                                Live score ({selectedVillage.liveScore.toFixed(1)}) differs from cached ({selectedVillage.cachedScore.toFixed(1)}). Cache updates nightly.
+                                Live score ({selectedVillage.liveScore?.toFixed(1) || '0.0'}) differs from cached ({selectedVillage.cachedScore?.toFixed(1) || '0.0'}). Cache updates nightly.
                               </span>
                             </>
                           )}
