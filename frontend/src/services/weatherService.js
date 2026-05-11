@@ -23,14 +23,12 @@ export async function fetchVillageDetail(villageId) {
 }
 
 /**
- * Fetch 16-day weather forecast for a village's coordinates.
- * Used by the Predictions page.
+ * Fetch 16-day weather forecast for a village.
+ * Uses the MongoDB cache layer.
  */
-export async function fetchVillageForecast(lat, lon) {
+export async function fetchVillageForecast(villageId) {
   try {
-    const res = await api.get('/weather/forecast', {
-      params: { lat, lon }
-    });
+    const res = await api.get(`/weather/forecasts/${villageId}`);
     return res.data;
   } catch (err) {
     console.error('Failed to fetch forecast:', err.message);
@@ -39,16 +37,13 @@ export async function fetchVillageForecast(lat, lon) {
 }
 
 /**
- * Fetch historical weather data for a village's coordinates.
- * Used by RainfallAnalysis, GroundwaterAnalysis, and RiskCalculator.
- * Returns { data, dataSource } for backward compatibility.
+ * Fetch 30-day historical weather data for a village.
+ * Uses the MongoDB cache layer.
  */
-export async function fetchHistoricalWeather(lat, lon, days = 30) {
+export async function fetchHistoricalWeather(villageId) {
   try {
-    const res = await api.get('/weather/historical', {
-      params: { lat, lon, days }
-    });
-    return { data: res.data, dataSource: res.data?.source || 'backend_proxy' };
+    const res = await api.get(`/weather/archive/${villageId}`);
+    return { data: res.data, dataSource: res.data?.source || 'cache' };
   } catch (err) {
     console.error('Failed to fetch historical weather:', err.message);
     return { data: null, dataSource: 'error' };
@@ -56,10 +51,23 @@ export async function fetchHistoricalWeather(lat, lon, days = 30) {
 }
 
 /**
+ * Run a risk simulation using cached or fetched weather data.
+ */
+export async function fetchSimulationData(lat, lon, days = 30) {
+  try {
+    const res = await api.post('/weather/simulate', { lat, lon, timeHorizonDays: days });
+    return res.data;
+  } catch (err) {
+    console.error('Failed to fetch simulation data:', err.message);
+    return null;
+  }
+}
+
+/**
  * Backward-compatible alias for FuturePrediction page.
  */
-export async function fetchForecast(lat, lon) {
-  const result = await fetchVillageForecast(lat, lon);
+export async function fetchForecast(villageId) {
+  const result = await fetchVillageForecast(villageId);
   return { data: result };
 }
 

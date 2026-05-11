@@ -54,6 +54,35 @@ async function createIndexes() {
   );
   console.log('✓ Village(name) unique index');
 
+  // ── Weather Cache ────────────────────────────────────────────────────────
+  await db.collection('dailyweathercaches').createIndex(
+    { villageId: 1, cacheDate: 1 },
+    { name: 'daily_weather_lookup', unique: true, background: true }
+  );
+  await db.collection('dailyweathercaches').createIndex(
+    { fetchedAt: 1 },
+    { name: 'daily_weather_ttl', expireAfterSeconds: 172800 } // 48h
+  );
+
+  await db.collection('forecastcaches').createIndex(
+    { villageId: 1, cacheDate: 1 },
+    { name: 'forecast_lookup', unique: true, background: true }
+  );
+  await db.collection('forecastcaches').createIndex(
+    { fetchedAt: 1 },
+    { name: 'forecast_ttl', expireAfterSeconds: 21600 } // 6h
+  );
+
+  await db.collection('simulationcaches').createIndex(
+    { cacheKey: 1 },
+    { name: 'simulation_lookup', unique: true, background: true }
+  );
+  await db.collection('simulationcaches').createIndex(
+    { fetchedAt: 1 },
+    { name: 'simulation_ttl', expireAfterSeconds: 86400 } // 24h
+  );
+  console.log('✓ Weather Cache indexes created');
+
   console.log('\nAll indexes created successfully.');
   await mongoose.disconnect();
   process.exit(0);

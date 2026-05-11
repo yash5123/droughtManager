@@ -39,8 +39,8 @@ export default function FuturePrediction() {
       setLoading(true);
       const results = await Promise.all(
         activeVillages.slice(0, 10).map(async (v) => {
-          if (!v.location?.lat) return { village: v, chartData: [], summary: null };
-          const { data } = await fetchForecast(v.location.lat, v.location.lng);
+          if (!v._id) return { village: v, chartData: [], summary: null };
+          const { data } = await fetchForecast(v._id);
           if (!data?.daily) return { village: v, chartData: [], summary: null };
           const precipRaw = data.daily.precipitation_sum || [];
           const probRaw = data.daily.precipitation_probability_max || [];

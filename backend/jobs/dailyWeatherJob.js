@@ -19,6 +19,7 @@
 import fetch from 'node-fetch';
 import Village from '../models/Village.js';
 import DroughtRisk from '../models/DroughtRisk.js';
+import { preloadArchiveCacheForAllVillages, getArchiveWeather, getForecastWeather } from '../services/weatherCacheService.js';
 
 // ─── Utility helpers ──────────────────────────────────────────────
 
@@ -49,85 +50,7 @@ function quadInterp(x, x0, x1, y0, y1) {
 
 // ─── Weather data fetcher ─────────────────────────────────────────
 
-/**
- * Fetch 30 days of weather data for a single village from Open-Meteo Archive API.
- */
-async function fetchWeatherForVillage(village) {
-  const end = new Date();
-  end.setDate(end.getDate() - 1); // yesterday (today's data may be incomplete)
-  const start = new Date();
-  start.setDate(start.getDate() - 30);
-  
-  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${village.lat}&longitude=${village.lon}&start_date=${formatDate(start)}&end_date=${formatDate(end)}&daily=precipitation_sum,soil_moisture_0_to_7cm_mean&timezone=Asia/Kolkata`;
-  
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-  let res;
-  try {
-    res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      throw new Error(`Timeout after 10s for village: ${village.name}, ${village.state}. Skipping.`);
-    }
-    throw err;
-  }
-  
-  if (res.status === 429) {
-    // Rate limited — retry with exponential backoff
-    for (let retry = 1; retry <= 3; retry++) {
-      const backoff = Math.pow(2, retry) * 1000; // 2s, 4s, 8s
-      console.warn(`[Weather] 429 rate-limited for ${village.name}. Retry ${retry}/3 in ${backoff/1000}s...`);
-      await sleep(backoff);
-      const retryRes = await fetch(url, { signal: AbortSignal.timeout(15000) });
-      if (retryRes.ok) {
-        res = retryRes;
-        break;
-      }
-      if (retryRes.status !== 429) throw new Error(`Open-Meteo ${retryRes.status}`);
-      if (retry === 3) throw new Error(`Open-Meteo 429 after 3 retries`);
-    }
-  } else if (!res.ok) {
-    throw new Error(`Open-Meteo ${res.status}`);
-  }
-  
-  const data = await res.json();
-  
-  if (!data.daily?.precipitation_sum) {
-    throw new Error('No precipitation data in response');
-  }
-  
-  const precip = data.daily.precipitation_sum;
-  const totalPrecip = precip.reduce((s, v) => s + (v || 0), 0);
-  
-  // Average soil moisture across all daily values
-  const smDaily = data.daily?.soil_moisture_0_to_7cm_mean || [];
-  const validSm = smDaily.filter(v => v != null);
-  
-  let avgSoilMoisture = null;
-  if (validSm.length > 0) {
-    avgSoilMoisture = validSm.reduce((s, v) => s + v, 0) / validSm.length;
-  } else if (village.state?.includes('Lakshadweep') || (village.lat < 14 && village.lon < 75 && village.lon > 70)) {
-    // MARITIME ESTIMATE (Option 1): 
-    // Small islands (Lakshadweep) often return null soil moisture from satellite data.
-    // We synthesize a realistic value based on current Rainfall Deficit.
-    const historical30 = (village.historicalAvgMonthlyRainfall_mm && village.historicalAvgMonthlyRainfall_mm[new Date().getMonth()]) || 30;
-    const ratio = totalPrecip / Math.max(1, historical30);
-    
-    // Baseline 18.5% (Typical for maritime coral/sand soil).
-    // Heavy rain pushes it towards 24%. Extreme dryness pulls it towards 14%.
-    avgSoilMoisture = 0.185 + (Math.min(2, ratio) - 1) * 0.055;
-    avgSoilMoisture = Math.max(0.14, Math.min(0.24, avgSoilMoisture));
-  }
-  
-  return {
-    precipitationArray: precip.map(v => v || 0),
-    totalPrecipitation_mm: Math.round(totalPrecip * 10) / 10,
-    avgSoilMoistureFrac: avgSoilMoisture, // 0 to ~0.5 volumetric fraction or null
-    avgSoilMoisturePct: avgSoilMoisture !== null ? Math.round(avgSoilMoisture * 1000) / 10 : null
-  };
-}
+// Caching service handles individual village weather fetching
 
 // ─── Sub-Component 1: Rainfall Deficit Index (RDI) — 35% ──────────
 
@@ -196,17 +119,15 @@ function computeCDD(precipArray) {
  * Used because the Village schema does not store historical soil moisture.
  */
 function estimateHistoricalSoilMoisture(village) {
-  // SPECIAL CASE: Maritime/Island regions (Lakshadweep)
-  // These have coral-sandy soil with high drainage; "normal" is 18-20%, not 30%.
-  if (village.state?.includes('Lakshadweep') || (village.lat < 14 && village.lon < 75 && village.lon > 70)) {
-    return 0.185;
-  }
-
+  // Universal rainfall-class-based estimation — no location-specific overrides.
+  // Uses annual rainfall as the sole determinant of expected soil moisture.
   const annualRain = village.historicalAvgAnnualRainfall_mm || 0;
-  if (annualRain < 500) return 0.08;   // Arid
-  if (annualRain < 1000) return 0.15;  // Semi-arid
-  if (annualRain < 1500) return 0.22;  // Sub-humid
-  return 0.30;                          // Humid
+  if (annualRain < 200)  return 0.05;   // Hyper-arid (Thar)
+  if (annualRain < 500)  return 0.08;   // Arid
+  if (annualRain < 800)  return 0.14;   // Semi-arid
+  if (annualRain < 1200) return 0.20;   // Sub-humid
+  if (annualRain < 1800) return 0.26;   // Humid
+  return 0.32;                           // Very humid (Western Ghats, NE India)
 }
 
 function computeSMA(weather, village) {
@@ -438,10 +359,61 @@ export async function runDailyWeatherJob() {
       geocodingStatus: { $in: ['complete', 'approximate', 'centroid'] },
       lat: { $ne: null },
       lon: { $ne: null }
-    }).lean();
+    }); // Not lean(), because we need to save updates
+
+    // --- Self-healing: Retry failed/missing climate baselines ---
+    const pendingBaselines = villages.filter(v => 
+      v.climateBaselineStatus === 'failed' || 
+      v.climateBaselineStatus === 'pending' ||
+      !v.historicalAvgMonthlyRainfall_mm || 
+      v.historicalAvgMonthlyRainfall_mm.length === 0
+    ).slice(0, 5); // Recover 5 per day to respect Open-Meteo rate limits
+
+    if (pendingBaselines.length > 0) {
+      console.log(`[DailyJob] Self-healing: Retrying baselines for ${pendingBaselines.length} districts...`);
+      for (const v of pendingBaselines) {
+        try {
+          const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${v.lat}&longitude=${v.lon}&start_date=2013-01-01&end_date=2023-12-31&daily=precipitation_sum`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          
+          if (data.daily?.precipitation_sum) {
+            const monthlyRainfall = Array(12).fill(0);
+            const monthlyCounts = Array(12).fill(0);
+            data.daily.time.forEach((t, i) => {
+              const month = new Date(t).getMonth();
+              monthlyRainfall[month] += (data.daily.precipitation_sum[i] || 0);
+              monthlyCounts[month]++;
+            });
+            const monthlyAvgs = monthlyRainfall.map((sum, i) => 
+              Math.round((sum / (monthlyCounts[i] / 30.44)) * 10) / 10
+            );
+            
+            await Village.updateOne({ _id: v._id }, { 
+              $set: { 
+                historicalAvgMonthlyRainfall_mm: monthlyAvgs,
+                historicalAvgAnnualRainfall_mm: Math.round(monthlyAvgs.reduce((s, a) => s + a, 0)),
+                climateBaselineStatus: 'complete'
+              } 
+            });
+            // Update the local object so the risk calculation can use it immediately
+            v.historicalAvgMonthlyRainfall_mm = monthlyAvgs;
+            v.climateBaselineStatus = 'complete';
+            console.log(`[DailyJob] Successfully recovered baseline for ${v.name}`);
+          }
+        } catch (err) {
+          console.error(`[DailyJob] Baseline recovery failed for ${v.name}:`, err.message);
+        }
+        await new Promise(r => setTimeout(r, 2000)); // Rate limit safety
+      }
+    }
     
     dailyJobStatus.totalToProcess = villages.length;
     console.log(`[DailyJob] Processing ${villages.length} geocoded districts...`);
+    
+    // Batch preload into cache first
+    await preloadArchiveCacheForAllVillages(villages);
     
     if (villages.length === 0) {
       console.log('[DailyJob] No geocoded districts found. Skipping.');
@@ -457,7 +429,7 @@ export async function runDailyWeatherJob() {
     
     for (const village of villages) {
       try {
-        const weather = await fetchWeatherForVillage(village);
+        const weather = await getArchiveWeather(village._id, village.lat, village.lon);
         const risk = await computeRiskScore(village, weather, avgPop);
         
         await DroughtRisk.updateOne(
@@ -488,8 +460,20 @@ export async function runDailyWeatherJob() {
       await sleep(600);
     }
     
-    dailyJobStatus.lastSuccess = new Date();
+      dailyJobStatus.lastSuccess = new Date();
     console.log(`[DailyJob] Complete: ${dailyJobStatus.processedCount} processed, ${dailyJobStatus.failedCount} failed`);
+
+    // 7. Add a nightly forecast preload for the top 100 highest-risk districts
+    const topRiskVillages = villages
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 100);
+
+    console.log('[DailyJob] Preloading forecast cache for top 100 risk districts');
+    for (const v of topRiskVillages) {
+      await getForecastWeather(v._id, v.lat, v.lon);
+      await sleep(500);
+    }
+    console.log('[DailyJob] Forecast preload complete');
     
   } catch (err) {
     dailyJobStatus.error = err.message;

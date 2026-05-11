@@ -3,6 +3,7 @@ import Village from '../models/Village.js';
 import DroughtRisk from '../models/DroughtRisk.js';
 import { seedingProgress } from '../jobs/seedDistricts.js';
 import { dailyJobStatus } from '../jobs/dailyWeatherJob.js';
+import { getForecastWeather } from '../services/weatherCacheService.js';
 
 const router = express.Router();
 
@@ -89,6 +90,67 @@ router.get('/ranked', async (req, res) => {
         lastJobSuccess: dailyJobStatus.lastSuccess
       }
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/villages/forecasts
+ * Returns bulk forecast data for multiple villages.
+ */
+router.get('/forecasts', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+
+    const villages = await Village.find({
+      geocodingStatus: { $ne: 'failed' },
+      lat: { $ne: null },
+      lon: { $ne: null }
+    })
+      .sort({ riskScore: -1 })
+      .limit(limit)
+      .select('_id name state district lat lon riskScore riskLevel population');
+
+    const forecasts = await Promise.all(
+      villages.map(async (village) => {
+        try {
+          const forecast = await getForecastWeather(
+            village._id,
+            village.lat,
+            village.lon
+          );
+          return {
+            villageId: village._id,
+            name: village.name,
+            state: village.state,
+            district: village.district,
+            riskScore: village.riskScore,
+            riskLevel: village.riskLevel,
+            population: village.population,
+            lat: village.lat,
+            lon: village.lon,
+            precipitationForecast: forecast.precipitationForecast,
+            probabilityForecast: forecast.probabilityForecast,
+            forecastDates: forecast.forecastDates,
+            totalPrecip16d_mm: forecast.totalPrecip16d_mm,
+            dryDaysCount: forecast.dryDaysCount,
+            source: forecast.source
+          };
+        } catch (err) {
+          console.warn(`[Forecasts] Failed for ${village.name}: ${err.message}`);
+          return null;
+        }
+      })
+    );
+
+    const validForecasts = forecasts.filter(Boolean);
+    res.json({
+      count: validForecasts.length,
+      cacheDate: new Date().toISOString().split('T')[0],
+      forecasts: validForecasts
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

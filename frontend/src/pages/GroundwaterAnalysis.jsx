@@ -41,26 +41,32 @@ export default function GroundwaterAnalysis() {
 
   useEffect(() => {
     const fetchTrend = async () => {
-      if (!selectedVillage?.location?.lat) { setVillageTrend(null); return; }
+      if (!selectedVillage?._id) { setVillageTrend(null); return; }
       setLoading(true);
-      const { data } = await fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, period);
-      if (!data?.daily?.soil_moisture_0_to_7cm_mean) { setVillageTrend(null); setLoading(false); return; }
-      const smRaw = data.daily.soil_moisture_0_to_7cm_mean;
-      // inject mock if all zeros (future date issue)
-      const smSum = smRaw.reduce((s, v) => s + (v || 0), 0);
-      const sm = smSum > 0 ? smRaw : smRaw.map((_, i) => {
-        const seed = (selectedVillage.name?.charCodeAt(0) || 65) + i;
-        const base = 0.12 + (Math.sin(seed) * 0.06);
-        return Math.max(0.04, Math.min(0.35, base));
-      });
-      setVillageTrend(data.daily.time.map((t, i) => ({
-        date: t.slice(5),
-        moisture: Math.round((sm[i] || 0) * 1000) / 10,
-      })));
-      setLoading(false);
+      try {
+        const { data } = await fetchHistoricalWeather(selectedVillage._id);
+        if (!data?.daily?.soil_moisture_0_to_7cm_mean) { setVillageTrend(null); setLoading(false); return; }
+        const smRaw = data.daily.soil_moisture_0_to_7cm_mean;
+        // inject mock if all zeros (future date issue)
+        const smSum = smRaw.reduce((s, v) => s + (v || 0), 0);
+        const sm = smSum > 0 ? smRaw : smRaw.map((_, i) => {
+          const seed = (selectedVillage.name?.charCodeAt(0) || 65) + i;
+          const base = 0.12 + (Math.sin(seed) * 0.06);
+          return Math.max(0.04, Math.min(0.35, base));
+        });
+        setVillageTrend(data.daily.time.map((t, i) => ({
+          date: t.slice(5),
+          moisture: Math.round((sm[i] || 0) * 1000) / 10,
+        })));
+      } catch (err) {
+        console.error('Trend fetch failed:', err);
+        setVillageTrend(null);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchTrend();
-  }, [selectedVillage, period]);
+  }, [selectedVillage]);
 
   const filteredList = useMemo(() => {
     let list = activeVillages;

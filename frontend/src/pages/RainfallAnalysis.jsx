@@ -60,9 +60,9 @@ export default function RainfallAnalysis() {
   }, [activeVillages, selectedVillage]);
 
   useEffect(() => {
-    if (!selectedVillage?.location?.lat) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); return; }
+    if (!selectedVillage?._id) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); return; }
     setLoading(true);
-    fetchHistoricalWeather(selectedVillage.location.lat, selectedVillage.location.lng, period).then(({ data }) => {
+    fetchHistoricalWeather(selectedVillage._id).then(({ data }) => {
       if (!data?.daily) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
       const precipRaw = data.daily.precipitation_sum || new Array(period).fill(0);
       const precip = injectMockPrecipitation(precipRaw, selectedVillage.name, selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall, period);
@@ -79,7 +79,7 @@ export default function RainfallAnalysis() {
       });
       setLoading(false);
     });
-  }, [selectedVillage, period]);
+  }, [selectedVillage]);
 
   const filteredList = useMemo(() => {
     let list = activeVillages;

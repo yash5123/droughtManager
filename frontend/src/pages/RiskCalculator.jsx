@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
-import { fetchHistoricalWeather, computeLocalRiskMetrics } from '../services/weatherService.js';
+import { fetchSimulationData, computeLocalRiskMetrics } from '../services/weatherService.js';
 import { Settings, MapPin, Activity, Calculator, ChevronDown, Loader2 } from 'lucide-react';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 
@@ -58,7 +58,7 @@ export default function RiskCalculator() {
     if (!lat || !lon) return;
     setLoading(true);
     try {
-      const { data } = await fetchHistoricalWeather(lat, lon, days);
+      const { data } = await fetchSimulationData(lat, lon, days);
       if (!data?.daily) { setResult({ error: 'No weather data available' }); return; }
       const metrics = computeLocalRiskMetrics(data);
       const rainfallDeficit = Math.max(0, Math.min(100, Math.round((1 - metrics.totalPrecipitation / ((selectedVillage?.avgAnnualRainfall || 600) * days / 365)) * 100)));

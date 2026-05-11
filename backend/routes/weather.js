@@ -1,64 +1,54 @@
 import express from 'express';
 import fetch from 'node-fetch';
 import { runDailyWeatherJob, dailyJobStatus } from '../jobs/dailyWeatherJob.js';
+import { getForecastWeather, getSimulationWeather, getArchiveWeather } from '../services/weatherCacheService.js';
+import Village from '../models/Village.js';
 
 const router = express.Router();
 
 /**
- * GET /api/weather/historical
- * Server-side proxy to Open-Meteo Archive API.
- * Query params: lat, lon, days (default 30)
- * Returns daily precipitation_sum, temperature_2m_mean, soil_moisture_0_to_7cm_mean
+ * GET /api/weather/forecasts/:villageId
+ * Cache-first 16-day forecast.
  */
-router.get('/historical', async (req, res) => {
+router.get('/forecasts/:villageId', async (req, res) => {
   try {
-    const { lat, lon, days = 30 } = req.query;
-    if (!lat || !lon) {
-      return res.status(400).json({ error: 'lat and lon query parameters are required' });
-    }
+    const village = await Village.findById(req.params.villageId);
+    if (!village) return res.status(404).json({ error: 'Village not found' });
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days));
-
-    const fmt = (d) => d.toISOString().split('T')[0];
-
-    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${fmt(startDate)}&end_date=${fmt(endDate)}&daily=precipitation_sum,temperature_2m_mean,soil_moisture_0_to_7cm_mean&timezone=Asia/Kolkata`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      return res.status(response.status).json({ error: `Open-Meteo returned ${response.status}` });
-    }
-
-    const data = await response.json();
-    res.json({ source: 'open-meteo-proxy', ...data });
+    const forecast = await getForecastWeather(village._id, village.lat, village.lon);
+    res.json(forecast);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 /**
- * GET /api/weather/forecast
- * Server-side proxy to Open-Meteo Forecast API.
- * Query params: lat, lon
- * Returns 16-day forecast: precipitation_sum, temperature_2m_max/min, soil_moisture_0_to_7cm_mean
+ * POST /api/weather/simulate
+ * Cache-first simulation data fetcher.
  */
-router.get('/forecast', async (req, res) => {
+router.post('/simulate', async (req, res) => {
   try {
-    const { lat, lon } = req.query;
-    if (!lat || !lon) {
-      return res.status(400).json({ error: 'lat and lon query parameters are required' });
-    }
+    const { lat, lon, timeHorizonDays = 30 } = req.body;
+    if (!lat || !lon) return res.status(400).json({ error: 'lat and lon are required' });
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,soil_moisture_0_to_7cm_mean&forecast_days=16&timezone=Asia/Kolkata`;
+    const data = await getSimulationWeather(lat, lon, timeHorizonDays);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      return res.status(response.status).json({ error: `Open-Meteo returned ${response.status}` });
-    }
+/**
+ * GET /api/weather/archive/:villageId
+ * Cache-first 30-day historical data.
+ */
+router.get('/archive/:villageId', async (req, res) => {
+  try {
+    const village = await Village.findById(req.params.villageId);
+    if (!village) return res.status(404).json({ error: 'Village not found' });
 
-    const data = await response.json();
-    res.json({ source: 'open-meteo-proxy', ...data });
+    const archive = await getArchiveWeather(village._id, village.lat, village.lon);
+    res.json(archive);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -89,6 +79,29 @@ router.post('/trigger-daily-job', async (req, res) => {
  */
 router.get('/job-status', (req, res) => {
   res.json(dailyJobStatus);
+});
+
+/**
+ * GET /api/weather/cache-status
+ * Returns cache statistics.
+ */
+router.get('/cache-status', async (req, res) => {
+  try {
+    const { DailyWeatherCache, ForecastCache, SimulationCache } = await import('../models/WeatherCache.js');
+    const [daily, forecast, sim] = await Promise.all([
+      DailyWeatherCache.countDocuments(),
+      ForecastCache.countDocuments(),
+      SimulationCache.countDocuments()
+    ]);
+    res.json({
+      dailyRecords: daily,
+      forecastRecords: forecast,
+      simulationRecords: sim,
+      lastUpdate: dailyJobStatus.lastSuccess
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 

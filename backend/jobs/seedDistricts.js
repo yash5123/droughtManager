@@ -218,10 +218,11 @@ async function geocodeDistricts() {
     try {
       // Clean state name for query (remove UT/NCT tags)
       const cleanState = v.state.replace(/\s*\(.*?\)\s*/g, '').trim();
+      // Strict state-based searching to prevent cross-state mismatches
       const queryAttempts = [
         encodeURIComponent(`${v.name}, ${cleanState}, India`),
-        encodeURIComponent(`${v.name}, India`),
-        encodeURIComponent(`${cleanState}, India`)
+        encodeURIComponent(`${v.name} District, ${cleanState}, India`),
+        encodeURIComponent(`${v.name}, ${cleanState}`)
       ];
 
       let attemptSuccess = 0;
@@ -231,6 +232,7 @@ async function geocodeDistricts() {
 
       for (let i = 0; i < queryAttempts.length; i++) {
         const query = queryAttempts[i];
+        // Enforce state boundary in query if possible, or just keep it strict
         const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
         
         let res;
