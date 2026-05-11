@@ -31,7 +31,6 @@ export default function SupplyDemand() {
   
   const [limit, setLimit] = useState(25);
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
- // Top 25, 50, All
   const [riskFilter, setRiskFilter] = useState('All'); // All, Extreme, Severe, Moderate, Normal
   const [dispatching, setDispatching] = useState(null);
 
@@ -234,7 +233,7 @@ export default function SupplyDemand() {
       </div>
 
       {/* Main Analytics Engine */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'stretch' }}>
         
         {/* Differential Map/Chart */}
         {/* Differential Map/Chart */}
@@ -319,8 +318,10 @@ export default function SupplyDemand() {
               <button 
                 onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
                 style={{
-                  padding: '8px 12px', borderRadius: '10px', background: 'var(--glass-bg-bright)',
-                  border: '1px solid var(--divider)', color: 'var(--text-secondary)',
+                  padding: '8px 12px', borderRadius: '10px', 
+                  background: 'var(--nav-active-bg)',
+                  border: '1px solid var(--accent-blue)40', 
+                  color: 'var(--accent-blue)',
                   display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: 800,
                   cursor: 'pointer', transition: 'all 0.2s', letterSpacing: '0.5px'
                 }}
