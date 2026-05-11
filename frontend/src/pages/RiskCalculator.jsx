@@ -532,7 +532,8 @@ export default function RiskCalculator() {
                     </div>
                   </div>
                 </div>
-
+              </div>
+            </>
           ) : (
             <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
               <Search size={48} color="var(--text-tertiary)" style={{ marginBottom: '16px', opacity: 0.5 }} />
