@@ -87,7 +87,7 @@ export default function SupplyDemand() {
   const totalDeficit = filteredData.reduce((s, v) => s + (v.deficit || 0), 0);
   const criticalCount = filteredData.filter(v => v.coverage < 90).length;
   
-  const chartData = filteredData.slice(0, 25).map(v => ({
+  const chartData = filteredData.map(v => ({
     name: v.name.length > 12 ? v.name.slice(0, 10) + '…' : v.name,
     demand: Math.round(v.demand / 1000),
     supply: Math.round(v.supply / 1000),
@@ -248,51 +248,57 @@ export default function SupplyDemand() {
             </div>
           </div>
 
-          <div style={{ height: '450px', width: '100%' }}>
-            {chartData.length === 0 ? <EmptyState /> : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 40, left: -20 }} barGap={2} barCategoryGap="20%">
-                  <defs>
-                    <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent-red)" stopOpacity={1}/>
-                      <stop offset="95%" stopColor="var(--accent-red)" stopOpacity={0.2}/>
-                    </linearGradient>
-                    <linearGradient id="colorSupply" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={1}/>
-                      <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0.2}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--divider)" opacity={0.5} />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: 'var(--text-tertiary)', fontSize: 10, fontWeight: 700 }} 
-                    dy={15} 
-                    angle={-45} 
-                    textAnchor="end"
-                    interval={0}
-                  />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 700 }} />
-                  <Tooltip 
-                    cursor={{ fill: 'var(--nav-hover-bg)', radius: 10 }}
-                    contentStyle={{ 
-                      background: 'var(--glass-bg-bright)', 
-                      border: 'var(--glass-border)', 
-                      borderRadius: '16px', 
-                      backdropFilter: 'blur(24px)',
-                      boxShadow: 'var(--glass-shadow-elevated)',
-                      padding: '16px',
-                      color: 'var(--text-primary)'
-                    }}
-                    itemStyle={{ fontSize: '12px', fontWeight: 800, padding: '4px 0' }}
-                  />
-                  <Legend verticalAlign="top" align="right" iconType="rect" iconSize={10} wrapperStyle={{ paddingBottom: '40px', fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.5px' }} />
-                  <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[4, 4, 0, 0]} barSize={12} />
-                  <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[4, 4, 0, 0]} barSize={12} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+          <div style={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'hidden', borderRadius: '16px' }}>
+            <div style={{ 
+              width: chartData.length > 20 ? `${chartData.length * 50}px` : '100%', 
+              height: '100%',
+              minWidth: '100%'
+            }}>
+              {chartData.length === 0 ? <EmptyState /> : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 60, left: -10 }} barGap={2} barCategoryGap="20%">
+                    <defs>
+                      <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--accent-red)" stopOpacity={1}/>
+                        <stop offset="95%" stopColor="var(--accent-red)" stopOpacity={0.2}/>
+                      </linearGradient>
+                      <linearGradient id="colorSupply" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--accent-blue)" stopOpacity={1}/>
+                        <stop offset="95%" stopColor="var(--accent-blue)" stopOpacity={0.2}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--divider)" opacity={0.5} />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'var(--text-tertiary)', fontSize: 10, fontWeight: 700 }} 
+                      dy={15} 
+                      angle={-45} 
+                      textAnchor="end"
+                      interval={0}
+                    />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 700 }} />
+                    <Tooltip 
+                      cursor={{ fill: 'var(--nav-hover-bg)', radius: 10 }}
+                      contentStyle={{ 
+                        background: 'var(--glass-bg-bright)', 
+                        border: 'var(--glass-border)', 
+                        borderRadius: '16px', 
+                        backdropFilter: 'blur(24px)',
+                        boxShadow: 'var(--glass-shadow-elevated)',
+                        padding: '16px',
+                        color: 'var(--text-primary)'
+                      }}
+                      itemStyle={{ fontSize: '12px', fontWeight: 800, padding: '4px 0' }}
+                    />
+                    <Legend verticalAlign="top" align="right" iconType="rect" iconSize={10} wrapperStyle={{ paddingBottom: '40px', fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.5px' }} />
+                    <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[4, 4, 0, 0]} barSize={12} />
+                    <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[4, 4, 0, 0]} barSize={12} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
         </div>
 
@@ -337,15 +343,18 @@ export default function SupplyDemand() {
                   <div style={{ display: 'flex', gap: '32px' }}>
                     <div>
                       <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Deficit Gap</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--nav-active-bg)', padding: '16px 20px', borderRadius: '16px', border: 'var(--glass-border)' }}>
+                  <div style={{ display: 'flex', gap: '32px', width: '100%' }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Deficit Gap</p>
                       <p style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{formatIndian(v.deficit)} <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>L/D</span></p>
                     </div>
                     <div style={{ width: '1px', height: '24px', background: 'var(--divider)', alignSelf: 'center' }} />
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Tanker Payloads</p>
                       <p style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.tankersNeeded} <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>UNITS</span></p>
                     </div>
                   </div>
-                  <ChevronRight size={18} color="var(--text-tertiary)" style={{ opacity: 0.5 }} />
                 </div>
               </div>
             ))}

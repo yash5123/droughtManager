@@ -53,9 +53,7 @@ export default function GroundwaterAnalysis() {
 
         if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
         
-        if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
-        
-        const sm = smRaw; // Remove mock injection logic
+        const sm = smRaw; 
 
         setVillageTrend(timeRaw.map((t, i) => ({
           date: t.slice(5),
