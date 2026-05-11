@@ -1,4 +1,10 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded Square Background -->
   <rect width="512" height="512" rx="120" fill="#0066FF"/>
+  
+  <!-- Main Water Drop Silhouette -->
   <path d="M256 80C256 80 140 220 140 310C140 376.274 191.926 430 256 430C320.074 430 372 376.274 372 310C372 220 256 80 256 80Z" fill="white"/>
+  
+  <!-- "Swoosh" / Crescent Detail (Matches the provided image design) -->
+  <path d="M230 180C190 230 180 320 230 380C200 360 175 280 230 180Z" fill="#0066FF"/>
 </svg>
