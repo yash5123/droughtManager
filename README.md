@@ -57,7 +57,7 @@ Explore the live platform and see the data in action:
 > No login is required to explore the public monitoring dashboards. Administrative access is required only for triggering emergency tanker dispatches.
 
 <div align="center">
-  <img src="overview.png" width="900" alt="Overview Dashboard" />
+  <img src="frontend/screenshots/overview.png" width="900" alt="Overview Dashboard" />
   <p><i>The Central Command Overview: Real-time risk distribution and pulsing geospatial alerts in Light Mode.</i></p>
 </div>
 
@@ -234,16 +234,16 @@ At the heart of AqvaSense is a proprietary scientific instrument: the **Composit
 <div align="center">
   <table border="0">
     <tr>
-      <td><img src="risk_map.png" width="450" /><br/><i>Interactive Spatial Risk Map</i></td>
-      <td><img src="rainfall_analysis.png" width="450" /><br/><i>Rainfall Baseline Analysis</i></td>
+      <td><img src="frontend/screenshots/risk_map.png" width="450" /><br/><i>Interactive Spatial Risk Map</i></td>
+      <td><img src="frontend/screenshots/rainfall_analysis.png" width="450" /><br/><i>Rainfall Baseline Analysis</i></td>
     </tr>
     <tr>
-      <td><img src="groundwater.png" width="450" /><br/><i>Soil Moisture Trend Monitoring</i></td>
-      <td><img src="classification.png" width="450" /><br/><i>District Risk Classification</i></td>
+      <td><img src="frontend/screenshots/groundwater.png" width="450" /><br/><i>Soil Moisture Trend Monitoring</i></td>
+      <td><img src="frontend/screenshots/classification.png" width="450" /><br/><i>District Risk Classification</i></td>
     </tr>
     <tr>
-      <td><img src="supply_demand.png" width="450" /><br/><i>Supply vs Demand Matrix</i></td>
-      <td><img src="prediction.png" width="450" /><br/><i>16-Day Hydrological Forecast</i></td>
+      <td><img src="frontend/screenshots/supply_demand.png" width="450" /><br/><i>Supply vs Demand Matrix</i></td>
+      <td><img src="frontend/screenshots/prediction.png" width="450" /><br/><i>16-Day Hydrological Forecast</i></td>
     </tr>
   </table>
 </div>
