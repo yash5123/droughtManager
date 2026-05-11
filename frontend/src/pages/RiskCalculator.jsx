@@ -140,7 +140,7 @@ export default function RiskCalculator() {
         <div>
           <h1 className="title" style={{ fontSize: '32px', marginBottom: '8px' }}>Risk Logic & Transparency</h1>
           <p className="body-text" style={{ color: 'var(--text-secondary)', maxWidth: '600px' }}>
-            A comprehensive audit of all {allVillages.length || 732} districts using our 5-pillar non-linear composite scoring engine.
+            A comprehensive audit of all {allVillages.length || 732} districts using our 4-pillar non-linear composite scoring engine.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -157,7 +157,6 @@ export default function RiskCalculator() {
           <FormulaPillar icon={<TrendingUp color="var(--accent-amber)" />} title="Dry Streak (CDD)" weight="20%" desc="Measures consecutive days <1mm rain and total dry frequency frequency." />
           <FormulaPillar icon={<Waves color="var(--accent-cyan)" />} title="Soil Anomaly (SMA)" weight="30%" desc="Deviation from expected soil moisture based on annual rainfall class." />
           <FormulaPillar icon={<Users color="#8b5cf6" />} title="Pop. Demand (PPA)" weight="10%" desc="Modeled water supply vs population demand (WHO 55L/day standard)." />
-          <FormulaPillar icon={<History color="var(--accent-green)" />} title="Trend (TAM)" weight="±4pts" desc="Additive modifier based on 7-day risk trajectory (acceleration)." />
         </div>
       )}
 
@@ -274,7 +273,6 @@ export default function RiskCalculator() {
                   <th>CDD</th>
                   <th>SMA</th>
                   <th>Pop Gap</th>
-                  <th>Trend</th>
                   <th style={{ width: '40px' }}></th>
                 </tr>
               </thead>
@@ -304,7 +302,6 @@ export default function RiskCalculator() {
                       <td><MetricBar value={v.metricsSnapshot?.cddScore ?? 0} color="var(--accent-amber)" /></td>
                       <td><MetricBar value={v.metricsSnapshot?.smaScore ?? v.soilMoistureDepletion} color="var(--accent-cyan)" /></td>
                       <td><MetricBar value={v.metricsSnapshot?.ppaScore ?? v.populationDemandGap} color="#8b5cf6" /></td>
-                      <td><MetricBar value={v.metricsSnapshot?.tamAdjustment ?? 0} color="var(--accent-green)" /></td>
                       <td><ChevronRight size={18} color="var(--text-tertiary)" /></td>
                     </tr>
                   );
@@ -470,12 +467,6 @@ export default function RiskCalculator() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                               <span style={{ color: 'var(--text-secondary)' }}>Raw Weighted Sum</span>
                               <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>= {(audit.rawComposite ?? 0).toFixed(3)}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                              <span style={{ color: 'var(--text-secondary)' }}>TAM Adjustment (7-day trend)</span>
-                              <span style={{ fontWeight: 600, color: (audit.tamAdjustment ?? 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                                {(audit.tamAdjustment ?? 0) >= 0 ? '+' : ''}{(audit.tamAdjustment ?? 0).toFixed(3)}
-                              </span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700 }}>
                               <span style={{ color: 'var(--text-primary)' }}>Adjusted Composite</span>
