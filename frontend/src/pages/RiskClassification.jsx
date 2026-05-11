@@ -210,7 +210,7 @@ export default function RiskClassification() {
                       <td style={{ padding: '0 16px', color: color, fontSize: '13px', fontWeight: 600 }}>{formatNumber(waterDemandKL)} kL/d</td>
                       <td style={{ padding: '0 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontWeight: 700, fontSize: '14px', color, width: '24px' }}>{v.riskScore}</span>
+                          <span style={{ fontWeight: 700, fontSize: '14px', color, width: '36px' }}>{(v.riskScore || 0).toFixed(1)}</span>
                           <div style={{ height: '4px', flex: 1, background: 'var(--glass-border)', borderRadius: '2px', overflow: 'hidden' }}>
                             <div style={{ width: `${Math.min(v.riskScore, 100)}%`, height: '100%', background: color, boxShadow: `0 0 8px ${color}` }} />
                           </div>

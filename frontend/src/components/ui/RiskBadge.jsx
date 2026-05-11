@@ -41,7 +41,7 @@ export default function RiskBadge({ level, score, size = 'sm' }) {
       {typeof score === 'number' && (
         <>
           <div style={{ width: '1px', height: '10px', background: color, opacity: 0.3, margin: '0 2px' }} />
-          <span style={{ fontSize: size === 'sm' ? '11px' : '13px', fontWeight: 900, opacity: 0.9 }}>{Math.round(score)}</span>
+          <span style={{ fontSize: size === 'sm' ? '11px' : '13px', fontWeight: 900, opacity: 0.9 }}>{score.toFixed(1)}</span>
         </>
       )}
     </span>
