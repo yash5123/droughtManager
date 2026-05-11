@@ -324,26 +324,22 @@ export default function SupplyDemand() {
               }} className="hotspot-item hover-glow">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', gap: '16px' }}>
-                    <div style={{ width: '48px', height: '48px', minWidth: '48px', flexShrink: 0, borderRadius: '14px', background: 'var(--nav-active-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 900, color: 'var(--accent-blue)', border: 'var(--glass-border)' }}>
+                    <div style={{ 
+                      width: '32px', height: '32px', borderRadius: '10px', background: 'var(--nav-active-bg)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900,
+                      color: 'var(--text-secondary)', border: '1px solid var(--divider)', flexShrink: 0, minWidth: '32px'
+                    }}>
                       {i + 1}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.name}</h4>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{v.state}</span>
-                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--divider)', opacity: 0.5 }} />
-                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 500 }}>{formatNumber(v.population)} pop</span>
-                      </div>
+                    <div>
+                      <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '2px' }}>{v.name}</h4>
+                      <p style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{v.state}</p>
                     </div>
                   </div>
                   <RiskBadge score={v.riskScore} />
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--nav-active-bg)', padding: '16px 20px', borderRadius: '16px', border: 'var(--glass-border)' }}>
-                  <div style={{ display: 'flex', gap: '32px' }}>
-                    <div>
-                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Deficit Gap</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--nav-active-bg)', padding: '16px 20px', borderRadius: '16px', border: 'var(--glass-border)' }}>
                   <div style={{ display: 'flex', gap: '32px', width: '100%' }}>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Deficit Gap</p>
