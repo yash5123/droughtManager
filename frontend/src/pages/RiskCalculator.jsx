@@ -320,27 +320,24 @@ export default function RiskCalculator() {
                     score={selectedVillage.metricsSnapshot?.cddScore ?? (selectedVillage.metricsSnapshot?.maxDryStreak > 15 ? 40 : 0)} 
                     weight={activeWeights.cdd} 
                     color="var(--accent-amber)" 
-                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak !== undefined ? `${selectedVillage.metricsSnapshot.maxDryStreak} consecutive dry days` : "Historical baseline"}
+                    subtext={selectedVillage.metricsSnapshot?.maxDryStreak > 0 ? `${selectedVillage.metricsSnapshot.maxDryStreak} consecutive dry days` : null}
                   />
                   <ContributionRow label="SMA (Soil)" score={selectedVillage.metricsSnapshot?.smaScore ?? (selectedVillage.soilMoistureDepletion || 0)} weight={activeWeights.sma} color="var(--accent-cyan)" />
                   <ContributionRow label="PPA (Demand)" score={selectedVillage.metricsSnapshot?.ppaScore ?? (selectedVillage.populationDemandGap || 0)} weight={activeWeights.ppa} color="#8b5cf6" />
                   
-                  <div style={{ marginTop: '12px', padding: '20px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent-green)20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <TrendingUp size={14} color="var(--accent-green)" />
-                        </div>
-                        <span className="caption-text" style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '12px' }}>Trend Adjustment (TAM)</span>
+                  {/* TAM integrated as a Pillar for clarity */}
+                  <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TrendingUp size={14} color="var(--accent-green)" />
+                        <span className="caption-text" style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Trend Adjustment (TAM)</span>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span className="caption-text" style={{ color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 900, fontSize: '14px' }}>
-                          {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{(selectedVillage.metricsSnapshot?.tamAdjustment || 0).toFixed(1)} PTS
-                        </span>
-                      </div>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: (selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                        {(selectedVillage.metricsSnapshot?.tamAdjustment || 0) >= 0 ? '+' : ''}{(selectedVillage.metricsSnapshot?.tamAdjustment || 0).toFixed(1)} PTS
+                      </span>
                     </div>
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                      The **Trend Acceleration Modifier** (TAM) factors in the 7-day risk velocity. If risk is rising faster than historical norms, TAM adds up to +4 pts to the final index to trigger early warnings.
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
+                      Based on 7-day risk trajectory acceleration.
                     </p>
                   </div>
                 </div>
