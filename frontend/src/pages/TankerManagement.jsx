@@ -47,6 +47,10 @@ const STATUS_CONFIG = {
 };
 
 const INDIA_CENTER = [22.5, 78.5];
+const INDIA_BOUNDS = [
+  [6.5, 68.1], // Southwest corner
+  [35.5, 97.4]  // Northeast corner
+];
 
 // Sub-component for map size handling
 function MapUpdater({ theme }) {
@@ -169,12 +173,43 @@ export default function TankerManagement() {
     ).slice(0, 50);
   }, [riskData, dropdownSearch]);
 
+  const validateForm = () => {
+    if (!form.village) { addToast('Target zone required', 'warning'); return false; }
+    
+    // Capacity Validation
+    if (form.capacityLiters <= 0) {
+      addToast('Capacity must be a positive value', 'warning');
+      return false;
+    }
+
+    // Indian Vehicle ID Validation (e.g., MH04JU1234 or MH-04-JU-1234)
+    const vehicleRegex = /^[A-Z]{2}[ -]?[0-9]{2}[ -]?[A-Z]{1,2}[ -]?[0-9]{4}$/;
+    if (!vehicleRegex.test(form.tankerNumber.toUpperCase())) {
+      addToast('Invalid Indian Vehicle ID format (e.g. MH04JU1234)', 'warning');
+      return false;
+    }
+
+    // Indian Phone Number Validation (10 digits, starts with 6-9)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(form.driverContact)) {
+      addToast('Invalid Indian Phone Number (10 digits required)', 'warning');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleDispatch = async (e) => {
     e.preventDefault();
-    if (!form.village) { addToast('Target zone required', 'warning'); return; }
+    if (!validateForm()) return;
+    
     setSubmitting(true);
     try {
-      await api.post('/tanker', { ...form, dispatchDate: new Date().toISOString() });
+      await api.post('/tanker', { 
+        ...form, 
+        tankerNumber: form.tankerNumber.toUpperCase(),
+        dispatchDate: new Date().toISOString() 
+      });
       addToast(`Strategic deployment initialized for ${form.village}`, 'success');
       setForm({ village: '', capacityLiters: 12000, driverName: '', driverContact: '', tankerNumber: '', priority: 'Normal' });
       setShowForm(false);
@@ -251,17 +286,19 @@ export default function TankerManagement() {
             <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 1000, display: 'flex', gap: '8px' }}>
               <div className="glass-pill" style={{ padding: '8px 16px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-green)', boxShadow: '0 0 10px var(--accent-green)' }} />
-                SYSTEM LIVE
+                TACTICAL VIEW: INDIA
               </div>
             </div>
             
             <MapContainer 
               center={INDIA_CENTER} 
               zoom={5} 
-              minZoom={4}
+              minZoom={4.5}
               maxZoom={12}
               zoomSnap={0.5}
               zoomDelta={0.5}
+              maxBounds={INDIA_BOUNDS}
+              maxBoundsViscosity={1.0}
               style={{ height: '100%', width: '100%', background: 'var(--bg-card)' }} 
               zoomControl={false}
             >
@@ -271,6 +308,7 @@ export default function TankerManagement() {
                 const village = riskData.find(v => v.name === t.village);
                 if (!village || !village.location) return null;
                 const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
+                const Icon = config.icon;
                 const isSelected = selectedId === t._id;
                 
                 return (
@@ -553,10 +591,10 @@ export default function TankerManagement() {
                 )}
               </div>
 
-              <FormInput label="CAPACITY (LITERS)" type="number" value={form.capacityLiters} onChange={v => setForm(p => ({ ...p, capacityLiters: v }))} />
-              <FormInput label="VEHICLE ID" value={form.tankerNumber} onChange={v => setForm(p => ({ ...p, tankerNumber: v }))} placeholder="TNK-000-X" />
+              <FormInput label="CAPACITY (LITERS)" type="number" min="0" value={form.capacityLiters} onChange={v => setForm(p => ({ ...p, capacityLiters: Math.max(0, parseInt(v) || 0) }))} />
+              <FormInput label="VEHICLE ID (MH04JU1234)" value={form.tankerNumber} onChange={v => setForm(p => ({ ...p, tankerNumber: v }))} placeholder="MH-04-XX-0000" />
               <FormInput label="OPERATOR NAME" value={form.driverName} onChange={v => setForm(p => ({ ...p, driverName: v }))} />
-              <FormInput label="COMMS CHANNEL" value={form.driverContact} onChange={v => setForm(p => ({ ...p, driverContact: v }))} placeholder="+91..." />
+              <FormInput label="COMMS CHANNEL (10 DIGIT)" value={form.driverContact} onChange={v => setForm(p => ({ ...p, driverContact: v }))} placeholder="9876543210" />
 
               <div style={{ gridColumn: '1 / -1', marginTop: '20px', display: 'flex', gap: '16px' }}>
                 <button type="button" onClick={() => setShowForm(false)} className="glass-btn" style={{ flex: 1, height: '52px', fontWeight: 700, fontSize: '14px' }}>ABORT</button>
@@ -608,12 +646,13 @@ function TelemetryStat({ label, value, icon: Icon, color }) {
   );
 }
 
-function FormInput({ label, type = 'text', value, onChange, placeholder }) {
+function FormInput({ label, type = 'text', value, onChange, placeholder, min }) {
   return (
     <div>
       <label className="card-label" style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>{label}</label>
       <input 
         type={type} 
+        min={min}
         value={value} 
         onChange={e => onChange(e.target.value)} 
         placeholder={placeholder} 
