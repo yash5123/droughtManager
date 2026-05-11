@@ -232,7 +232,8 @@ export default function SupplyDemand() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'start' }}>
         
         {/* Differential Map/Chart */}
-        <div className="glass-card" style={{ padding: '32px', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)', minWidth: 0 }}>
+        {/* Differential Map/Chart */}
+        <div className="glass-card" style={{ padding: '32px', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow)', minWidth: 0, height: '660px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--accent-blue-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-blue)20' }}>
@@ -248,9 +249,9 @@ export default function SupplyDemand() {
             </div>
           </div>
 
-          <div style={{ height: '500px', width: '100%', overflowX: 'auto', overflowY: 'hidden', borderRadius: '16px', position: 'relative' }}>
+          <div style={{ flex: 1, width: '100%', overflowX: 'auto', overflowY: 'hidden', borderRadius: '16px', position: 'relative' }}>
             <div style={{ 
-              width: chartData.length > 15 ? `${chartData.length * 35}px` : '100%', 
+              width: chartData.length > 12 ? `${chartData.length * 45}px` : '100%', 
               height: '100%',
               minWidth: '100%'
             }}>
@@ -293,8 +294,8 @@ export default function SupplyDemand() {
                       itemStyle={{ fontSize: '12px', fontWeight: 800, padding: '4px 0' }}
                     />
                     <Legend verticalAlign="top" align="right" iconType="rect" iconSize={10} wrapperStyle={{ paddingBottom: '40px', fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.5px' }} />
-                    <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[4, 4, 0, 0]} barSize={14} />
-                    <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[4, 4, 0, 0]} barSize={14} />
+                    <Bar dataKey="demand" name="EST. DEMAND" fill="url(#colorDemand)" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="supply" name="AVAIL. SUPPLY" fill="url(#colorSupply)" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -303,7 +304,7 @@ export default function SupplyDemand() {
         </div>
 
         {/* Priority Action List */}
-        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '560px', border: 'var(--glass-border)', overflow: 'hidden', boxShadow: 'var(--glass-shadow)' }}>
+        <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '660px', border: 'var(--glass-border)', overflow: 'hidden', boxShadow: 'var(--glass-shadow)' }}>
           <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--glass-bg-bright)' }}>
             <div>
               <h3 className="section-header" style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Priority Hotspots</h3>
