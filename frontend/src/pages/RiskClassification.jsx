@@ -109,7 +109,7 @@ export default function RiskClassification() {
       </div>
 
       {/* Main Layout */}
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
         
           {/* Main Layout Content */}
           <div className="glass-card" style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '24px', overflow: 'hidden' }}>
