@@ -45,8 +45,14 @@ export default function GroundwaterAnalysis() {
       setLoading(true);
       try {
         const { data } = await fetchHistoricalWeather(selectedVillage._id);
-        if (!data?.daily?.soil_moisture_0_to_7cm_mean) { setVillageTrend(null); setLoading(false); return; }
-        const smRaw = data.daily.soil_moisture_0_to_7cm_mean;
+        const smRaw = data?.daily?.soil_moisture_0_to_7cm_mean || data?.soilMoistureArray;
+        const timeRaw = data?.daily?.time || Array.from({ length: smRaw?.length || 0 }, (_, i) => {
+          const d = new Date(Date.now() - ((smRaw?.length || 31) - 1 - i) * 24 * 60 * 60 * 1000);
+          return d.toISOString().split('T')[0];
+        });
+
+        if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
+        
         // inject mock if all zeros (future date issue)
         const smSum = smRaw.reduce((s, v) => s + (v || 0), 0);
         const sm = smSum > 0 ? smRaw : smRaw.map((_, i) => {
@@ -54,7 +60,8 @@ export default function GroundwaterAnalysis() {
           const base = 0.12 + (Math.sin(seed) * 0.06);
           return Math.max(0.04, Math.min(0.35, base));
         });
-        setVillageTrend(data.daily.time.map((t, i) => ({
+
+        setVillageTrend(timeRaw.map((t, i) => ({
           date: t.slice(5),
           moisture: Math.round((sm[i] || 0) * 1000) / 10,
         })));

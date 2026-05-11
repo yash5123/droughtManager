@@ -63,15 +63,21 @@ export default function RainfallAnalysis() {
     if (!selectedVillage?._id) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); return; }
     setLoading(true);
     fetchHistoricalWeather(selectedVillage._id).then(({ data }) => {
-      if (!data?.daily) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
-      const precipRaw = data.daily.precipitation_sum || new Array(period).fill(0);
+      const precipRaw = data?.daily?.precipitation_sum || data?.precipitationArray;
+      const timeRaw = data?.daily?.time || Array.from({ length: precipRaw?.length || 0 }, (_, i) => {
+        const d = new Date(Date.now() - ((precipRaw?.length || 31) - 1 - i) * 24 * 60 * 60 * 1000);
+        return d.toISOString().split('T')[0];
+      });
+
+      if (!precipRaw) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
+      
       const precip = injectMockPrecipitation(precipRaw, selectedVillage.name, selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall, period);
       
       const total = precip.reduce((s, val) => s + (val || 0), 0);
       const expected = (selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall || 600) * (period / 365);
       const anomalyPct = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
       
-      setVillageTimeSeries(data.daily.time.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
+      setVillageTimeSeries(timeRaw.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
       setSelectedVillageMetrics({
         totalRain: Math.round(total * 10) / 10,
         expected: Math.round(expected),

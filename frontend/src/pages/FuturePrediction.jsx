@@ -41,24 +41,32 @@ export default function FuturePrediction() {
         activeVillages.slice(0, 10).map(async (v) => {
           if (!v._id) return { village: v, chartData: [], summary: null };
           const { data } = await fetchForecast(v._id);
-          if (!data?.daily) return { village: v, chartData: [], summary: null };
-          const precipRaw = data.daily.precipitation_sum || [];
-          const probRaw = data.daily.precipitation_probability_max || [];
+          const precipRaw = data?.daily?.precipitation_sum || data?.precipitationForecast;
+          const probRaw = data?.daily?.precipitation_probability_max || data?.probabilityForecast;
+          const timeRaw = data?.daily?.time || data?.forecastDates || Array.from({ length: precipRaw?.length || 0 }, (_, i) => {
+            const d = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
+            return d.toISOString().split('T')[0];
+          });
+
+          if (!precipRaw) return { village: v, chartData: [], summary: null };
+          
           const precipSum = precipRaw.reduce((s, x) => s + (x || 0), 0);
           // Inject mock if all zeros (future date beyond forecast horizon)
           const seedBase = (v.name?.charCodeAt(0) || 65) + (v.name?.charCodeAt((v.name?.length || 1) - 1) || 90);
           const expectedAnnual = v.historicalAvgAnnualRainfall_mm || v.avgAnnualRainfall || 600;
           const expectedFor16d = expectedAnnual * (16 / 365);
+          
           const precip = precipSum > 0.1 ? precipRaw : precipRaw.map((_, i) => {
             const isRainy = (i + seedBase) % 5 === 0 || (i + seedBase) % 8 === 0;
             return isRainy ? Math.round(seededRandom(seedBase + i) * (expectedFor16d / 2.5) * 10) / 10 : Math.round(seededRandom(seedBase + i * 3) * 0.3 * 10) / 10;
           });
           const prob = probRaw.map((p, i) => p > 0 ? p : precip[i] > 0.5 ? Math.round(30 + seededRandom(seedBase + i * 7) * 55) : Math.round(seededRandom(seedBase + i * 5) * 25));
-          const chartData = data.daily.time.map((t, i) => ({
+          
+          const chartData = timeRaw.map((t, i) => ({
             date: t.slice(5),
             precip: Math.round((precip[i] || 0) * 10) / 10,
             prob: prob[i] || 0,
-            tempMax: data.daily.temperature_2m_max?.[i] || 0,
+            tempMax: data?.daily?.temperature_2m_max?.[i] || 0,
           }));
           const totalPrecip = chartData.reduce((s, d) => s + d.precip, 0);
           const avgProb = chartData.reduce((s, d) => s + d.prob, 0) / chartData.length;

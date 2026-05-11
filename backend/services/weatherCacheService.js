@@ -13,53 +13,58 @@ export async function getArchiveWeather(villageId, lat, lon) {
   const cacheDate = today();
 
   const cached = await DailyWeatherCache.findOne({ villageId, cacheDate });
+  let precipitationArray, soilMoistureArray, totalPrecipitation30d_mm, avgSoilMoistureFrac;
+
   if (cached) {
-    return {
-      precipitationArray: cached.precipitationArray,
-      soilMoistureArray: cached.soilMoistureArray,
-      totalPrecipitation30d_mm: cached.totalPrecipitation30d_mm,
-      avgSoilMoistureFrac: cached.avgSoilMoistureFrac,
-      source: 'cache'
-    };
+    precipitationArray = cached.precipitationArray;
+    soilMoistureArray = cached.soilMoistureArray;
+    totalPrecipitation30d_mm = cached.totalPrecipitation30d_mm;
+    avgSoilMoistureFrac = cached.avgSoilMoistureFrac;
+  } else {
+    // Cache miss — fetch from API
+    const endDate = cacheDate;
+    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      .toISOString().split('T')[0];
+
+    const url = `${OPEN_METEO_ARCHIVE}`
+      + `?latitude=${lat}&longitude=${lon}`
+      + `&start_date=${startDate}&end_date=${endDate}`
+      + `&daily=precipitation_sum,soil_moisture_0_to_7cm_mean`
+      + `&timezone=Asia%2FKolkata`;
+
+    const data = await fetchWithBackoff(url);
+    precipitationArray = data.daily?.precipitation_sum || [];
+    soilMoistureArray = data.daily?.soil_moisture_0_to_7cm_mean || [];
+    totalPrecipitation30d_mm = precipitationArray.reduce((a, b) => a + (b || 0), 0);
+    avgSoilMoistureFrac = soilMoistureArray.length 
+      ? soilMoistureArray.reduce((a, b) => a + (b || 0), 0) / soilMoistureArray.length
+      : 0;
+
+    await DailyWeatherCache.findOneAndUpdate(
+      { villageId, cacheDate },
+      {
+        precipitationArray,
+        soilMoistureArray,
+        totalPrecipitation30d_mm,
+        avgSoilMoistureFrac,
+        fetchedAt: new Date()
+      },
+      { upsert: true }
+    );
   }
 
-  // Cache miss — fetch from API
-  const endDate = cacheDate;
-  const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    .toISOString().split('T')[0];
-
-  const url = `${OPEN_METEO_ARCHIVE}`
-    + `?latitude=${lat}&longitude=${lon}`
-    + `&start_date=${startDate}&end_date=${endDate}`
-    + `&daily=precipitation_sum,soil_moisture_0_to_7cm_mean`
-    + `&timezone=Asia%2FKolkata`;
-
-  const data = await fetchWithBackoff(url);
-  const precipitationArray = data.daily?.precipitation_sum || [];
-  const soilMoistureArray = data.daily?.soil_moisture_0_to_7cm_mean || [];
-  const totalPrecipitation30d_mm = precipitationArray.reduce((a, b) => a + (b || 0), 0);
-  const avgSoilMoistureFrac = soilMoistureArray.length 
-    ? soilMoistureArray.reduce((a, b) => a + (b || 0), 0) / soilMoistureArray.length
-    : 0;
-
-  await DailyWeatherCache.findOneAndUpdate(
-    { villageId, cacheDate },
-    {
-      precipitationArray,
-      soilMoistureArray,
-      totalPrecipitation30d_mm,
-      avgSoilMoistureFrac,
-      fetchedAt: new Date()
-    },
-    { upsert: true }
-  );
-
   return {
-    precipitationArray,
-    soilMoistureArray,
+    daily: {
+      time: Array.from({ length: 31 }, (_, i) => {
+        const d = new Date(Date.now() - (30 - i) * 24 * 60 * 60 * 1000);
+        return d.toISOString().split('T')[0];
+      }),
+      precipitation_sum: precipitationArray,
+      soil_moisture_0_to_7cm_mean: soilMoistureArray
+    },
     totalPrecipitation30d_mm,
     avgSoilMoistureFrac,
-    source: 'api'
+    source: cached ? 'cache' : 'api'
   };
 }
 
@@ -138,50 +143,51 @@ export async function getForecastWeather(villageId, lat, lon) {
   const cacheDate = today();
 
   const cached = await ForecastCache.findOne({ villageId, cacheDate });
+  let precipitationForecast, probabilityForecast, forecastDates, totalPrecip16d_mm, dryDaysCount;
+
   if (cached) {
-    return {
-      precipitationForecast: cached.precipitationForecast,
-      probabilityForecast: cached.probabilityForecast,
-      forecastDates: cached.forecastDates,
-      totalPrecip16d_mm: cached.totalPrecip16d_mm,
-      dryDaysCount: cached.dryDaysCount,
-      source: 'cache'
-    };
+    precipitationForecast = cached.precipitationForecast;
+    probabilityForecast = cached.probabilityForecast;
+    forecastDates = cached.forecastDates;
+    totalPrecip16d_mm = cached.totalPrecip16d_mm;
+    dryDaysCount = cached.dryDaysCount;
+  } else {
+    const url = `${OPEN_METEO_FORECAST}`
+      + `?latitude=${lat}&longitude=${lon}`
+      + `&daily=precipitation_sum,precipitation_probability_max`
+      + `&forecast_days=16`
+      + `&timezone=Asia%2FKolkata`;
+
+    const data = await fetchWithBackoff(url);
+    precipitationForecast = data.daily?.precipitation_sum || [];
+    probabilityForecast = data.daily?.precipitation_probability_max || [];
+    forecastDates = data.daily?.time || [];
+    totalPrecip16d_mm = precipitationForecast.reduce((a, b) => a + (b || 0), 0);
+    dryDaysCount = precipitationForecast.filter(d => (d || 0) < 1).length;
+
+    await ForecastCache.findOneAndUpdate(
+      { villageId, cacheDate },
+      {
+        precipitationForecast,
+        probabilityForecast,
+        forecastDates,
+        totalPrecip16d_mm,
+        dryDaysCount,
+        fetchedAt: new Date()
+      },
+      { upsert: true }
+    );
   }
 
-  const url = `${OPEN_METEO_FORECAST}`
-    + `?latitude=${lat}&longitude=${lon}`
-    + `&daily=precipitation_sum,precipitation_probability_max`
-    + `&forecast_days=16`
-    + `&timezone=Asia%2FKolkata`;
-
-  const data = await fetchWithBackoff(url);
-  const precipitationForecast = data.daily?.precipitation_sum || [];
-  const probabilityForecast = data.daily?.precipitation_probability_max || [];
-  const forecastDates = data.daily?.time || [];
-  const totalPrecip16d_mm = precipitationForecast.reduce((a, b) => a + (b || 0), 0);
-  const dryDaysCount = precipitationForecast.filter(d => (d || 0) < 1).length;
-
-  await ForecastCache.findOneAndUpdate(
-    { villageId, cacheDate },
-    {
-      precipitationForecast,
-      probabilityForecast,
-      forecastDates,
-      totalPrecip16d_mm,
-      dryDaysCount,
-      fetchedAt: new Date()
-    },
-    { upsert: true }
-  );
-
   return {
-    precipitationForecast,
-    probabilityForecast,
-    forecastDates,
+    daily: {
+      time: forecastDates,
+      precipitation_sum: precipitationForecast,
+      precipitation_probability_max: probabilityForecast
+    },
     totalPrecip16d_mm,
     dryDaysCount,
-    source: 'api'
+    source: cached ? 'cache' : 'api'
   };
 }
 
