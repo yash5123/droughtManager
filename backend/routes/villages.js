@@ -210,7 +210,7 @@ router.get('/:id/detail', async (req, res) => {
     res.json({
       village,
       liveScore: liveResult.riskScore,
-      liveAudit: liveResult.metricsSnapshotAdditions,
+      liveAudit: { ...liveResult.metricsSnapshot, ...liveResult.metricsSnapshotAdditions },
       cachedScore: riskHistory[0]?.riskScore ?? null,
       cachedAudit: riskHistory[0]?.metricsSnapshot ?? null,
       riskHistory,

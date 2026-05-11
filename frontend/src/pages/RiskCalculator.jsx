@@ -38,9 +38,10 @@ export default function RiskCalculator() {
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  // Resolve audit data: prefer official cached audit, fall back to live only if cache is missing
-  const audit = detailData?.cachedAudit || selectedVillage?.metricsSnapshot || detailData?.liveAudit || {};
-  const auditScore = detailData?.cachedScore ?? selectedVillage?.riskScore ?? detailData?.liveScore ?? 0;
+  // Resolve audit data: prefer official cached audit if it has real data, otherwise fall back to live audit
+  const hasCachedAudit = detailData?.cachedAudit && Object.keys(detailData.cachedAudit).length > 2;
+  const audit = hasCachedAudit ? detailData.cachedAudit : (detailData?.liveAudit || selectedVillage?.metricsSnapshot || {});
+  const auditScore = (hasCachedAudit ? (detailData.cachedScore ?? selectedVillage?.riskScore) : (detailData?.liveScore ?? selectedVillage?.riskScore)) ?? 0;
 
   useEffect(() => {
     if (!selectedVillage?._id) return;
