@@ -2,9 +2,6 @@
   <!-- Rounded Square Background -->
   <rect width="512" height="512" rx="120" fill="#0066FF"/>
   
-  <!-- Meticulously Traced Water Drop (Matching the reference design exactly) -->
+  <!-- Solid Water Drop Silhouette (Swoosh removed as requested) -->
   <path d="M256 85C256 85 140 220 140 315C140 385 191.9 430 256 430C320.1 430 372 385 372 315C372 220 256 85 256 85Z" fill="white"/>
-  
-  <!-- Internal Detail (Exact match to reference swoosh) -->
-  <path d="M215 215C175 260 175 365 215 410C185 380 165 290 215 215Z" fill="#0066FF"/>
 </svg>
