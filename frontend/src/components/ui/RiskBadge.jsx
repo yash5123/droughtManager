@@ -37,7 +37,13 @@ export default function RiskBadge({ level, score, size = 'sm' }) {
         backgroundColor: color,
         boxShadow: `0 0 8px ${color}`
       }} />
-      {riskDef.label}
+      <span style={{ fontWeight: 800 }}>{riskDef.label}</span>
+      {typeof score === 'number' && (
+        <>
+          <div style={{ width: '1px', height: '10px', background: color, opacity: 0.3, margin: '0 2px' }} />
+          <span style={{ fontSize: size === 'sm' ? '11px' : '13px', fontWeight: 900, opacity: 0.9 }}>{Math.round(score)}</span>
+        </>
+      )}
     </span>
   );
 }
