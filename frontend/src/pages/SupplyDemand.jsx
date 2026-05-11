@@ -248,7 +248,7 @@ export default function SupplyDemand() {
             </div>
           </div>
 
-          <div style={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'hidden', borderRadius: '16px' }}>
+          <div style={{ height: '500px', width: '100%', overflowX: 'auto', overflowY: 'hidden', borderRadius: '16px', position: 'relative' }}>
             <div style={{ 
               width: chartData.length > 20 ? `${chartData.length * 50}px` : '100%', 
               height: '100%',
