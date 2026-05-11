@@ -333,54 +333,19 @@ export default function SupplyDemand() {
                   <RiskBadge score={v.riskScore} />
                 </div>
 
-                <div style={{ background: 'var(--nav-active-bg)', padding: '20px', borderRadius: '16px', border: 'var(--glass-border)', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Supply Coverage</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px', fontWeight: 900, color: v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)' }}>
-                        {Math.round(v.coverage)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ height: '8px', background: 'var(--glass-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ 
-                      width: `${Math.min(100, v.coverage)}%`, height: '100%', 
-                      background: v.coverage < 50 ? 'linear-gradient(90deg, var(--accent-red) 0%, #ff6b6b 100%)' : 
-                                  v.coverage < 80 ? 'linear-gradient(90deg, var(--accent-amber) 0%, #fbbf24 100%)' : 
-                                  'linear-gradient(90deg, var(--accent-green) 0%, #34d399 100%)',
-                      boxShadow: `0 0 15px ${v.coverage < 50 ? 'var(--accent-red)' : v.coverage < 80 ? 'var(--accent-amber)' : 'var(--accent-green)'}40`,
-                      transition: 'width 1.5s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }} />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--nav-active-bg)', padding: '16px 20px', borderRadius: '16px', border: 'var(--glass-border)' }}>
+                  <div style={{ display: 'flex', gap: '32px' }}>
                     <div>
-                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Gap (L/D)</p>
-                      <p style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{formatIndian(v.deficit)}</p>
+                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Deficit Gap</p>
+                      <p style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{formatIndian(v.deficit)} <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>L/D</span></p>
                     </div>
+                    <div style={{ width: '1px', height: '24px', background: 'var(--divider)', alignSelf: 'center' }} />
                     <div>
-                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Payloads</p>
-                      <p style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.tankersNeeded}</p>
+                      <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Tanker Payloads</p>
+                      <p style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{v.tankersNeeded} <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>UNITS</span></p>
                     </div>
                   </div>
-                  
-                  <button 
-                    onClick={() => handleDispatch(v)}
-                    disabled={dispatching === v._id}
-                    className="primary-btn"
-                    style={{ 
-                      padding: '12px 24px', fontSize: '12px', gap: '10px',
-                      background: 'var(--accent-blue)', border: 'none', borderRadius: '12px',
-                      opacity: dispatching === v._id ? 0.7 : 1,
-                      boxShadow: '0 8px 20px -6px var(--accent-blue)60',
-                      fontWeight: 800, letterSpacing: '0.5px'
-                    }}
-                  >
-                    {dispatching === v._id ? <Loader2 size={16} className="spinning" /> : <Truck size={16} />}
-                    {dispatching === v._id ? 'INITIATING...' : 'DEPLOY ASSET'}
-                  </button>
+                  <ChevronRight size={18} color="var(--text-tertiary)" style={{ opacity: 0.5 }} />
                 </div>
               </div>
             ))}
