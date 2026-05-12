@@ -62,13 +62,17 @@ export default function RainfallAnalysis() {
 
       if (!precipRaw) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
       
-      const precip = precipRaw || [];
+      // Slice data to match selected period (backend returns ~30 days)
+      const availableLength = precipRaw.length;
+      const sliceCount = Math.min(period, availableLength);
+      const precip = precipRaw.slice(availableLength - sliceCount);
+      const time = timeRaw.slice(availableLength - sliceCount);
       
       const total = precip.reduce((s, val) => s + (val || 0), 0);
       const expected = (selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall || 600) * (period / 365);
       const anomalyPct = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
       
-      setVillageTimeSeries(timeRaw.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
+      setVillageTimeSeries(time.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
       setSelectedVillageMetrics({
         totalRain: Math.round(total * 10) / 10,
         expected: Math.round(expected),
@@ -76,7 +80,7 @@ export default function RainfallAnalysis() {
       });
       setLoading(false);
     });
-  }, [selectedVillage]);
+  }, [selectedVillage, period]);
 
   const filteredList = useMemo(() => {
     let list = activeVillages;

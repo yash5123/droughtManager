@@ -53,9 +53,13 @@ export default function GroundwaterAnalysis() {
 
         if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
         
-        const sm = smRaw; 
+        // Slice data to match selected period (backend returns ~30 days)
+        const availableLength = smRaw.length;
+        const sliceCount = Math.min(period, availableLength);
+        const sm = smRaw.slice(availableLength - sliceCount);
+        const time = timeRaw.slice(availableLength - sliceCount);
 
-        setVillageTrend(timeRaw.map((t, i) => ({
+        setVillageTrend(time.map((t, i) => ({
           date: t.slice(5),
           moisture: Math.round((sm[i] || 0) * 1000) / 10,
         })));
@@ -67,7 +71,7 @@ export default function GroundwaterAnalysis() {
       }
     };
     fetchTrend();
-  }, [selectedVillage]);
+  }, [selectedVillage, period]);
 
   const filteredList = useMemo(() => {
     let list = activeVillages;
