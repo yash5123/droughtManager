@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ComposedChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, AlertTriangle, Truck, CloudRain, Sun, Activity, Loader2, ArrowUpDown, Filter } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Truck, CloudRain, Sun, Activity, Loader2, ArrowUpDown, Filter, Search } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -17,6 +17,7 @@ export default function FuturePrediction() {
   const { data: seedingStatus } = useSeedingStatus();
   
   const [riskFilter, setRiskFilter] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
   const [limit, setLimit] = useState(25);
   const [sortOrder, setSortOrder] = useState('desc');
   
@@ -32,19 +33,29 @@ export default function FuturePrediction() {
       list = list.filter(v => getRiskLevel(v.riskScore).label === riskFilter);
     }
     
-    // 2. Sort by riskScore
+    // 2. Search Filter
+    if (searchTerm.trim()) {
+      const s = searchTerm.toLowerCase();
+      list = list.filter(v => 
+        v.name.toLowerCase().includes(s) || 
+        v.district?.toLowerCase().includes(s) || 
+        v.state?.toLowerCase().includes(s)
+      );
+    }
+    
+    // 3. Sort by riskScore
     list.sort((a, b) => {
       const diff = (b.riskScore || 0) - (a.riskScore || 0);
       return sortOrder === 'desc' ? diff : -diff;
     });
     
-    // 3. Limit
+    // 4. Limit
     if (limit !== 'All') {
       list = list.slice(0, Number(limit));
     }
     
     return list;
-  }, [riskData, riskFilter, limit, sortOrder]);
+  }, [riskData, riskFilter, searchTerm, limit, sortOrder]);
 
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
@@ -183,11 +194,27 @@ export default function FuturePrediction() {
           ))}
         </div>
       </div>
-
-      {/* Control Bar: Risk Filters & Sort */}
-      <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '24px', border: 'var(--glass-border)' }}>
+      
+      {/* Search and Command Bar */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '32px', alignItems: 'center' }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <Search size={18} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+          <input 
+            type="text"
+            placeholder="Search regional simulations..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%', padding: '16px 20px 16px 52px', borderRadius: '18px',
+              background: 'var(--glass-bg-bright)', border: '1px solid var(--divider)',
+              color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500,
+              boxShadow: 'var(--glass-shadow)', outline: 'none', transition: 'all 0.3s'
+            }}
+            className="search-input"
+          />
+        </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {['Normal', 'Moderate', 'Severe', 'Extreme', 'All'].map(level => {
+          {['Extreme', 'Severe', 'Moderate', 'Normal', 'All'].map(level => {
             const isActive = riskFilter === level;
             const config = getRiskLevel(level === 'All' ? 0 : level === 'Extreme' ? 90 : level === 'Severe' ? 70 : level === 'Moderate' ? 40 : 10);
             return (
@@ -195,45 +222,45 @@ export default function FuturePrediction() {
                 key={level}
                 onClick={() => setRiskFilter(level)}
                 style={{
-                  padding: '10px 24px', borderRadius: '14px', fontSize: '13px', fontWeight: 700,
-                  background: isActive ? config.color + '15' : 'transparent',
+                  padding: '12px 20px', borderRadius: '14px', fontSize: '11px', fontWeight: 800,
+                  background: isActive ? config.color + '15' : 'var(--glass-bg-bright)',
                   border: '1px solid',
-                  borderColor: isActive ? config.color + '40' : 'transparent',
+                  borderColor: isActive ? config.color + '40' : 'var(--divider)',
                   color: isActive ? config.color : 'var(--text-secondary)',
-                  cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px'
+                  cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px',
+                  letterSpacing: '1px', textTransform: 'uppercase'
                 }}
+                className="hover-glow"
               >
-                {level !== 'All' && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: config.color }} />}
                 {level}
               </button>
             );
           })}
-        </div>
-        
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ width: '1px', height: '24px', background: 'var(--divider)', margin: '0 10px', alignSelf: 'center' }} />
           <button 
             onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
             style={{ 
-              display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 20px', 
+              display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 20px', 
               borderRadius: '14px', background: 'var(--nav-active-bg)', border: '1px solid var(--accent-blue)30',
-              color: 'var(--accent-blue)', fontSize: '12px', fontWeight: 700, cursor: 'pointer'
+              color: 'var(--accent-blue)', fontSize: '11px', fontWeight: 800, cursor: 'pointer',
+              letterSpacing: '1px', textTransform: 'uppercase'
             }}
+            className="hover-glow"
           >
             <ArrowUpDown size={14} />
-            {sortOrder === 'desc' ? 'HIGHEST RISK' : 'LOWEST RISK'}
+            {sortOrder === 'desc' ? 'DESC' : 'ASC'}
           </button>
-          
-          <div style={{ width: '1px', height: '24px', background: 'var(--divider)' }} />
-          
-          <div className="glass-pill" style={{ display: 'flex', gap: '16px', padding: '10px 20px', background: 'rgba(255,255,255,0.02)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-blue)' }} /> PRECIP (MM)
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8b5cf6' }} /> PROB (%)
-            </span>
-          </div>
         </div>
+      </div>
+
+      {/* Legend for Charts */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', marginBottom: '24px', paddingRight: '12px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-blue)' }} /> PRECIP (MM)
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-tertiary)' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8b5cf6' }} /> PROB (%)
+        </span>
       </div>
 
       {loadingForecasts && filteredVillages.length > 0 && Object.keys(forecasts).length === 0 && (

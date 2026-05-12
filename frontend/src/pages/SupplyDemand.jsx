@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid, Cell, AreaChart, Area } from 'recharts';
-import { Scale, Truck, AlertTriangle, ArrowRightLeft, Droplet, Users, Loader2, Filter, ChevronRight, BarChart3, Database, ArrowUpDown } from 'lucide-react';
+import { Scale, Truck, AlertTriangle, ArrowRightLeft, Droplet, Users, Loader2, Filter, ChevronRight, BarChart3, Database, ArrowUpDown, Search } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -32,6 +32,7 @@ export default function SupplyDemand() {
   const [limit, setLimit] = useState(25);
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
   const [riskFilter, setRiskFilter] = useState('All'); // All, Extreme, Severe, Moderate, Normal
+  const [searchTerm, setSearchTerm] = useState('');
   const [dispatching, setDispatching] = useState(null);
 
   const { user, openLoginModal } = useAuth();
@@ -70,19 +71,29 @@ export default function SupplyDemand() {
       list = list.filter(v => getRiskLevel(v.riskScore).label === riskFilter);
     }
     
-    // 2. Sort by riskScore
+    // 2. Search Filter
+    if (searchTerm.trim()) {
+      const s = searchTerm.toLowerCase();
+      list = list.filter(v => 
+        v.name.toLowerCase().includes(s) || 
+        v.district?.toLowerCase().includes(s) || 
+        v.state?.toLowerCase().includes(s)
+      );
+    }
+    
+    // 3. Sort by riskScore
     list.sort((a, b) => {
       const diff = (b.riskScore || 0) - (a.riskScore || 0);
       return sortOrder === 'desc' ? diff : -diff;
     });
     
-    // 3. Limit
+    // 4. Limit
     if (limit !== 'All') {
       list = list.slice(0, Number(limit));
     }
     
     return list;
-  }, [villages, riskFilter, limit, sortOrder]);
+  }, [villages, riskFilter, searchTerm, limit, sortOrder]);
 
   // Totals (based on current filtered view or global?) - User said "Show all distinct... top 25 top 50"
   // Let's calculate totals based on the filtered view to reflect the context
@@ -165,6 +176,45 @@ export default function SupplyDemand() {
           </button>
         </div>
       </div>
+      
+      {/* Search and Command Bar */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '32px', alignItems: 'center' }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <Search size={18} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+          <input 
+            type="text"
+            placeholder="Search by District, Village or State..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%', padding: '16px 20px 16px 52px', borderRadius: '18px',
+              background: 'var(--glass-bg-bright)', border: '1px solid var(--divider)',
+              color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500,
+              boxShadow: 'var(--glass-shadow)', outline: 'none', transition: 'all 0.3s'
+            }}
+            className="search-input"
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {['Extreme', 'Severe', 'Moderate', 'Normal', 'All'].map(cat => (
+            <button
+              key={cat}
+              onClick={() => setRiskFilter(cat)}
+              style={{
+                padding: '12px 20px', borderRadius: '14px', fontSize: '11px', fontWeight: 800,
+                background: riskFilter === cat ? 'var(--nav-active-bg)' : 'var(--glass-bg-bright)',
+                border: '1px solid',
+                borderColor: riskFilter === cat ? 'var(--accent-blue)50' : 'var(--divider)',
+                color: riskFilter === cat ? 'var(--accent-blue)' : 'var(--text-secondary)',
+                cursor: 'pointer', transition: 'all 0.3s', letterSpacing: '1px', textTransform: 'uppercase'
+              }}
+              className="hover-glow"
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Strategic Insights Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
@@ -202,35 +252,7 @@ export default function SupplyDemand() {
         />
       </div>
 
-      {/* Analytics Command Center - Risk Filtering */}
-      <div style={{ display: 'flex', gap: '10px', padding: '10px', background: 'var(--glass-bg-bright)', borderRadius: '20px', border: '1px solid var(--divider)', boxShadow: 'var(--glass-shadow)', marginBottom: '32px' }}>
-        {['Normal', 'Moderate', 'Severe', 'Extreme', 'All'].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setRiskFilter(cat)}
-            style={{
-              flex: 1, padding: '14px', borderRadius: '14px', fontSize: '11px', fontWeight: 800,
-              background: riskFilter === cat ? 'var(--nav-active-bg)' : 'transparent',
-              border: '1px solid',
-              borderColor: riskFilter === cat ? 'var(--accent-blue)30' : 'transparent',
-              color: riskFilter === cat ? 'var(--text-primary)' : 'var(--text-secondary)',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              letterSpacing: '1px', textTransform: 'uppercase'
-            }}
-            className="hover-glow"
-          >
-            <div style={{ 
-              width: '8px', height: '8px', borderRadius: '50%', 
-              background: cat === 'All' ? 'var(--accent-blue)' : 
-                          cat === 'Extreme' ? 'var(--accent-red)' :
-                          cat === 'Severe' ? 'var(--accent-amber)' :
-                          cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)',
-              boxShadow: `0 0 10px ${cat === 'All' ? 'var(--accent-blue)' : cat === 'Extreme' ? 'var(--accent-red)' : cat === 'Severe' ? 'var(--accent-amber)' : cat === 'Moderate' ? 'var(--accent-cyan)' : 'var(--accent-green)'}80`
-            }} />
-            {cat}
-          </button>
-        ))}
-      </div>
+
 
       {/* Main Analytics Engine */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'stretch' }}>

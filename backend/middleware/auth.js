@@ -3,6 +3,13 @@ import jwt from 'jsonwebtoken';
 const authMiddleware = (req, res, next) => {
   let token = req.cookies?.token;
   
+  // Debug logging for troubleshooting session issues (Token content is NEVER logged)
+  if (!token && req.header('Authorization')) {
+    console.log('[Auth] Token missing from cookies, but found in Authorization header');
+  } else if (!token) {
+    console.log('[Auth] No token found in cookies or headers');
+  }
+  
   if (!token) {
     const authHeader = req.header('Authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {

@@ -23,6 +23,10 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
+
+// Trust proxy is required for secure cookies to work behind reverse proxies (Render, Vercel)
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 5000;
 
 // Restricted CORS configuration
