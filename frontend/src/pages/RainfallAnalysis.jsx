@@ -9,7 +9,7 @@ import { exportToCSV } from '../utils/csv.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
 
-const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, { label: '90 Days', days: 90 }];
+const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }];
 
 const seededRandom = (seed) => { const x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); };
 

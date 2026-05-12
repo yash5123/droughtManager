@@ -9,7 +9,7 @@ import { getSoilMoistureLevel } from '../utils/riskLevels.js';
 import { fetchHistoricalWeather } from '../services/weatherService.js';
 import { exportToCSV } from '../utils/csv.js';
 
-const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }, { label: '90 Days', days: 90 }];
+const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }];
 
 export default function GroundwaterAnalysis() {
   const { villageCount } = useVillageData();
