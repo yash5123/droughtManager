@@ -17,8 +17,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // We can trigger an event or handle it in AuthContext
-      window.dispatchEvent(new Event('auth:unauthorized'));
+      // Don't fire for /auth/me — AuthContext handles that with retry logic
+      const url = error.config?.url || '';
+      if (!url.includes('/auth/me')) {
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      }
     }
     return Promise.reject(error);
   }
