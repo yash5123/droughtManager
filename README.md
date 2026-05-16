@@ -20,6 +20,7 @@
   ![Express](https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white)
   ![Open-Meteo](https://img.shields.io/badge/Open--Meteo-FFD700?style=for-the-badge&logo=google-cloud&logoColor=black)
   ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white)
+  ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white)
   ![MIT License](https://img.shields.io/badge/License-MIT-43aa8b?style=for-the-badge)
 
   <p><i>Repo: yash5123/droughtManager</i></p>
