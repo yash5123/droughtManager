@@ -753,16 +753,14 @@ body {
 /* --- Reset body scroll lock on mobile --- */
 @media (max-width: 768px) {
   body {
-    overflow: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
   }
 
-  /* --- App shell --- */
+/* --- App shell --- */
   .app-shell,
   .app-root {
     flex-direction: column !important;
-    height: auto !important;
-    min-height: 100vh !important;
+    height: 100dvh !important;
   }
 
   /* --- Main content area takes full width when sidebar hidden --- */
@@ -771,7 +769,13 @@ body {
     margin-left: 0 !important;
     width: 100% !important;
     max-width: 100vw !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
+  }
+  
+  .app-content {
+    overflow-y: auto !important;
+    height: calc(100dvh - 56px) !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* --- Sidebar: hidden by default on mobile --- */
@@ -841,8 +845,6 @@ body {
   .topbar {
     padding: 0 12px !important;
     height: 56px !important;
-    position: sticky !important;
-    top: 0 !important;
     z-index: 900 !important;
     background: var(--table-header-bg) !important; /* Fully opaque on mobile */
     box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
