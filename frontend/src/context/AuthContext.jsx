@@ -4,6 +4,7 @@ import api from '../services/api.js';
 const AuthContext = createContext(null);
 
 const USER_CACHE_KEY = 'aqvasense_user_cache';
+const TOKEN_KEY = 'aqvasense_token';
 
 // Retrieve cached user from localStorage (survives page reloads & server restarts)
 function getCachedUser() {
@@ -81,22 +82,26 @@ export function AuthProvider({ children }) {
       console.error('Logout error', err);
     }
     setUser(null);
+    localStorage.removeItem(TOKEN_KEY);
   }, []);
 
   const registerEmail = useCallback(async (name, email, password) => {
     const res = await api.post('/auth/register', { name, email, password });
+    if (res.data.token) localStorage.setItem(TOKEN_KEY, res.data.token);
     setUser(res.data.user);
     return res.data;
   }, []);
 
   const loginEmail = useCallback(async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
+    if (res.data.token) localStorage.setItem(TOKEN_KEY, res.data.token);
     setUser(res.data.user);
     return res.data;
   }, []);
 
   const loginGoogle = useCallback(async (access_token) => {
     const res = await api.post('/auth/google', { access_token });
+    if (res.data.token) localStorage.setItem(TOKEN_KEY, res.data.token);
     setUser(res.data.user);
     return res.data;
   }, []);

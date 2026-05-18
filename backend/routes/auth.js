@@ -25,7 +25,7 @@ const setTokenCookie = (res, userId) => {
     sameSite: isProd ? 'none' : 'lax', // 'none' required for cross-origin (Render <-> Vercel)
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
-  return token;
+  return token; // Also returned so it can be sent in response body for Safari/iOS fallback
 };
 
 const handleValidation = (req, res) => {
@@ -56,8 +56,8 @@ router.post('/register', authLimiter, [
     const newUser = new User({ name, email, password });
     const savedUser = await newUser.save();
 
-    setTokenCookie(res, savedUser._id);
-    res.status(201).json({ user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
+    const token = setTokenCookie(res, savedUser._id);
+    res.status(201).json({ token, user: { id: savedUser._id, name: savedUser.name, email: savedUser.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -84,8 +84,8 @@ router.post('/login', authLimiter, [
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    setTokenCookie(res, user._id);
-    res.json({ user: { id: user._id, name: user.name, email: user.email } });
+    const token = setTokenCookie(res, user._id);
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -120,8 +120,8 @@ router.post('/google', authLimiter, async (req, res) => {
       await user.save();
     }
 
-    setTokenCookie(res, user._id);
-    res.json({ user: { id: user._id, name: user.name, email: user.email } });
+    const token = setTokenCookie(res, user._id);
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Google Auth Error:', err);
     res.status(500).json({ error: err.message });

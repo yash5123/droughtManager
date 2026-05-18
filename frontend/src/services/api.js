@@ -6,9 +6,15 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Remove manual token injection since we use httpOnly cookies
+// Attach token from localStorage as fallback for Safari/iOS which blocks cross-site cookies
 api.interceptors.request.use(
-  (config) => config,
+  (config) => {
+    const token = localStorage.getItem('aqvasense_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
   (error) => Promise.reject(error)
 );
 
