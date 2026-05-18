@@ -770,6 +770,7 @@ body {
     z-index: 1000 !important;
     transition: left 0.3s ease !important;
     overflow-y: auto !important;
+    background: var(--table-header-bg) !important; /* Fully opaque on mobile */
   }
 
   .sidebar.mobile-open {
@@ -812,6 +813,11 @@ body {
   .topbar {
     padding: 0 12px !important;
     height: 56px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 900 !important;
+    background: var(--table-header-bg) !important; /* Fully opaque on mobile */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
   }
 
   .topbar-title {
