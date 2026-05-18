@@ -196,7 +196,7 @@ export default function FuturePrediction() {
       </div>
       
       {/* Search and Command Bar */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '32px', alignItems: 'center' }}>
+      <div className="filter-row" style={{ display: 'flex', gap: '20px', marginBottom: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
           <input 
@@ -280,7 +280,7 @@ export default function FuturePrediction() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
+      <div className="prediction-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
         {filteredVillages.map((village, idx) => {
           const forecast = forecasts[village._id];
           if (!forecast) return (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { RefreshCw, Sun, Moon } from 'lucide-react';
+import { RefreshCw, Sun, Moon, Menu } from 'lucide-react';
 import { useVillageData } from '../../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../../hooks/useRiskData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -14,7 +14,7 @@ const PAGE_TITLES = {
   '/prediction': 'Future Prediction', '/tankers': 'Tanker Dispatch',
 };
 
-export default function TopBar() {
+export default function TopBar({ onHamburgerClick }) {
   const location = useLocation();
   const { data: rankedData, isLoading: rankedLoading, refetch: refresh, dataUpdatedAt } = useRankedVillages(10); // small limit just for status
   const { data: seedingStatus, isLoading: seedingLoading } = useSeedingStatus();
@@ -46,7 +46,14 @@ export default function TopBar() {
 
   return (
     <header className="topbar glass-panel" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0 }}>
-      <h1 className="page-title">{title}</h1>
+      <button 
+        className="hamburger-btn"
+        onClick={onHamburgerClick}
+        aria-label="Open menu"
+      >
+        <Menu size={22} />
+      </button>
+      <h1 className="page-title topbar-title">{title}</h1>
       
       <div className="topbar-actions">
         {/* Live Status Indicator */}

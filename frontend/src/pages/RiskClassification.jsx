@@ -105,7 +105,7 @@ export default function RiskClassification() {
       </div>
 
       {/* Top Metrics Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+      <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
         <CountCard label="Extreme Risk" count={counts.Extreme} accentColor="var(--accent-red)" tintColor="var(--risk-extreme-tint)" icon={AlertTriangle} />
         <CountCard label="Severe Risk" count={counts.Severe} accentColor="var(--accent-amber)" tintColor="var(--risk-severe-tint)" icon={Activity} />
         <CountCard label="Moderate Risk" count={counts.Moderate} accentColor="#eab308" tintColor="var(--risk-moderate-tint)" icon={Droplets} />
@@ -113,13 +113,13 @@ export default function RiskClassification() {
       </div>
 
       {/* Main Layout */}
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
+      <div className="split-panel" style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
         
           {/* Main Layout Content */}
           <div className="glass-card" style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '24px', overflow: 'hidden' }}>
             
             {/* Controls Section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', zIndex: 20, gap: '24px' }}>
+            <div className="filter-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', zIndex: 20, gap: '24px', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
                 <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                 <input 
@@ -169,7 +169,7 @@ export default function RiskClassification() {
             </div>
 
             {/* Table Container with scroll bounds */}
-            <div style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'var(--glass-bg)' }}>
+            <div className="table-scroll-container" style={{ flex: 1, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 400px)', borderRadius: '16px', border: '1px solid var(--divider)', background: 'var(--glass-bg)' }}>
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left' }}>
                 <thead style={{ position: 'sticky', top: 0, zIndex: 30 }}>
                   <tr style={{ background: 'var(--table-header-bg)' }}>
@@ -246,7 +246,7 @@ export default function RiskClassification() {
         </div>
 
         {/* Right Col: Assessment Model */}
-        <div className="glass-card" style={{ width: '320px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="glass-card info-sidebar" style={{ width: '320px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
               <Info size={18} style={{ color: 'var(--accent-blue)' }} />

@@ -273,14 +273,14 @@ export default function TankerManagement() {
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '8px' }}>
+      <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '8px' }}>
         <KPICard label="Tactical Fleet" value={stats.total} icon={Truck} color="var(--accent-blue)" trend="+2 active" />
         <KPICard label="Live Missions" value={stats.active} icon={Activity} color="var(--accent-cyan)" trend="Real-time" />
         <KPICard label="Payloads Delivered" value={stats.delivered} icon={CheckCircle} color="var(--accent-green)" trend="+14% MoM" />
         <KPICard label="Volumetric Relief" value={`${(stats.volume/1000).toFixed(0)}k`} icon={Droplets} color="var(--accent-blue)" trend="Cumulative" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', height: '480px' }}>
+      <div className="tanker-layout" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', height: '480px' }}>
         {/* Left Panel: Detailed Telemetry */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', border: 'var(--glass-border)', padding: '24px', position: 'relative' }}>
           {selectedId && selectedTanker ? (
@@ -458,7 +458,7 @@ export default function TankerManagement() {
       </div>
 
       {/* Full-Width Tactical Intelligence Map */}
-      <div style={{ 
+      <div className="tanker-map-container" style={{ 
         height: '700px', 
         borderRadius: '32px', 
         overflow: 'hidden', 

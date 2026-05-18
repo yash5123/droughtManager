@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine, CartesianGrid } from 'recharts';
-import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2, Search, TrendingDown, TrendingUp, BarChart2, ArrowDownUp } from 'lucide-react';
+import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2, Search, TrendingDown, TrendingUp, BarChart2, ArrowDownUp, ChevronDown, X } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
@@ -43,6 +43,7 @@ export default function RainfallAnalysis() {
   const [countLimit, setCountLimit] = useState('All');
   const [sortDescending, setSortDescending] = useState(true);
   const [selectedVillageMetrics, setSelectedVillageMetrics] = useState(null);
+  const [mobileDistrictOpen, setMobileDistrictOpen] = useState(false);
 
   useEffect(() => {
     if (activeVillages.length > 0 && !selectedVillage) {
@@ -154,9 +155,32 @@ export default function RainfallAnalysis() {
         </div>
       </div>
 
-      {/* Control Bar: Risk Filters & Period */}
-      <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '24px', border: 'var(--glass-border)', background: 'var(--glass-bg-bright)' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      {/* Control Bar */}
+      <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '24px', border: 'var(--glass-border)', background: 'var(--glass-bg-bright)', flexWrap: 'wrap', gap: '12px' }}>
+
+      {/* Mobile district selector — only visible on mobile */}
+      <div className="district-selector-mobile">
+        <button 
+          onClick={() => setMobileDistrictOpen(true)}
+          style={{
+            background: 'rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: 'inherit',
+            borderRadius: '10px',
+            padding: '10px 16px',
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          <span>{selectedVillage?.name || 'Select District'}</span>
+          <ChevronDown size={16} />
+        </button>
+      </div>
+
+      <div className="filter-row" style={{ display: 'flex', gap: '8px' }}>
           {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => {
             const isActive = filter === level;
             const config = getRiskLevel(level === 'All' ? 0 : level === 'Extreme' ? 90 : level === 'Severe' ? 70 : level === 'Moderate' ? 40 : 10);
@@ -193,9 +217,9 @@ export default function RainfallAnalysis() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
+      <div className="split-panel" style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
         {/* LEFT PANEL */}
-        <div className="glass-card" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
+        <div className="glass-card district-list-panel" style={{ width: '290px', minWidth: '270px', display: 'flex', flexDirection: 'column', padding: '16px', gap: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <h3 className="section-header" style={{ marginBottom: 0 }}>Monitored Districts ({filteredList.length})</h3>
             <button onClick={() => setSortDescending(!sortDescending)} style={{ background: 'transparent', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', borderRadius: '4px' }} title={sortDescending ? "Sort Ascending" : "Sort Descending"} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
@@ -231,7 +255,7 @@ export default function RainfallAnalysis() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+        <div className="chart-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
           <div className="glass-card" style={{ flex: 1, padding: '22px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
@@ -279,7 +303,7 @@ export default function RainfallAnalysis() {
           </div>
 
           {villageTimeSeries && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
               <div className="glass-card" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <TrendingDown size={14} style={{ color: 'var(--accent-amber)' }} />
@@ -312,6 +336,44 @@ export default function RainfallAnalysis() {
           )}
         </div>
       </div>
+
+      {/* Mobile district modal */}
+      {mobileDistrictOpen && (
+        <div className="district-modal-sheet" style={{
+          background: 'var(--bg-gradient, #0f172a)',
+          padding: '20px',
+        }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+            <h3 style={{ margin:0 }}>Select District</h3>
+            <button 
+              onClick={() => setMobileDistrictOpen(false)}
+              style={{ background:'transparent', border:'none', cursor:'pointer', color:'inherit' }}
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div style={{ position: 'relative', marginBottom: '12px' }}>
+            <Search size={13} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search district..." className="glass-input" style={{ width: '100%', padding: '8px 10px 8px 30px', fontSize: '13px', background: 'var(--glass-bg)' }} />
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {filteredList.map((v, i) => {
+              const isSelected = selectedVillage?._id === v._id;
+              return (
+                <button key={v._id || i} onClick={() => { setSelectedVillage(v); setMobileDistrictOpen(false); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent', color: 'inherit' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{v.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{v.state}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', color: getRiskLevel(v.riskScore).color, fontWeight: 800, fontSize: '12px' }}>
+                    {(v.riskScore || 0).toFixed(1)}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

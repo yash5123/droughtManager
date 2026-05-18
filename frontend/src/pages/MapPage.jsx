@@ -91,7 +91,7 @@ export default function MapPage() {
         paddingTop: '110px' // Create space for the controls
       }}>
         {/* Map Controls Overlay */}
-        <div className="glass-panel" style={{ 
+        <div className="glass-panel filter-toolbar" style={{ 
           position: 'absolute', top: '32px', left: '50%', transform: 'translateX(-50%)', 
           zIndex: 1000, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
           boxShadow: 'var(--glass-shadow-elevated)',
@@ -195,7 +195,7 @@ export default function MapPage() {
         </MapContainer>
 
         {selected && (
-          <div className="glass-panel" style={{
+          <div className="glass-panel detail-sidebar" style={{
             position: 'absolute', top: '24px', right: '24px', width: '340px', bottom: '24px', zIndex: 1000,
             borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column',
             boxShadow: 'var(--glass-shadow-elevated)'

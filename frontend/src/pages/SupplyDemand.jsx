@@ -178,7 +178,7 @@ export default function SupplyDemand() {
       </div>
       
       {/* Search and Command Bar */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '32px', alignItems: 'center' }}>
+      <div className="filter-row" style={{ display: 'flex', gap: '20px', marginBottom: '32px', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
           <input 
@@ -217,7 +217,7 @@ export default function SupplyDemand() {
       </div>
 
       {/* Strategic Insights Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
+      <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
         <MetricCard 
           title="REGIONAL DEMAND" 
           value={formatIndian(totalDemand)} 
@@ -255,7 +255,7 @@ export default function SupplyDemand() {
 
 
       {/* Main Analytics Engine */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'stretch' }}>
+      <div className="supply-layout" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'stretch' }}>
         
         {/* Differential Map/Chart */}
         {/* Differential Map/Chart */}

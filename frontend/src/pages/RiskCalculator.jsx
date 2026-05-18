@@ -165,12 +165,12 @@ export default function RiskCalculator() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+      <div className="split-panel" style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         
         {/* Main Audit List */}
         <div className="glass-card" style={{ flex: 1, padding: '0', overflow: 'hidden', minHeight: '700px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '28px', borderBottom: '1px solid var(--divider)', display: 'flex', flexDirection: 'column', gap: '20px', background: 'rgba(255,255,255,0.01)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+            <div className="filter-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
               <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '6px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', gap: '4px', backdropFilter: 'blur(10px)' }}>
                   {['All', 'Extreme', 'Severe', 'Normal'].map(label => (
@@ -267,7 +267,7 @@ export default function RiskCalculator() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', maxHeight: '700px' }}>
+          <div className="table-scroll-container" style={{ flex: 1, overflowY: 'auto', maxHeight: '700px' }}>
             <table className="risk-table">
               <thead>
                 <tr>
@@ -324,7 +324,7 @@ export default function RiskCalculator() {
         </div>
 
         {/* Calculation Detail Sidebar */}
-        <div style={{ width: '400px', position: 'sticky', top: '0', display: 'flex', flexDirection: 'column', gap: '24px', animation: 'slideInRight 0.4s ease-out' }}>
+        <div className="detail-sidebar" style={{ width: '400px', position: 'sticky', top: '0', display: 'flex', flexDirection: 'column', gap: '24px', animation: 'slideInRight 0.4s ease-out' }}>
           
           {selectedVillage ? (
             <>

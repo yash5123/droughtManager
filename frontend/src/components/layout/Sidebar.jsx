@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Map, CloudRain, Droplets, ShieldAlert, Calculator, Scale, TrendingUp, Truck, ChevronLeft, ChevronRight, User, LogOut, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Map, CloudRain, Droplets, ShieldAlert, Calculator, Scale, TrendingUp, Truck, ChevronLeft, ChevronRight, User, LogOut, Sun, Moon, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
 
@@ -31,20 +31,36 @@ const NAV_GROUPS = [
   }
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileOpen, onMobileClose }) {
   const [collapsed, setCollapsed] = useState(false);
   const { user, openLoginModal, logout } = useAuth();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <aside className="sidebar glass-panel" style={{ width: collapsed ? '68px' : '220px' }}>
-      {/* Header */}
+    <aside className={`sidebar glass-panel ${isMobileOpen ? 'mobile-open' : ''}`} style={{ width: collapsed ? '68px' : '220px' }}>
       <div className="sidebar-brand">
-        <Droplets size={24} style={{ color: 'var(--accent-cyan)', filter: 'drop-shadow(var(--accent-cyan-glow))' }} />
+        {!collapsed && <Droplets size={24} style={{ color: 'var(--accent-cyan)', filter: 'drop-shadow(var(--accent-cyan-glow))' }} />}
         {!collapsed && <span className="brand-text">AqvaSense</span>}
-        <button className="sidebar-toggle glass-btn" onClick={() => setCollapsed(!collapsed)} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+        
+        {/* Desktop: collapse toggle */}
+        <button 
+          className="glass-btn sidebar-collapse-btn" 
+          onClick={() => setCollapsed(!collapsed)} 
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          style={{ width: '28px', height: '28px', padding: 0, marginLeft: collapsed ? 'auto' : 'auto', marginRight: collapsed ? 'auto' : '0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px' }}
+        >
           {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+
+        {/* Mobile: close button */}
+        <button 
+          className="glass-btn sidebar-close-btn"
+          onClick={onMobileClose}
+          aria-label="Close menu"
+          style={{ width: '28px', height: '28px', padding: 0, marginLeft: 'auto', alignItems: 'center', justifyContent: 'center', borderRadius: '6px' }}
+        >
+          <X size={18} />
         </button>
       </div>
       

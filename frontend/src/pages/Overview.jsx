@@ -263,7 +263,7 @@ export default function Overview() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+      <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
         <KPICard icon={Activity} label="Districts Monitored" value={totalMonitored} accentColor="var(--accent-blue)" tintColor="var(--glass-bg)" />
         <KPICard icon={AlertTriangle} label="Extreme Risk" value={extremeCount} accentColor="var(--accent-red)" tintColor="var(--risk-extreme-tint)" />
         <KPICard icon={Droplets} label="Avg Risk Score" value={avgScore} accentColor="var(--accent-amber)" tintColor="var(--risk-severe-tint)" />
@@ -271,12 +271,12 @@ export default function Overview() {
       </div>
 
       {/* Main 2-Column */}
-      <div style={{ display: 'flex', gap: '20px', height: '400px' }}>
+      <div className="overview-map-section" style={{ display: 'flex', gap: '20px', height: '400px' }}>
         {/* Left Col: Map */}
-        <div className="glass-card" style={{ flex: '0 0 65%', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card overview-map-container" style={{ flex: '0 0 65%', padding: '20px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 className="section-header">Live Geospatial Overview</h3>
-            <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
+            <div className="glass-pill filter-row" style={{ display: 'flex', padding: '4px' }}>
               {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => (
                 <button key={level} onClick={() => setRiskFilter(level)}
                   style={{
@@ -314,7 +314,7 @@ export default function Overview() {
         </div>
 
         {/* Right Col: Critical Regions */}
-        <div className="glass-card" style={{ flex: '0 0 calc(35% - 20px)', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card overview-critical-list" style={{ flex: '0 0 calc(35% - 20px)', padding: '20px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 className="section-header">Critical Regions</h3>
             <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
