@@ -305,7 +305,7 @@ export default function SupplyDemand() {
                       textAnchor="end"
                       interval={0}
                     />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-tertiary)', fontSize: 11, fontWeight: 700 }} tickFormatter={formatIndian} />
                     <Tooltip 
                       cursor={{ fill: 'var(--nav-hover-bg)', radius: 10 }}
                       contentStyle={{ 

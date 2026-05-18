@@ -28,7 +28,7 @@ export default function Login() {
   const hasGoogleClientId = !!(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--app-bg)' }}>
+    <div className="login-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--app-bg)' }}>
       {/* Background Matrix/Grid effect */}
       <div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: 'radial-gradient(var(--accent-blue) 1px, transparent 1px)', backgroundSize: '40px 40px', pointerEvents: 'none' }}></div>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 0%, rgba(59,130,246,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
