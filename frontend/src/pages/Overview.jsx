@@ -290,7 +290,7 @@ export default function Overview() {
               ))}
             </div>
           </div>
-          <div style={{ flex: 1, minHeight: '340px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ flex: 1, height: '340px', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
             <MapContainer center={INDIA_CENTER} zoom={4} zoomControl={false} scrollWheelZoom={false} doubleClickZoom={false} dragging={false} style={{ height: '100%', width: '100%', background: 'transparent' }}>
               <MapUpdater theme={theme} />
               <TileLayer url={OSM_TILES} noWrap={true} />

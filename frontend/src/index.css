@@ -785,7 +785,7 @@ body {
     left: -280px !important;
     width: 260px !important;
     height: 100vh !important;
-    z-index: 1000 !important;
+    z-index: 2100 !important;
     transition: left 0.3s ease !important;
     overflow-y: auto !important;
     background: var(--table-header-bg) !important; /* Fully opaque on mobile */
@@ -801,7 +801,7 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    z-index: 2050;
     backdrop-filter: blur(2px);
   }
 
@@ -911,6 +911,7 @@ body {
     width: 100% !important;
     min-width: 0 !important;
     flex: none !important;
+    height: 480px !important;
   }
 
   /* ---- Right info panels (Risk Classification, Calculator) ---- */
@@ -987,7 +988,7 @@ body {
   .overview-map-container {
     width: 100% !important;
     flex: none !important;
-    height: 280px !important;
+    height: 420px !important;
   }
 
   .overview-critical-list {
@@ -1098,6 +1099,12 @@ body {
     overflow-x: auto !important;
     width: 100% !important;
     gap: 12px !important;
+  }
+  
+  .map-wrapper-card {
+    padding-top: 0 !important;
+    height: 60vh !important;
+    flex: none !important;
   }
   
   /* Prevent search inputs from collapsing on mobile */

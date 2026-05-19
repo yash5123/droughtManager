@@ -78,7 +78,7 @@ export default function MapPage() {
         </div>
       </div>
       
-      <div style={{ 
+      <div className="map-wrapper-card" style={{ 
         flex: 1, 
         borderRadius: '20px', 
         overflow: 'hidden', 
