@@ -199,11 +199,11 @@ export default function MapPage() {
 
         {selected && (
           <div className="glass-panel detail-sidebar" style={{
-            position: 'absolute', top: '24px', right: '24px', width: '340px', bottom: '24px', zIndex: 1000,
+            position: 'absolute', top: '24px', right: '24px', width: '340px', zIndex: 1000,
             borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column',
             boxShadow: 'var(--glass-shadow-elevated)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
                 <h3 className="section-header">{selected.name}</h3>
                 <p className="caption-text" style={{ color: 'var(--text-secondary)' }}>{selected.district}, {selected.state}</p>
@@ -213,48 +213,11 @@ export default function MapPage() {
               </button>
             </div>
             
-            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div className="glass-card" style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <span className="card-label" style={{ color: 'var(--text-secondary)' }}>Current Risk Level</span>
-                  <AlertCircle size={16} style={{ color: 'var(--text-tertiary)' }} />
-                </div>
-                <RiskBadge score={selected.riskScore} size="lg" />
+            <div className="glass-card" style={{ padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span className="card-label" style={{ color: 'var(--text-secondary)' }}>Current Risk Level</span>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <MetricCard icon={Users} label="Population" value={formatNumber(selected.population)} />
-                <MetricCard icon={MapPin} label="Region Type" value={selected.region} />
-                <MetricCard icon={CloudRain} label="Avg Rainfall" value={`${selected.avgAnnualRainfall || ' - '} mm`} />
-                <MetricCard icon={Droplets} label="Water Level" value={`${selected.metricsSnapshot?.groundwaterAvg?.toFixed(1) || ' - '} m`} />
-              </div>
-
-              {selected.metricsSnapshot && (
-                <div className="glass-card" style={{ padding: '16px' }}>
-                  <h4 className="card-label" style={{ color: 'var(--text-secondary)', marginBottom: '12px' }}>Local Sensor Data</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Rainfall 30D Avg</span>
-                      <span style={{ fontWeight: 600 }}>{selected.metricsSnapshot.rainfallAvg?.toFixed(1)} mm</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Groundwater Depth</span>
-                      <span style={{ fontWeight: 600 }}>{selected.metricsSnapshot.groundwaterAvg?.toFixed(1)} m</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--divider)' }}>
-              {user ? (
-                <button className="primary-btn" style={{ width: '100%', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  <Truck size={18} />
-                  Dispatch Emergency Tanker
-                </button>
-              ) : (
-                <LoginPrompt message="Sign in to dispatch logistics" />
-              )}
+              <RiskBadge score={selected.riskScore} size="lg" />
             </div>
           </div>
         )}
