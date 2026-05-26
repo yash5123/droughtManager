@@ -27,7 +27,7 @@ function setCachedUser(user) {
 export function AuthProvider({ children }) {
   // Initialize from cache so UI doesn't flash to logged-out during server cold starts
   const [user, setUser] = useState(getCachedUser);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginReturnPath, setLoginReturnPath] = useState(null);
   const retryCount = useRef(0);
@@ -129,7 +129,7 @@ export function AuthProvider({ children }) {
     closeLoginModal,
   };
 
-  if (loading) return null;
+  // Non-blocking initial render: allow layout to mount instantly so users don't see a blank white screen during cold starts
 
   return (
     <AuthContext.Provider value={value}>
