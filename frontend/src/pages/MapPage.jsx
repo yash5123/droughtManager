@@ -96,7 +96,10 @@ export default function MapPage() {
           zIndex: 1000, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
           boxShadow: 'var(--glass-shadow-elevated)',
           backdropFilter: 'blur(16px)',
-          border: '1px solid var(--divider)'
+          border: '1px solid var(--divider)',
+          opacity: selected ? 0 : 1,
+          pointerEvents: selected ? 'none' : 'auto',
+          transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
           {/* Severity Filters */}
           <div style={{ display: 'flex', gap: '8px' }}>
