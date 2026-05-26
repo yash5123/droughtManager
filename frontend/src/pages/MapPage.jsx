@@ -92,14 +92,15 @@ export default function MapPage() {
       }}>
         {/* Map Controls Overlay */}
         <div className="glass-panel filter-toolbar" style={{ 
-          position: 'absolute', top: '32px', left: '50%', transform: 'translateX(-50%)', 
+          position: 'absolute', 
+          top: '32px', 
+          left: selected ? '24px' : '50%', 
+          transform: selected ? 'none' : 'translateX(-50%)', 
           zIndex: 1000, padding: '12px 24px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '24px',
           boxShadow: 'var(--glass-shadow-elevated)',
           backdropFilter: 'blur(16px)',
           border: '1px solid var(--divider)',
-          opacity: selected ? 0 : 1,
-          pointerEvents: selected ? 'none' : 'auto',
-          transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
           {/* Severity Filters */}
           <div style={{ display: 'flex', gap: '8px' }}>
