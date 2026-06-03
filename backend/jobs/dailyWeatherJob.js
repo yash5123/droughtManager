@@ -499,9 +499,12 @@ export async function runDailyWeatherJob() {
     }
     
       dailyJobStatus.lastSuccess = new Date();
+    dailyJobStatus.running = false;
+    dailyJobStatus.currentDistrict = null;
     console.log(`[DailyJob] Complete: ${dailyJobStatus.processedCount} processed, ${dailyJobStatus.failedCount} failed`);
 
     // 7. Add a nightly forecast preload for the top 100 highest-risk districts
+    // This runs AFTER marking the job as done so the UI transitions to LIVE immediately
     const topRiskVillages = villages
       .sort((a, b) => b.riskScore - a.riskScore)
       .slice(0, 100);
