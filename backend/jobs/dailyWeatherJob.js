@@ -364,7 +364,8 @@ export const dailyJobStatus = {
   processedCount: 0,
   totalToProcess: 0,
   failedCount: 0,
-  error: null
+  error: null,
+  currentDistrict: null
 };
 
 // ─── Main daily job ───────────────────────────────────────────────
@@ -458,6 +459,7 @@ export async function runDailyWeatherJob() {
     today.setHours(0, 0, 0, 0);
     
     for (const village of villages) {
+      dailyJobStatus.currentDistrict = village.name;
       try {
         const weather = await getArchiveWeather(village._id, village.lat, village.lon);
         const risk = await computeRiskScore(village, weather, avgPop);
@@ -513,6 +515,7 @@ export async function runDailyWeatherJob() {
     console.error('[DailyJob] Fatal error:', err);
   } finally {
     dailyJobStatus.running = false;
+    dailyJobStatus.currentDistrict = null;
   }
 }
 

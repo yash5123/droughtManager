@@ -166,7 +166,8 @@ router.get('/seeding-status', (req, res) => {
       lastRun: dailyJobStatus.lastRun,
       lastSuccess: dailyJobStatus.lastSuccess,
       processedCount: dailyJobStatus.processedCount,
-      totalToProcess: dailyJobStatus.totalToProcess
+      totalToProcess: dailyJobStatus.totalToProcess,
+      currentDistrict: dailyJobStatus.currentDistrict
     }
   });
 });

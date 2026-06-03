@@ -1,13 +1,19 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useSeedingStatus } from '../../hooks/useRiskData.js';
 
 export default function DataSourceBanner({ dataSource }) {
+  const { data: seedingStatus } = useSeedingStatus();
+  
   if (dataSource === 'backend' || dataSource === 'pending') return null;
+
+  const currentDistrict = seedingStatus?.dailyJob?.currentDistrict;
+  const districtMsg = currentDistrict ? ` Currently processing: ${currentDistrict}.` : ' Data may be incomplete until finished.';
 
   const messages = {
     'stale': 'Risk data may be outdated - the daily update job has not run recently.',
     'seeding': 'Database initialization in progress - district data is being loaded.',
-    'updating': 'Daily risk assessment in progress. Data may be incomplete until finished.',
+    'updating': `Daily risk assessment in progress.${districtMsg}`,
     'error': 'Backend unreachable - unable to fetch risk data.',
   };
 
