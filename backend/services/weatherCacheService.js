@@ -71,21 +71,29 @@ export async function getArchiveWeather(villageId, lat, lon) {
 /**
  * 2B - Implement the batch archive pre-loader
  */
-export async function preloadArchiveCacheForAllVillages(villages) {
+export async function preloadArchiveCacheForAllVillages(villages, onProgress) {
   const cacheDate = today();
   const endDate = cacheDate;
   const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString().split('T')[0];
 
   const uncached = [];
+  let checkedCount = 0;
   for (const village of villages) {
     const exists = await DailyWeatherCache.exists({ villageId: village._id, cacheDate });
     if (!exists) uncached.push(village);
+    checkedCount++;
+    if (checkedCount % 100 === 0 && onProgress) {
+      onProgress(0, villages.length, `Analyzing cache (${checkedCount}/${villages.length})...`);
+    }
   }
 
   console.log(`[Cache] ${villages.length - uncached.length} cache hits, ${uncached.length} need fetching`);
 
   for (let i = 0; i < uncached.length; i += BATCH_SIZE) {
+    if (onProgress) {
+      onProgress(i, uncached.length, `Downloading batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(uncached.length / BATCH_SIZE)} (Open-Meteo)`);
+    }
     const batch = uncached.slice(i, i + BATCH_SIZE);
     const lats = batch.map(v => v.lat).join(',');
     const lons = batch.map(v => v.lon).join(',');

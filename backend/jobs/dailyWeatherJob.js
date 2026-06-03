@@ -403,6 +403,7 @@ export async function runDailyWeatherJob() {
     if (pendingBaselines.length > 0) {
       console.log(`[DailyJob] Self-healing: Retrying baselines for ${pendingBaselines.length} districts...`);
       for (const v of pendingBaselines) {
+        dailyJobStatus.currentDistrict = `Recovering climate baseline for ${v.name}...`;
         try {
           const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${v.lat}&longitude=${v.lon}&start_date=2013-01-01&end_date=2023-12-31&daily=precipitation_sum`;
           const response = await fetch(url);
@@ -444,7 +445,9 @@ export async function runDailyWeatherJob() {
     console.log(`[DailyJob] Processing ${villages.length} geocoded districts...`);
     
     // Batch preload into cache first
-    await preloadArchiveCacheForAllVillages(villages);
+    await preloadArchiveCacheForAllVillages(villages, (processed, total, msg) => {
+      dailyJobStatus.currentDistrict = msg;
+    });
     
     if (villages.length === 0) {
       console.log('[DailyJob] No geocoded districts found. Skipping.');
