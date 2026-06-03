@@ -75,6 +75,8 @@ export default function Overview() {
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) {
     dataSource = 'seeding';
+  } else if (seedingStatus?.dailyJob?.running) {
+    dataSource = 'updating';
   } else if (riskData.length > 0) {
     dataSource = meta?.isStale ? 'stale' : 'backend';
   } else if (seedingStatus?.phase === 'complete' && riskData.length === 0) {

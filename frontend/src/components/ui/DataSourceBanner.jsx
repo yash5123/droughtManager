@@ -7,6 +7,7 @@ export default function DataSourceBanner({ dataSource }) {
   const messages = {
     'stale': 'Risk data may be outdated - the daily update job has not run recently.',
     'seeding': 'Database initialization in progress - district data is being loaded.',
+    'updating': 'Daily risk assessment in progress. Data may be incomplete until finished.',
     'error': 'Backend unreachable - unable to fetch risk data.',
   };
 

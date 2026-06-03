@@ -6,6 +6,7 @@ import { useRankedVillages, useSeedingStatus } from '../../hooks/useRiskData.js'
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../ui/Toast.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
+import api from '../../services/api.js';
 
 const PAGE_TITLES = {
   '/': 'Overview', '/map': 'Risk Map', '/rainfall': 'Rainfall Analysis',
@@ -22,6 +23,7 @@ export default function TopBar({ onHamburgerClick }) {
   const riskData = rankedData?.data || [];
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (seedingStatus?.dailyJob?.running) dataSource = 'updating';
   else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
   else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
   else if (seedingStatus) dataSource = 'seeding';
@@ -41,8 +43,20 @@ export default function TopBar({ onHamburgerClick }) {
   };
 
   const isLive = dataSource === 'backend';
-  const indicatorColor = isLive ? 'var(--accent-green)' : 'var(--text-tertiary)';
-  const indicatorLabel = isLive ? 'LIVE' : 'OFFLINE';
+  const indicatorColor = isLive ? 'var(--accent-green)' : (dataSource === 'updating' ? 'var(--accent-amber)' : 'var(--text-tertiary)');
+  const indicatorLabel = isLive ? 'LIVE' : (dataSource === 'updating' ? 'UPDATING' : 'OFFLINE');
+
+  const handleRefresh = async () => {
+    refresh();
+    if (dataSource === 'stale') {
+      try {
+        await api.post('/weather/trigger-daily-job');
+        addToast('Daily update job triggered. This may take a few minutes.', 'info');
+      } catch (err) {
+        addToast('Failed to trigger update job', 'error');
+      }
+    }
+  };
 
   return (
     <header className="topbar glass-panel" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0 }}>
@@ -69,8 +83,8 @@ export default function TopBar({ onHamburgerClick }) {
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
-        <button className="icon-btn" onClick={refresh} disabled={loading} aria-label="Refresh">
-          <RefreshCw size={18} className={loading ? 'spinning' : ''} />
+        <button className="icon-btn" onClick={handleRefresh} disabled={loading || dataSource === 'updating'} aria-label="Refresh">
+          <RefreshCw size={18} className={(loading || dataSource === 'updating') ? 'spinning' : ''} />
         </button>
 
         {user ? (

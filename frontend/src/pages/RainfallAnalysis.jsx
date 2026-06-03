@@ -30,6 +30,7 @@ export default function RainfallAnalysis() {
 
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
+  else if (seedingStatus?.dailyJob?.running) dataSource = 'updating';
   else if (activeVillages.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
   else if (seedingStatus?.phase === 'complete' && activeVillages.length === 0) dataSource = 'stale';
   else if (seedingStatus) dataSource = 'seeding';
