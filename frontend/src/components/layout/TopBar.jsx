@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { RefreshCw, Sun, Moon, Menu } from 'lucide-react';
 import { useVillageData } from '../../context/VillageDataContext.jsx';
@@ -34,6 +34,13 @@ export default function TopBar({ onHamburgerClick }) {
   const { user, openLoginModal } = useAuth();
   const { addToast } = useToast();
   const { theme, toggleTheme } = useTheme();
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const title = PAGE_TITLES[location.pathname] || 'AqvaSense';
 
@@ -73,10 +80,10 @@ export default function TopBar({ onHamburgerClick }) {
         {/* Live Status Indicator */}
         <div className="live-status-indicator">
           <div className="status-dot-container">
-            <div className={`status-dot ${isLive ? 'live-pulse' : ''}`} style={{ backgroundColor: indicatorColor }} />
+            <div className={`status-dot ${isLive || dataSource === 'updating' ? 'live-pulse' : ''}`} style={{ backgroundColor: indicatorColor }} />
           </div>
           <span className="status-label">{indicatorLabel}</span>
-          <span className="status-time">{formatTime(lastRefreshed)}</span>
+          <span className="status-time">{dataSource === 'updating' ? formatTime(currentTime) : formatTime(lastRefreshed)}</span>
         </div>
 
         <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle Theme">
