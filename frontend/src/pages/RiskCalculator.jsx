@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import api from '../services/api.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
+import { exportToCSV } from '../utils/csv.js';
 import { 
   Calculator, 
   Info, 
@@ -317,7 +318,23 @@ export default function RiskCalculator() {
 
           <div style={{ padding: '16px 24px', background: 'rgba(0,0,0,0.1)', borderTop: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="caption-text" style={{ color: 'var(--text-tertiary)' }}>SHOWING {filteredVillages.length} DISTRICTS</span>
-            <button className="glass-btn" style={{ fontSize: '11px', padding: '6px 12px', gap: '6px' }}>
+            <button 
+              className="glass-btn" 
+              onClick={() => exportToCSV(
+                filteredVillages.map(v => ({
+                  'District': v.name,
+                  'State': v.state,
+                  'Risk Index': (v.riskScore || 0).toFixed(1),
+                  'Status': v.riskLevel?.toUpperCase() || getRiskLevel(v.riskScore || 0).label.toUpperCase(),
+                  'RDI': (v.metricsSnapshot?.rdiScore ?? v.rainfallDeficit ?? 0).toFixed(1),
+                  'CDD': (v.metricsSnapshot?.cddScore ?? 0).toFixed(1),
+                  'SMA': (v.metricsSnapshot?.smaScore ?? v.soilMoistureDepletion ?? 0).toFixed(1),
+                  'Pop Gap': (v.metricsSnapshot?.ppaScore ?? v.populationDemandGap ?? 0).toFixed(1)
+                })),
+                'risk_indices_report'
+              )}
+              style={{ fontSize: '11px', padding: '6px 12px', gap: '6px' }}
+            >
               <Download size={14} /> EXPORT DATA
             </button>
           </div>
