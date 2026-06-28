@@ -174,7 +174,7 @@ function computePPA(weather, village) {
     : village.population;
 
   if (!village.population || village.population === 0) {
-    console.warn(`[ScoreCalc] Village ${village.name} has zero population. Using default 500000 for PPA.`);
+    console.warn(`[ScoreCalc] Village ${village.name || 'Unknown'} has zero population. Using default 500000 for PPA.`);
   }
   
   const dailyDemand = effectivePopulation * 55; // 55 L/person/day (WHO standard)

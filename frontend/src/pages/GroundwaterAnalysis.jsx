@@ -190,7 +190,6 @@ export default function GroundwaterAnalysis() {
                 width: '100%', 
                 padding: '8px', 
                 borderRadius: '12px', 
-                border: 'none', 
                 cursor: 'pointer', 
                 fontSize: '11px', 
                 fontWeight: 700, 
@@ -212,7 +211,7 @@ export default function GroundwaterAnalysis() {
               {['Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
                 const color = getFilterColor(f);
                 return (
-                  <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 0', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)', textAlign: 'center', border: filter === f ? `1px solid ${color}40` : '1px solid transparent' }}>{f}</button>
+                  <button key={f} onClick={() => setFilter(f)} style={{ padding: '6px 0', borderRadius: '10px', cursor: 'pointer', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2px', transition: 'all 0.2s', background: filter === f ? `${color}20` : 'transparent', color: filter === f ? color : 'var(--text-tertiary)', textAlign: 'center', border: filter === f ? `1px solid ${color}40` : '1px solid transparent' }}>{f}</button>
                 );
               })}
             </div>
