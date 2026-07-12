@@ -34,7 +34,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [
       process.env.FRONTEND_URL || 'http://localhost:5173',
-      'https://aqvasense.vercel.app'
+      'https://aqvasense.vercel.app',
+      'https://drought-manager-wheat.vercel.app'
     ];
 
 app.use(cors({
