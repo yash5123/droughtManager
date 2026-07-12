@@ -25,33 +25,31 @@ export default function RiskCalculator() {
   const [sortOrder, setSortOrder] = useState('desc'); 
   const [riskFilter, setRiskFilter] = useState('All');
   const [limitFilter, setLimitFilter] = useState('All');
-  const [detailData, setDetailData] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailState, setDetailState] = useState({ villageId: null, data: null });
+
+  const effectiveVillage = selectedVillage ?? allVillages[0] ?? null;
+  const effectiveVillageId = effectiveVillage?._id;
+  const detailData = detailState.data;
+  const detailLoading = effectiveVillageId != null && detailState.villageId !== effectiveVillageId;
 
   // Resolve audit data: prefer official cached audit if it has the full breakdown data, otherwise fall back to live audit
   const hasCachedAudit = detailData?.cachedAudit?.rdiScore != null;
-  const audit = hasCachedAudit ? detailData.cachedAudit : (detailData?.liveAudit || selectedVillage?.metricsSnapshot || {});
-  const auditScore = (hasCachedAudit ? (detailData.cachedScore ?? selectedVillage?.riskScore) : (detailData?.liveScore ?? selectedVillage?.riskScore)) ?? 0;
+  const audit = hasCachedAudit ? detailData.cachedAudit : (detailData?.liveAudit || effectiveVillage?.metricsSnapshot || {});
+  const auditScore = (hasCachedAudit ? (detailData.cachedScore ?? effectiveVillage?.riskScore) : (detailData?.liveScore ?? effectiveVillage?.riskScore)) ?? 0;
 
   useEffect(() => {
-    if (!selectedVillage?._id) return;
+    if (!effectiveVillageId) return;
 
-    setDetailData(null);
-    setDetailLoading(true);
-
-    api.get(`/villages/${selectedVillage._id}/detail`)
+    api.get(`/villages/${effectiveVillageId}/detail`)
       .then(res => {
-        setDetailData(res.data);
+        setDetailState({ villageId: effectiveVillageId, data: res.data });
       })
       .catch(err => {
         console.error('Detail fetch failed:', err);
-        setDetailData(null);
-      })
-      .finally(() => {
-        setDetailLoading(false);
+        setDetailState({ villageId: effectiveVillageId, data: null });
       });
 
-  }, [selectedVillage?._id]);
+  }, [effectiveVillageId]);
 
 
 
@@ -89,12 +87,7 @@ export default function RiskCalculator() {
     return list;
   }, [allVillages, searchTerm, sortOrder, riskFilter, limitFilter]);
 
-  // Set default selection
-  useEffect(() => {
-    if (filteredVillages.length > 0 && !selectedVillage) {
-      setSelectedVillage(filteredVillages[0]);
-    }
-  }, [filteredVillages, selectedVillage]);
+
 
   const toggleSort = () => {
     setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
@@ -144,7 +137,7 @@ export default function RiskCalculator() {
         
         <DistrictTable
           filteredVillages={filteredVillages}
-          selectedVillage={selectedVillage}
+          selectedVillage={effectiveVillage}
           setSelectedVillage={setSelectedVillage}
           riskFilter={riskFilter}
           setRiskFilter={setRiskFilter}
@@ -159,7 +152,7 @@ export default function RiskCalculator() {
         />
 
         <RiskDetailSidebar
-          selectedVillage={selectedVillage}
+          selectedVillage={effectiveVillage}
           auditScore={auditScore}
           audit={audit}
           getRiskLevel={getRiskLevel}

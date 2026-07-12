@@ -32,7 +32,7 @@ export default defineConfig([
     },
     rules: {
       'react/prop-types': 'off',
-      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/set-state-in-effect': 'error',
       'no-unused-vars': 'error',
     },
   },

@@ -34,32 +34,28 @@ export default function RainfallAnalysis() {
 
   const [period, setPeriod] = useState(30);
   const [selectedVillage, setSelectedVillage] = useState(null);
-  const [villageTimeSeries, setVillageTimeSeries] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [countLimit, setCountLimit] = useState('All');
   const [sortDescending, setSortDescending] = useState(true);
-  const [selectedVillageMetrics, setSelectedVillageMetrics] = useState(null);
+  const [weatherData, setWeatherData] = useState({ villageId: null, period: null, timeSeries: null, metrics: null });
   const [mobileDistrictOpen, setMobileDistrictOpen] = useState(false);
 
-  useEffect(() => {
-    if (activeVillages.length > 0 && !selectedVillage) {
-      setSelectedVillage(activeVillages[0]);
-    }
-  }, [activeVillages, selectedVillage]);
+  const effectiveVillage = selectedVillage ?? activeVillages[0] ?? null;
+  const villageTimeSeries = weatherData.timeSeries;
+  const selectedVillageMetrics = weatherData.metrics;
+  const loading = effectiveVillage?._id != null && (weatherData.villageId !== effectiveVillage._id || weatherData.period !== period);
 
   useEffect(() => {
-    if (!selectedVillage?._id) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); return; }
-    setLoading(true);
-    fetchHistoricalWeather(selectedVillage._id).then(({ data }) => {
+    if (!effectiveVillage?._id) return;
+    fetchHistoricalWeather(effectiveVillage._id).then(({ data }) => {
       const precipRaw = data?.daily?.precipitation_sum || data?.precipitationArray;
       const timeRaw = data?.daily?.time || Array.from({ length: precipRaw?.length || 0 }, (_, i) => {
         const d = new Date(Date.now() - ((precipRaw?.length || 31) - 1 - i) * 24 * 60 * 60 * 1000);
         return d.toISOString().split('T')[0];
       });
 
-      if (!precipRaw) { setVillageTimeSeries(null); setSelectedVillageMetrics(null); setLoading(false); return; }
+      if (!precipRaw) { setWeatherData({ villageId: effectiveVillage._id, period, timeSeries: null, metrics: null }); return; }
       
       // Slice data to match selected period (backend returns ~30 days)
       const availableLength = precipRaw.length;
@@ -68,18 +64,17 @@ export default function RainfallAnalysis() {
       const time = timeRaw.slice(availableLength - sliceCount);
       
       const total = precip.reduce((s, val) => s + (val || 0), 0);
-      const expected = (selectedVillage.historicalAvgAnnualRainfall_mm || selectedVillage.avgAnnualRainfall || 600) * (period / 365);
+      const expected = (effectiveVillage.historicalAvgAnnualRainfall_mm || effectiveVillage.avgAnnualRainfall || 600) * (period / 365);
       const anomalyPct = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
       
-      setVillageTimeSeries(time.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })));
-      setSelectedVillageMetrics({
-        totalRain: Math.round(total * 10) / 10,
-        expected: Math.round(expected),
-        anomalyPct
+      setWeatherData({
+        villageId: effectiveVillage._id,
+        period,
+        timeSeries: time.map((t, i) => ({ date: t.slice(5), rain: Math.round((precip[i] || 0) * 10) / 10 })),
+        metrics: { totalRain: Math.round(total * 10) / 10, expected: Math.round(expected), anomalyPct }
       });
-      setLoading(false);
     });
-  }, [selectedVillage, period]);
+  }, [effectiveVillage, period]);
 
   const filteredList = useMemo(() => {
     let list = activeVillages;
@@ -173,7 +168,7 @@ export default function RainfallAnalysis() {
             cursor: 'pointer'
           }}
         >
-          <span>{selectedVillage?.name || 'Select District'}</span>
+          <span>{effectiveVillage?.name || 'Select District'}</span>
           <ChevronDown size={16} />
         </button>
       </div>
@@ -234,7 +229,7 @@ export default function RainfallAnalysis() {
             ) : filteredList.length === 0 ? (
               <EmptyState title="No data" description="No districts match filters." />
             ) : filteredList.map((v, i) => {
-              const isSelected = selectedVillage?._id === v._id;
+              const isSelected = effectiveVillage?._id === v._id;
               return (
                 <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
                   onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
@@ -257,8 +252,8 @@ export default function RainfallAnalysis() {
           <div className="glass-card" style={{ flex: 1, padding: '22px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
-                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{selectedVillage?.name || 'Select a district'}</h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>{selectedVillage?.state} · Time Series Rainfall Data</p>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{effectiveVillage?.name || 'Select a district'}</h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>{effectiveVillage?.state} · Time Series Rainfall Data</p>
               </div>
               {selectedVillageMetrics && (
                 <div className="glass-pill" style={{ padding: '8px 14px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)' }}>
@@ -356,7 +351,7 @@ export default function RainfallAnalysis() {
           </div>
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
             {filteredList.map((v, i) => {
-              const isSelected = selectedVillage?._id === v._id;
+              const isSelected = effectiveVillage?._id === v._id;
               return (
                 <button key={v._id || i} onClick={() => { setSelectedVillage(v); setMobileDistrictOpen(false); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent', color: 'inherit' }}>
                   <div>

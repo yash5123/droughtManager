@@ -11,10 +11,15 @@ export function useCountUp(end, duration = 1200, startOnMount = true) {
       return;
     }
 
-    setValue(0);
-    startRef.current = performance.now();
+    startRef.current = null;
 
     const animate = (now) => {
+      if (startRef.current === null) {
+        startRef.current = now;
+        setValue(0);
+        frameRef.current = requestAnimationFrame(animate);
+        return;
+      }
       const elapsed = now - startRef.current;
       const progress = Math.min(elapsed / duration, 1);
       // ease-out cubic
