@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { ComposedChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, AlertTriangle, CloudRain, Sun, Activity, Loader2, ArrowUpDown, Filter, Search } from 'lucide-react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
@@ -61,15 +61,19 @@ export default function FuturePrediction() {
   const [forecasts, setForecasts] = useState({});
   const [loadingForecasts, setLoadingForecasts] = useState(false);
 
+  const forecastsRef = useRef(forecasts);
+  useEffect(() => { forecastsRef.current = forecasts; }, [forecasts]);
+
   useEffect(() => {
     if (filteredVillages.length === 0) return;
     
     const load = async () => {
       setLoadingForecasts(true);
+      const currentForecasts = forecastsRef.current;
       const results = await Promise.all(
         filteredVillages.map(async (v) => {
-          // Skip if already loaded (optional optimization)
-          if (forecasts[v._id]) return { id: v._id, data: forecasts[v._id] };
+          // Skip if already loaded
+          if (currentForecasts[v._id]) return { id: v._id, data: currentForecasts[v._id] };
           
           try {
             const { data } = await fetchForecast(v._id);
@@ -121,7 +125,7 @@ export default function FuturePrediction() {
       setLoadingForecasts(false);
     };
     load();
-  }, [filteredVillages, forecasts]);
+  }, [filteredVillages]);
 
   if (isLoading && riskData.length === 0) {
     return (

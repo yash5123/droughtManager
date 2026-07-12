@@ -156,7 +156,7 @@ export default function TankerManagement() {
   const filteredTankers = useMemo(() => {
     return tankers
       .filter(t => {
-        const matchesSearch = t.village.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        const matchesSearch = (t.village || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                             (t.tankerNumber && t.tankerNumber.toLowerCase().includes(searchQuery.toLowerCase()));
         return matchesSearch;
       })
@@ -165,8 +165,8 @@ export default function TankerManagement() {
 
   const filteredDistricts = useMemo(() => {
     return riskData.filter(v => 
-      v.name.toLowerCase().includes(dropdownSearch.toLowerCase()) ||
-      v.state.toLowerCase().includes(dropdownSearch.toLowerCase())
+      (v.name || '').toLowerCase().includes(dropdownSearch.toLowerCase()) ||
+      (v.state || '').toLowerCase().includes(dropdownSearch.toLowerCase())
     ).slice(0, 50);
   }, [riskData, dropdownSearch]);
 
