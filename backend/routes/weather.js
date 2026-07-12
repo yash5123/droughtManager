@@ -1,5 +1,4 @@
 import express from 'express';
-import fetch from 'node-fetch';
 import authMiddleware from '../middleware/auth.js';
 import { runDailyWeatherJob, dailyJobStatus } from '../jobs/dailyWeatherJob.js';
 import { getForecastWeather, getSimulationWeather, getArchiveWeather } from '../services/weatherCacheService.js';

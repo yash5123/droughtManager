@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
-import { Droplets, Download, ArrowDownUp, Search, Loader2, TrendingDown, TrendingUp, ChevronDown, X } from 'lucide-react';
-import { useVillageData } from '../context/VillageDataContext.jsx';
+import { Droplets, Download, ArrowDownUp, Search, Loader2, ChevronDown, X } from 'lucide-react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -12,11 +11,10 @@ import { exportToCSV } from '../utils/csv.js';
 const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }];
 
 export default function GroundwaterAnalysis() {
-  const { villageCount } = useVillageData();
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
-  const activeVillages = rankedData?.data || [];
+  const activeVillages = useMemo(() => rankedData?.data || [], [rankedData]);
 
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';

@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Info, Filter, Activity, AlertTriangle, Droplets, ShieldAlert } from 'lucide-react';
-import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useState, useMemo } from 'react';
+import { Search, Info, Activity, AlertTriangle, Droplets, ShieldAlert } from 'lucide-react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
-import { RISK_LEVELS, getRiskLevel } from '../utils/riskLevels.js';
+import { getRiskLevel } from '../utils/riskLevels.js';
 import { formatNumber } from '../utils/formatters.js';
 
 function CountCard({ label, count, accentColor, tintColor, icon: Icon }) {
@@ -28,7 +27,7 @@ export default function RiskClassification() {
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
-  const riskData = rankedData?.data || [];
+  const riskData = useMemo(() => rankedData?.data || [], [rankedData]);
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
   else if (seedingStatus?.dailyJob?.running) dataSource = 'updating';
@@ -200,7 +199,6 @@ export default function RiskClassification() {
                 </thead>
               <tbody>
                 {filtered.map((v, i) => {
-                  const risk = getRiskLevel(v.riskScore);
                   let color = 'var(--accent-green)';
                   if (v.riskScore >= 70) color = 'var(--accent-red)';
                   else if (v.riskScore >= 50) color = 'var(--accent-amber)';

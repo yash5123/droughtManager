@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X, Lock, AlertCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { X, Lock } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from './Toast.jsx';

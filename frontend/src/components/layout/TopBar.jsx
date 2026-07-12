@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { RefreshCw, Sun, Moon, Menu } from 'lucide-react';
-import { useVillageData } from '../../context/VillageDataContext.jsx';
+
 import { useRankedVillages, useSeedingStatus } from '../../hooks/useRiskData.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../ui/Toast.jsx';
@@ -59,7 +59,7 @@ export default function TopBar({ onHamburgerClick }) {
       try {
         await api.post('/weather/trigger-daily-job');
         addToast('Daily update job triggered. This may take a few minutes.', 'info');
-      } catch (err) {
+      } catch {
         addToast('Failed to trigger update job', 'error');
       }
     }

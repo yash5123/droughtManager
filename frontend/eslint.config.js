@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
+import react from 'eslint-plugin-react'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
@@ -12,6 +13,8 @@ export default defineConfig([
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
+      react.configs.flat.recommended,
+      react.configs.flat['jsx-runtime'],
     ],
     languageOptions: {
       ecmaVersion: 2020,
@@ -22,11 +25,15 @@ export default defineConfig([
         sourceType: 'module',
       },
     },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
     rules: {
-      'no-unused-vars': 'off',
+      'react/prop-types': 'off',
       'react-hooks/set-state-in-effect': 'off',
-      'react-refresh/only-export-components': 'off',
-      'react-hooks/exhaustive-deps': 'off',
+      'no-unused-vars': 'error',
     },
   },
 ])

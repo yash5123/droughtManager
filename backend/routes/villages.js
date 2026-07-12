@@ -250,10 +250,6 @@ router.post('/:id/calculate', authMiddleware, async (req, res) => {
     const village = await Village.findById(req.params.id);
     if (!village) return res.status(404).json({ error: 'Village not found' });
     
-    // Import the compute logic and weather service
-    const { getArchiveWeather } = await import('../services/weatherCacheService.js');
-    const { computeRiskScore } = await import('../jobs/dailyWeatherJob.js');
-    
     const weather = await getArchiveWeather(village._id, village.lat, village.lon);
     
     // Get avg population for normalization

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 const VillageDataContext = createContext(null);
 const STORAGE_KEY_COUNT = 'aqvasense_village_count';

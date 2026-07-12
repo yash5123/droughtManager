@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
-  Truck, Plus, RefreshCw, Download, CheckCircle, Clock, 
-  Navigation, MapPin, Activity, X, Loader2, ChevronDown,
-  Droplets, Gauge, AlertTriangle, ShieldCheck, 
-  ArrowRight, Search, Filter, Layers, Zap, Trash2
+  Truck, RefreshCw, Download, CheckCircle, Clock, 
+  Navigation, MapPin, Activity,
+  Droplets, ShieldCheck, Trash2, Zap
 } from 'lucide-react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Polyline } from 'react-leaflet';
-import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages } from '../hooks/useRiskData.js';
 import { useToast } from '../components/ui/Toast.jsx';
 import { useCountUp } from '../hooks/useCountUp.js';
@@ -14,6 +11,12 @@ import { formatDate, formatNumber } from '../utils/formatters.js';
 import { exportToCSV } from '../utils/csv.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 import api from '../services/api.js';
+
+import TankerMap from './tanker-management/TankerMap.jsx';
+import DispatchForm from './tanker-management/DispatchForm.jsx';
+import TankerList from './tanker-management/TankerList.jsx';
+import DeleteConfirmationModal from './tanker-management/DeleteConfirmationModal.jsx';
+
 
 const STATUS_CONFIG = {
   Pending: { 
@@ -47,29 +50,18 @@ const STATUS_CONFIG = {
 };
 
 const INDIA_CENTER = [26.0, 80.0]; // Shifted North for JnK visibility
-const INDIA_BOUNDS = [
-  [6.75, 68.1], 
-  [35.5, 97.4] 
-];
 
-// Sub-component for map size handling
-function MapUpdater({ theme }) {
-  const map = useMap();
-  useEffect(() => {
-    map.invalidateSize();
-  }, [theme, map]);
-  return null;
-}
+
 
 export default function TankerManagement() {
   const { data: rankedData } = useRankedVillages(1000);
-  const riskData = rankedData?.data || [];
+  const riskData = useMemo(() => rankedData?.data || [], [rankedData]);
   
   const { theme } = useTheme();
   const { addToast } = useToast();
   const [tankers, setTankers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('active');
+  const [, setLoading] = useState(true);
+
   const [showForm, setShowForm] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,7 +88,7 @@ export default function TankerManagement() {
   // Simulation state for telemetry
   const [telemetry, setTelemetry] = useState({});
 
-  const fetchTankers = async () => {
+  const fetchTankers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/tanker?limit=100');
@@ -108,14 +100,15 @@ export default function TankerManagement() {
           setSelectedId(data[0]._id);
         }
       }
-    } catch (err) { 
+    } catch { 
       addToast('Logistics sync failed', 'error'); 
     } finally { 
       setLoading(false); 
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
 
-  useEffect(() => { fetchTankers(); }, []);
+  useEffect(() => { fetchTankers(); }, [fetchTankers]);
 
   // Click outside for dropdown
   useEffect(() => {
@@ -168,7 +161,7 @@ export default function TankerManagement() {
         return matchesSearch;
       })
       .sort((a, b) => new Date(b.dispatchDate) - new Date(a.dispatchDate));
-  }, [tankers, searchQuery, tab]);
+  }, [tankers, searchQuery]);
 
   const filteredDistricts = useMemo(() => {
     return riskData.filter(v => 
@@ -232,7 +225,7 @@ export default function TankerManagement() {
       await api.patch(`/tanker/${id}`, { status });
       addToast(`Status escalated to ${status}`, 'success');
       fetchTankers();
-    } catch (err) { addToast('Logistics update failed', 'error'); }
+    } catch { addToast('Logistics update failed', 'error'); }
   };
 
   const confirmDelete = async () => {
@@ -243,12 +236,10 @@ export default function TankerManagement() {
       if (selectedId === deleteId) setSelectedId(null);
       setDeleteId(null);
       fetchTankers();
-    } catch (err) { addToast('Purge failed', 'error'); }
+    } catch { addToast('Purge failed', 'error'); }
   };
 
-  const TILE_URL = theme === 'dark' 
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px', background: 'var(--bg-primary)', minHeight: '100vh' }}>
@@ -374,337 +365,52 @@ export default function TankerManagement() {
           )}
         </div>
 
-        {/* Right Panel: Intelligence Feed (Full List) */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '480px', border: 'var(--glass-border)', overflow: 'hidden' }}>
-          <div style={{ padding: '20px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.01)' }}>
-            <div>
-              <h3 className="section-header" style={{ marginBottom: '2px', fontSize: '16px', color: 'var(--text-primary)' }}>Deployment Feed</h3>
-              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Total: {filteredTankers.length} active nodes</p>
-            </div>
-            <Search size={16} color="var(--text-tertiary)" />
-          </div>
-
-          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--divider)', background: 'rgba(0,0,0,0.01)' }}>
-            <input 
-              type="text" 
-              placeholder="Filter by village or ID..." 
-              className="glass-input" 
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              style={{ width: '100%', height: '36px', fontSize: '12px', padding: '0 12px', background: 'rgba(0,0,0,0.05)', color: 'var(--text-primary)' }}
-            />
-          </div>
-
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {filteredTankers.length === 0 ? (
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.3, padding: '40px' }}>
-                <Activity size={32} style={{ marginBottom: '12px', color: 'var(--text-tertiary)' }} />
-                <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)' }}>NO MISSION LOGS</p>
-              </div>
-            ) : (
-              filteredTankers.map(t => {
-                const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
-                const Icon = config.icon;
-                const isSelected = selectedId === t._id;
-                
-                return (
-                  <div 
-                    key={t._id} 
-                    onClick={() => setSelectedId(t._id)}
-                    style={{ 
-                      padding: '16px', borderRadius: '20px', cursor: 'pointer', 
-                      background: isSelected ? 'var(--nav-active-bg)' : 'rgba(255,255,255,0.01)', 
-                      border: isSelected ? '1px solid var(--accent-blue)40' : '1px solid var(--divider)', 
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)' 
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: config.text }}>
-                          <Icon size={18} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{t.tankerNumber}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{t.village}</div>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '9px', fontWeight: 900, padding: '2px 8px', borderRadius: '6px', background: config.bg, color: config.text, textTransform: 'uppercase' }}>{t.status}</span>
-                        <div style={{ fontSize: '9px', color: 'var(--text-tertiary)', marginTop: '4px' }}>{formatDate(t.dispatchDate)}</div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setDeleteId(t._id); }}
-                        style={{ background: 'none', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px', opacity: 0.6 }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        {t.status === 'Pending' && (
-                          <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, 'Enroute'); }} style={{ padding: '4px 12px', borderRadius: '8px', border: '1px solid var(--accent-blue)50', background: 'transparent', color: 'var(--accent-blue)', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}>DEPLOY</button>
-                        )}
-                        {t.status === 'Enroute' && (
-                          <button onClick={(e) => { e.stopPropagation(); updateStatus(t._id, 'Delivered'); }} style={{ padding: '4px 12px', borderRadius: '8px', border: '1px solid var(--accent-green)50', background: 'transparent', color: 'var(--accent-green)', fontSize: '9px', fontWeight: 900, cursor: 'pointer' }}>FINALIZE</button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <TankerList
+          filteredTankers={filteredTankers}
+          selectedId={selectedId}
+          setSelectedId={setSelectedId}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          STATUS_CONFIG={STATUS_CONFIG}
+          formatDate={formatDate}
+          updateStatus={updateStatus}
+          setDeleteId={setDeleteId}
+        />
       </div>
 
-      {/* Full-Width Tactical Intelligence Map */}
-      <div className="tanker-map-container" style={{ 
-        height: '700px', 
-        borderRadius: '32px', 
-        overflow: 'hidden', 
-        border: '1px solid var(--divider)', 
-        position: 'relative', 
-        background: 'var(--bg-card)',
-        boxShadow: 'var(--glass-shadow), inset 0 0 120px rgba(0,0,0,0.2)',
-        marginTop: '24px'
-      }}>
-        {/* Tactical HUD Overlay */}
-        <div style={{ 
-          position: 'absolute', 
-          inset: 0, 
-          zIndex: 999, 
-          pointerEvents: 'none', 
-          background: 'radial-gradient(circle, transparent 20%, rgba(0,0,0,0.2) 100%)',
-          boxShadow: 'inset 0 0 100px rgba(0,0,0,0.3)'
-        }} />
-        
-        <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ 
-            padding: '16px 32px', 
-            background: 'rgba(15, 23, 42, 0.95)', 
-            backdropFilter: 'blur(24px)', 
-            border: '1px solid rgba(255,255,255,0.2)', 
-            borderRadius: '24px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '16px', 
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)' 
-          }}>
-            <div className="live-pulse" style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 20px var(--accent-cyan)' }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ color: 'white', fontSize: '14px', fontWeight: 900, letterSpacing: '3px', textTransform: 'uppercase' }}>Strategic Overview</span>
-              <span style={{ color: 'var(--accent-cyan)', fontSize: '10px', fontWeight: 900, opacity: 0.8 }}>REGION LOCK: INDIA_SUBCONTINENT</span>
-            </div>
-          </div>
-        </div>
-        
-        <MapContainer 
-          center={INDIA_CENTER} 
-          zoom={5} 
-          minZoom={4.5}
-          maxZoom={12}
-          zoomSnap={0.5}
-          zoomDelta={0.5}
-          maxBounds={[[5, 65], [38, 100]]} // Optimized bounds for India
-          maxBoundsViscosity={1.0}
-          style={{ height: '100%', width: '100%' }} 
-          zoomControl={false}
-        >
-          <MapUpdater theme={theme} />
-          <TileLayer 
-            url={theme === 'dark' 
-              ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png"
-              : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            }
-            attribution='&copy; CARTO'
-          />
-          
-          {filteredTankers.map(t => {
-            const village = riskData.find(v => v.name === t.village);
-            if (!village || !village.location) return null;
-            const config = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
-            const isSelected = selectedId === t._id;
-            
-            return (
-              <CircleMarker 
-                key={t._id} 
-                center={[village.location.lat, village.location.lng]}
-                radius={isSelected ? 22 : 14}
-                eventHandlers={{ click: () => setSelectedId(t._id) }}
-                pathOptions={{ 
-                  color: isSelected ? 'white' : config.text, 
-                  fillColor: config.text, 
-                  fillOpacity: 0.9, 
-                  weight: isSelected ? 6 : 3,
-                  className: t.status === 'Enroute' ? 'live-pulse' : ''
-                }}
-              >
-                <Popup className="glass-popup">
-                  <div style={{ padding: '16px', minWidth: '220px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: config.text }}>
-                        <Truck size={18} />
-                      </div>
-                      <div>
-                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 900 }}>{t.tankerNumber}</h4>
-                        <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 800 }}>{t.status.toUpperCase()}</span>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>Destination:</span>
-                      <span style={{ fontWeight: 800 }}>{t.village}</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Capacity:</span>
-                      <span style={{ fontWeight: 800 }}>{formatNumber(t.capacityLiters)} L</span>
-                    </div>
-                  </div>
-                </Popup>
-              </CircleMarker>
-            );
-          })}
-        </MapContainer>
-      </div>
+      <TankerMap
+        theme={theme}
+        filteredTankers={filteredTankers}
+        riskData={riskData}
+        selectedId={selectedId}
+        setSelectedId={setSelectedId}
+        STATUS_CONFIG={STATUS_CONFIG}
+        formatNumber={formatNumber}
+        INDIA_CENTER={INDIA_CENTER}
+      />
 
-      {/* Tactical Hazard Protocol Modal */}
-      {deleteId && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2, 6, 23, 0.85)', backdropFilter: 'blur(16px)' }}>
-          {/* Scanning Line Effect */}
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', opacity: 0.05 }}>
-            <div style={{ width: '100%', height: '1px', background: 'var(--accent-red)', position: 'absolute', top: '0', left: 0, animation: 'scan 4s linear infinite' }} />
-          </div>
-          
-          <div className="glass-card" style={{ width: '480px', padding: '40px', border: 'var(--glass-border)', boxShadow: 'var(--glass-shadow-elevated)', textAlign: 'center', position: 'relative', background: theme === 'dark' ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '24px', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <AlertTriangle size={32} color="var(--accent-red)" />
-            </div>
-            
-            <h3 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.5px' }}>Terminate Mission?</h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '40px', lineHeight: '1.6' }}>
-              This protocol will permanently <span style={{ color: 'var(--accent-red)', fontWeight: 700 }}>scrub</span> mission telemetry and deployment records. This action cannot be reversed.
-            </p>
-            
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <button onClick={() => setDeleteId(null)} className="glass-btn" style={{ flex: 1, height: '54px', fontWeight: 700, color: 'var(--text-primary)', border: '1px solid var(--divider)' }}>ABORT</button>
-              <button 
-                onClick={confirmDelete} 
-                className="primary-btn" 
-                style={{ 
-                  flex: 1.5, 
-                  height: '54px', 
-                  fontWeight: 900, 
-                  background: 'var(--accent-red)', 
-                  color: '#fff',
-                  boxShadow: '0 15px 30px -10px rgba(239, 68, 68, 0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px'
-                }}
-              >
-                <Zap size={18} />
-                CONFIRM PURGE
-              </button>
-            </div>
-            
-            {/* COMMAND REGISTRY LOGS UPDATED */}
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        deleteId={deleteId}
+        setDeleteId={setDeleteId}
+        confirmDelete={confirmDelete}
+        theme={theme}
+      />
 
-      {/* Modern Deployment Wizard (Modal) */}
-      {showForm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)' }}>
-          <div className="glass-card" style={{ width: '560px', padding: '40px', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)', position: 'relative', background: theme === 'dark' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)' }}>
-            <button onClick={() => setShowForm(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', padding: '8px', borderRadius: '50%' }}>
-              <X size={20} />
-            </button>
-            
-            <div style={{ marginBottom: '32px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
-                <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'var(--accent-blue-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                  <Navigation size={26} color="var(--accent-blue)" />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Strategic Deployment</h2>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Tactical water resource allocation</p>
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={handleDispatch} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div style={{ gridColumn: '1 / -1', position: 'relative' }} ref={dropdownRef}>
-                <label className="card-label" style={{ marginBottom: '8px', display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>TARGET CRISIS ZONE</label>
-                
-                {/* Custom Styled Dropdown */}
-                <div 
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="glass-input" 
-                  style={{ width: '100%', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', cursor: 'pointer', border: showDropdown ? '1px solid var(--accent-blue)' : '1px solid var(--divider)' }}
-                >
-                  <span style={{ color: form.village ? 'var(--text-primary)' : 'var(--text-tertiary)', fontSize: '14px' }}>
-                    {form.village || 'Search & Select District...'}
-                  </span>
-                  <ChevronDown size={18} style={{ color: 'var(--text-tertiary)', transition: 'transform 0.3s', transform: showDropdown ? 'rotate(180deg)' : 'rotate(0)' }} />
-                </div>
-
-                {showDropdown && (
-                  <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 100, background: theme === 'dark' ? 'rgba(30, 41, 59, 0.98)' : '#fff', border: '1px solid var(--divider)', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '12px', borderBottom: '1px solid var(--divider)', background: 'rgba(0,0,0,0.02)' }}>
-                      <input 
-                        autoFocus
-                        type="text" 
-                        placeholder="Type to filter districts..." 
-                        value={dropdownSearch}
-                        onChange={e => setDropdownSearch(e.target.value)}
-                        style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', fontSize: '13px' }}
-                        onClick={e => e.stopPropagation()}
-                      />
-                    </div>
-                    <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                      {filteredDistricts.length > 0 ? (
-                        filteredDistricts.map(v => (
-                          <div 
-                            key={v._id} 
-                            onClick={() => { setForm(p => ({ ...p, village: v.name })); setShowDropdown(false); setDropdownSearch(''); }}
-                            className="dropdown-item"
-                            style={{ padding: '12px 16px', cursor: 'pointer', transition: 'background 0.2s' }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div>
-                                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{v.name}</div>
-                                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{v.state}</div>
-                              </div>
-                              <div style={{ fontSize: '12px', fontWeight: 800, color: v.riskScore > 80 ? 'var(--accent-red)' : 'var(--accent-amber)' }}>
-                                {v.riskScore.toFixed(1)}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: 'var(--text-tertiary)' }}>No matching districts found</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <FormInput label="CAPACITY (LITERS)" type="number" min="0" value={form.capacityLiters} onChange={v => setForm(p => ({ ...p, capacityLiters: Math.max(0, parseInt(v) || 0) }))} />
-              <FormInput label="VEHICLE ID (MH04JU1234)" value={form.tankerNumber} onChange={v => setForm(p => ({ ...p, tankerNumber: v }))} placeholder="MH-04-XX-0000" />
-              <FormInput label="OPERATOR NAME" value={form.driverName} onChange={v => setForm(p => ({ ...p, driverName: v }))} />
-              <FormInput label="COMMS CHANNEL (10 DIGIT)" value={form.driverContact} onChange={v => setForm(p => ({ ...p, driverContact: v }))} placeholder="9876543210" />
-
-              <div style={{ gridColumn: '1 / -1', marginTop: '20px', display: 'flex', gap: '16px' }}>
-                <button type="button" onClick={() => setShowForm(false)} className="glass-btn" style={{ flex: 1, height: '52px', fontWeight: 700, fontSize: '14px' }}>ABORT</button>
-                <button type="submit" disabled={submitting} className="primary-btn" style={{ flex: 2, height: '52px', fontWeight: 800, background: 'var(--accent-blue)', boxShadow: '0 10px 20px -5px rgba(59, 130, 246, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                  {submitting ? <Loader2 size={18} className="spinning" /> : <Zap size={18} />}
-                  {submitting ? 'EXECUTING...' : 'CONFIRM DEPLOYMENT'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <DispatchForm
+        showForm={showForm}
+        setShowForm={setShowForm}
+        theme={theme}
+        form={form}
+        setForm={setForm}
+        showDropdown={showDropdown}
+        setShowDropdown={setShowDropdown}
+        dropdownSearch={dropdownSearch}
+        setDropdownSearch={setDropdownSearch}
+        filteredDistricts={filteredDistricts}
+        handleDispatch={handleDispatch}
+        submitting={submitting}
+        dropdownRef={dropdownRef}
+      />
     </div>
   );
 }
@@ -732,31 +438,6 @@ function KPICard({ label, value, icon: Icon, color, trend }) {
   );
 }
 
-function TelemetryStat({ label, value, icon: Icon, color }) {
-  return (
-    <div style={{ background: 'var(--nav-hover-bg)', padding: '16px', borderRadius: '16px', border: '1px solid var(--divider)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <Icon size={14} color={color} />
-        <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{label}</span>
-      </div>
-      <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{value}</div>
-    </div>
-  );
-}
 
-function FormInput({ label, type = 'text', value, onChange, placeholder, min }) {
-  return (
-    <div>
-      <label className="card-label" style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)' }}>{label}</label>
-      <input 
-        type={type} 
-        min={min}
-        value={value} 
-        onChange={e => onChange(e.target.value)} 
-        placeholder={placeholder} 
-        className="glass-input" 
-        style={{ width: '100%', height: '50px', padding: '0 16px', fontSize: '14px' }} 
-      />
-    </div>
-  );
-}
+
+

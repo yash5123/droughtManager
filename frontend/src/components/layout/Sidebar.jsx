@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Map, CloudRain, Droplets, ShieldAlert, Calculator, Scale, TrendingUp, Truck, ChevronLeft, ChevronRight, User, LogOut, Sun, Moon, X } from 'lucide-react';
+import { LayoutDashboard, Map, CloudRain, Droplets, ShieldAlert, Calculator, Scale, TrendingUp, Truck, ChevronLeft, ChevronRight, User, LogOut, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { useTheme } from '../../context/ThemeContext.jsx';
+
 
 const NAV_GROUPS = [
   {
@@ -35,7 +35,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }) {
   const [collapsed, setCollapsed] = useState(false);
   const { user, openLoginModal, logout } = useAuth();
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
+
 
   return (
     <aside className={`sidebar glass-panel ${isMobileOpen ? 'mobile-open' : ''}`} style={{ width: collapsed ? '68px' : '220px' }}>

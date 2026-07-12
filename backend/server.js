@@ -30,15 +30,17 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // Restricted CORS configuration
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'https://aqvasense.vercel.app'
-].filter(Boolean);
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'https://aqvasense.vercel.app'
+    ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

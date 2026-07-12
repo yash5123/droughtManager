@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { AlertTriangle, Activity } from 'lucide-react';
 import { useSeedingStatus } from '../../hooks/useRiskData.js';
 

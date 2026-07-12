@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { getRiskLevel } from '../../utils/riskLevels.js';
 
 export default function RiskBadge({ level, score, size = 'sm' }) {

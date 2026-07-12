@@ -22,66 +22,81 @@ async function createIndexes() {
 
 
 
+  const safeCreateIndex = async (collection, keys, options) => {
+    try {
+      await db.collection(collection).createIndex(keys, options);
+      console.log(`✓ ${collection} index created: ${options.name}`);
+    } catch (err) {
+      if (err.code === 85 || err.message.includes('IndexOptionsConflict')) {
+        console.log(`⚠ ${collection} index already exists with different options/name: ${options.name}. Skipping.`);
+      } else {
+        throw err;
+      }
+    }
+  };
+
   // ── DroughtRisk ───────────────────────────────────────────────────────────
   // Speeds up: latest-risk-per-village aggregation in dashboard
-  await db.collection('droughtrisks').createIndex(
+  await safeCreateIndex('droughtrisks',
     { village: 1, date: -1 },
     { name: 'droughtrisk_village_date', background: true }
   );
-  console.log('✓ DroughtRisk(village, date) compound index');
 
   // ── Tanker ────────────────────────────────────────────────────────────────
   // Speeds up: filtering by status (Pending/Enroute/Delivered)
-  await db.collection('tankers').createIndex(
+  await safeCreateIndex('tankers',
     { status: 1 },
     { name: 'tanker_status', background: true }
   );
-  console.log('✓ Tanker(status) index');
 
   // ── User ──────────────────────────────────────────────────────────────────
   // Enforces uniqueness on email and speeds up login lookups
-  await db.collection('users').createIndex(
+  await safeCreateIndex('users',
     { email: 1 },
     { name: 'user_email_unique', unique: true, background: true }
   );
-  console.log('✓ User(email) unique index');
 
   // ── Village ───────────────────────────────────────────────────────────────
-  // Enforces uniqueness on village name
-  await db.collection('villages').createIndex(
-    { name: 1 },
-    { name: 'village_name_unique', unique: true, background: true }
+  // Enforces uniqueness on compound village name and state
+  try {
+    await db.collection('villages').dropIndex('village_name_unique');
+    console.log('Dropped old village_name_unique index');
+  } catch (err) {
+    // Index might not exist, ignore error
+  }
+  await safeCreateIndex('villages',
+    { name: 1, state: 1 },
+    { name: 'village_name_state_unique', unique: true, background: true }
   );
-  console.log('✓ Village(name) unique index');
 
   // ── Weather Cache ────────────────────────────────────────────────────────
-  await db.collection('dailyweathercaches').createIndex(
+  await safeCreateIndex('dailyweathercaches',
     { villageId: 1, cacheDate: 1 },
     { name: 'daily_weather_lookup', unique: true, background: true }
   );
-  await db.collection('dailyweathercaches').createIndex(
+  await safeCreateIndex('dailyweathercaches',
     { fetchedAt: 1 },
     { name: 'daily_weather_ttl', expireAfterSeconds: 172800 } // 48h
   );
 
-  await db.collection('forecastcaches').createIndex(
+  await safeCreateIndex('forecastcaches',
     { villageId: 1, cacheDate: 1 },
     { name: 'forecast_lookup', unique: true, background: true }
   );
-  await db.collection('forecastcaches').createIndex(
+  await safeCreateIndex('forecastcaches',
     { fetchedAt: 1 },
     { name: 'forecast_ttl', expireAfterSeconds: 21600 } // 6h
   );
 
-  await db.collection('simulationcaches').createIndex(
+  await safeCreateIndex('simulationcaches',
     { cacheKey: 1 },
     { name: 'simulation_lookup', unique: true, background: true }
   );
-  await db.collection('simulationcaches').createIndex(
+  await safeCreateIndex('simulationcaches',
     { fetchedAt: 1 },
     { name: 'simulation_ttl', expireAfterSeconds: 86400 } // 24h
   );
-  console.log('✓ Weather Cache indexes created');
+  console.log('✓ Weather Cache indexes processed');
 
   console.log('\nAll indexes created successfully.');
   await mongoose.disconnect();

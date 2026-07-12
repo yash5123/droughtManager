@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Shield, BarChart3, Globe, Terminal, AlertTriangle } from 'lucide-react';
+import { Shield, BarChart3, Globe, Terminal, AlertTriangle } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 
 import { useAuth } from '../context/AuthContext.jsx';

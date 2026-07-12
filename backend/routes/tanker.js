@@ -1,5 +1,5 @@
 import express from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import Tanker from '../models/Tanker.js';
 import Village from '../models/Village.js';
 

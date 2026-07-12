@@ -1,17 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid, Cell, AreaChart, Area } from 'recharts';
-import { Scale, Truck, AlertTriangle, ArrowRightLeft, Droplet, Users, Loader2, Filter, ChevronRight, BarChart3, Database, ArrowUpDown, Search } from 'lucide-react';
-import { useVillageData } from '../context/VillageDataContext.jsx';
+import { useState, useMemo } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
+import { Scale, AlertTriangle, ArrowRightLeft, Droplet, Users, Loader2, BarChart3, ArrowUpDown, Search } from 'lucide-react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useToast } from '../components/ui/Toast.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
-import LoginPrompt from '../components/ui/LoginPrompt.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
-import { formatNumber } from '../utils/formatters.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
-import api from '../services/api.js';
 
 const TANKER_CAPACITY = 10000;
 
@@ -25,7 +19,6 @@ function formatIndian(num) {
 }
 
 export default function SupplyDemand() {
-  const { villageCount } = useVillageData();
   const { data: rankedData, isLoading } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
@@ -33,12 +26,10 @@ export default function SupplyDemand() {
   const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
   const [riskFilter, setRiskFilter] = useState('All'); // All, Extreme, Severe, Moderate, Normal
   const [searchTerm, setSearchTerm] = useState('');
-  const [dispatching, setDispatching] = useState(null);
 
-  const { user, openLoginModal } = useAuth();
-  const { addToast } = useToast();
 
-  const rawData = rankedData?.data || [];
+
+  const rawData = useMemo(() => rankedData?.data || [], [rankedData]);
   
   // Process real data from server snapshots
   const villages = useMemo(() => {
@@ -109,15 +100,7 @@ export default function SupplyDemand() {
     deficit: Math.round(v.deficit / 1000),
   }));
 
-  const handleDispatch = async (village) => {
-    if (!user) { openLoginModal(); return; }
-    setDispatching(village._id);
-    try {
-      await api.post('/tanker', { village: village.name, capacityLiters: TANKER_CAPACITY, dispatchDate: new Date().toISOString() });
-      addToast(`Tanker dispatched to ${village.name}`, 'success');
-    } catch (err) { addToast(err?.response?.data?.error || 'Dispatch failed', 'error'); }
-    finally { setDispatching(null); }
-  };
+
 
   if (isLoading && rawData.length === 0) {
     return (

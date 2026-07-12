@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ComposedChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, AlertTriangle, Truck, CloudRain, Sun, Activity, Loader2, ArrowUpDown, Filter, Search } from 'lucide-react';
-import { useVillageData } from '../context/VillageDataContext.jsx';
+import { TrendingUp, AlertTriangle, CloudRain, Sun, Activity, Loader2, ArrowUpDown, Filter, Search } from 'lucide-react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useToast } from '../components/ui/Toast.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
 import { fetchForecast } from '../services/weatherService.js';
 import { getRiskLevel } from '../utils/riskLevels.js';
-import api from '../services/api.js';
 
 export default function FuturePrediction() {
-  const { villageCount } = useVillageData();
   const { data: rankedData, isLoading } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
@@ -21,8 +16,7 @@ export default function FuturePrediction() {
   const [limit, setLimit] = useState(25);
   const [sortOrder, setSortOrder] = useState('desc');
   
-  const riskData = rankedData?.data || [];
-  const isAuthentic = true; // Confirmation for user
+  const riskData = useMemo(() => rankedData?.data || [], [rankedData]);
 
   // Apply filters and sorting
   const filteredVillages = useMemo(() => {
@@ -63,8 +57,7 @@ export default function FuturePrediction() {
   else if (riskData.length > 0) dataSource = rankedData?.meta?.isStale ? 'stale' : 'backend';
   else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
 
-  const { user, openLoginModal } = useAuth();
-  const { addToast } = useToast();
+
   const [forecasts, setForecasts] = useState({});
   const [loadingForecasts, setLoadingForecasts] = useState(false);
 
@@ -116,7 +109,7 @@ export default function FuturePrediction() {
                 } 
               } 
             };
-          } catch (e) {
+          } catch {
             return { id: v._id, data: null };
           }
         })
@@ -128,15 +121,7 @@ export default function FuturePrediction() {
       setLoadingForecasts(false);
     };
     load();
-  }, [filteredVillages]);
-
-  const handleDispatch = async (village) => {
-    if (!user) { openLoginModal(); return; }
-    try {
-      await api.post('/tanker', { village: village.name, capacityLiters: 10000, dispatchDate: new Date().toISOString() });
-      addToast(`Tanker dispatched to ${village.name}`, 'success');
-    } catch (err) { addToast(err?.response?.data?.error || 'Dispatch failed', 'error'); }
-  };
+  }, [filteredVillages, forecasts]);
 
   if (isLoading && riskData.length === 0) {
     return (
@@ -291,7 +276,6 @@ export default function FuturePrediction() {
           );
           
           const { chartData, summary } = forecast;
-          const risk = getRiskLevel(village.riskScore);
           const isCritical = summary.dryDays > 10 || village.riskScore > 85;
           
           let alertColor = 'var(--accent-green)';

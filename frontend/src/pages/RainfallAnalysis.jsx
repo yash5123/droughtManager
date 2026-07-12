@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine, CartesianGrid } from 'recharts';
-import { Download, CloudRain, ArrowDownRight, ArrowUpRight, Loader2, Search, TrendingDown, TrendingUp, BarChart2, ArrowDownUp, ChevronDown, X } from 'lucide-react';
-import { useVillageData } from '../context/VillageDataContext.jsx';
+import { Download, CloudRain, Loader2, Search, TrendingDown, TrendingUp, BarChart2, ArrowDownUp, ChevronDown, X } from 'lucide-react';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -11,7 +10,6 @@ import { getRiskLevel } from '../utils/riskLevels.js';
 
 const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }];
 
-const seededRandom = (seed) => { const x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); };
 
 // Mock data injection removed to prioritize real server data.
 
@@ -23,10 +21,9 @@ const StatChip = ({ label, value, color = 'var(--text-secondary)', unit = '' }) 
 );
 
 export default function RainfallAnalysis() {
-  const { villageCount } = useVillageData();
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
-  const activeVillages = rankedData?.data || [];
+  const activeVillages = useMemo(() => rankedData?.data || [], [rankedData]);
 
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';

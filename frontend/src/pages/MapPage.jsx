@@ -1,14 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
-import { AlertCircle, Users, MapPin, CloudRain, Droplets, Truck, X, Radio } from 'lucide-react';
+import { MapPin, X, Radio } from 'lucide-react';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
-import { useAuth } from '../context/AuthContext.jsx';
 import RiskBadge from '../components/ui/RiskBadge.jsx';
-import LoginPrompt from '../components/ui/LoginPrompt.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import { getRiskLevel, RISK_LEVELS } from '../utils/riskLevels.js';
-import { formatNumber } from '../utils/formatters.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
 const INDIA_CENTER = [26.0, 78.5]; // Shifted further North to avoid UI obstruction
@@ -27,7 +24,7 @@ export default function MapPage() {
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
-  const riskData = rankedData?.data || [];
+  const riskData = useMemo(() => rankedData?.data || [], [rankedData]);
   let dataSource = 'pending';
   if (seedingStatus?.inProgress) dataSource = 'seeding';
   else if (seedingStatus?.dailyJob?.running) dataSource = 'updating';
@@ -35,7 +32,7 @@ export default function MapPage() {
   else if (seedingStatus?.phase === 'complete' && riskData.length === 0) dataSource = 'stale';
   else if (seedingStatus) dataSource = 'seeding';
 
-  const { user } = useAuth();
+
   const { theme } = useTheme();
   const [selected, setSelected] = useState(null);
   const [riskFilter, setRiskFilter] = useState('All');
@@ -228,14 +225,4 @@ export default function MapPage() {
   );
 }
 
-function MetricCard({ icon: Icon, label, value }) {
-  return (
-    <div className="glass-card" style={{ padding: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
-        <Icon size={14} />
-        <span className="card-label" style={{ fontSize: '11px' }}>{label}</span>
-      </div>
-      <p className="data-value" style={{ fontSize: '18px' }}>{value}</p>
-    </div>
-  );
-}
+

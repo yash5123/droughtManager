@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
-import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, Database, MapPin, CheckCircle, Circle } from 'lucide-react';
+import { AlertTriangle, Droplets, Truck, Activity, ArrowUp, ArrowDown, Loader2, CheckCircle, Circle } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import { useVillageData } from '../context/VillageDataContext.jsx';
 import { useRankedVillages, useSeedingStatus } from '../hooks/useRiskData.js';
@@ -68,7 +68,7 @@ export default function Overview() {
   const { data: rankedData, isLoading: loading } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
   
-  const riskData = rankedData?.data || [];
+  const riskData = useMemo(() => rankedData?.data || [], [rankedData]);
   const meta = rankedData?.meta || null;
   
   // Determine dataSource mimicking old context behavior
@@ -90,7 +90,7 @@ export default function Overview() {
   const [riskFilter, setRiskFilter] = useState('All');
   const { theme } = useTheme();
 
-  const displayVillages = React.useMemo(() => {
+  const displayVillages = useMemo(() => {
     let filtered = [...riskData];
     
     filtered.sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0));

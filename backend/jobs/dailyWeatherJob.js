@@ -462,10 +462,12 @@ export async function runDailyWeatherJob() {
     today.setHours(0, 0, 0, 0);
     
     for (const village of villages) {
+      village.riskScore = 0; // Default in case calculations fail
       dailyJobStatus.currentDistrict = village.name;
       try {
         const weather = await getArchiveWeather(village._id, village.lat, village.lon);
         const risk = await computeRiskScore(village, weather, avgPop);
+        village.riskScore = risk.riskScore; // Store in-memory for sorting later
         
         await DroughtRisk.updateOne(
           { village: village._id, date: today },
@@ -506,7 +508,7 @@ export async function runDailyWeatherJob() {
     // 7. Add a nightly forecast preload for the top 100 highest-risk districts
     // This runs AFTER marking the job as done so the UI transitions to LIVE immediately
     const topRiskVillages = villages
-      .sort((a, b) => b.riskScore - a.riskScore)
+      .sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0))
       .slice(0, 100);
 
     console.log('[DailyJob] Preloading forecast cache for top 100 risk districts');
