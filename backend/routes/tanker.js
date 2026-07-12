@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
 import Tanker from '../models/Tanker.js';
+import Village from '../models/Village.js';
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get('/', async (req, res) => {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      Tanker.find().sort({ dispatchDate: -1 }).skip(skip).limit(limit),
+      Tanker.find().populate('village', 'name state district').sort({ dispatchDate: -1 }).skip(skip).limit(limit),
       Tanker.countDocuments()
     ]);
     res.json({ data, total, page, pages: Math.ceil(total / limit) });
@@ -49,7 +50,7 @@ router.patch('/:id', [
 
 // Create new tanker assignment
 router.post('/', [
-  body('village').isString().notEmpty().withMessage('Village name is required'),
+  body('village').isString().notEmpty().withMessage('Village ID is required'),
   body('capacityLiters').isFloat({ gt: 0 }).withMessage('Capacity must be a positive number'),
   body('dispatchDate').isISO8601().toDate().withMessage('Dispatch date must be a valid date'),
 ], async (req, res) => {
@@ -57,7 +58,16 @@ router.post('/', [
     const validationError = handleValidation(req, res);
     if (validationError) return;
 
-    const newTanker = new Tanker(req.body);
+    // Look up the village to get the name for denormalization
+    const village = await Village.findById(req.body.village).select('name');
+    if (!village) {
+      return res.status(404).json({ error: 'Village not found' });
+    }
+
+    const newTanker = new Tanker({
+      ...req.body,
+      villageName: village.name,
+    });
     await newTanker.save();
     res.status(201).json(newTanker);
   } catch (err) {
@@ -79,3 +89,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+

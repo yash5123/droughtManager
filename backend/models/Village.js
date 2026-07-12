@@ -7,10 +7,6 @@ const villageSchema = new mongoose.Schema({
   population: { type: Number, default: 0 },
   lat: { type: Number, default: null },
   lon: { type: Number, default: null },
-  location: {
-    lat: { type: Number },
-    lng: { type: Number }
-  },
   historicalAvgMonthlyRainfall_mm: {
     type: [Number],
     default: []  // 12 monthly values (Jan-Dec)
@@ -18,7 +14,7 @@ const villageSchema = new mongoose.Schema({
   historicalAvgAnnualRainfall_mm: { type: Number, default: 0 },
   geocodingStatus: {
     type: String,
-    enum: ['pending', 'complete', 'failed'],
+    enum: ['pending', 'complete', 'approximate', 'centroid', 'failed'],
     default: 'pending'
   },
   climateBaselineStatus: {

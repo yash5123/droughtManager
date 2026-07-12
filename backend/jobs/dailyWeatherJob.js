@@ -498,7 +498,7 @@ export async function runDailyWeatherJob() {
       await sleep(600);
     }
     
-      dailyJobStatus.lastSuccess = new Date();
+    dailyJobStatus.lastSuccess = new Date();
     dailyJobStatus.running = false;
     dailyJobStatus.currentDistrict = null;
     console.log(`[DailyJob] Complete: ${dailyJobStatus.processedCount} processed, ${dailyJobStatus.failedCount} failed`);

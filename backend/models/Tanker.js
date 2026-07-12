@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
 const tankerSchema = new mongoose.Schema({
-  village: { type: String, required: true },
+  village: { type: mongoose.Schema.Types.ObjectId, ref: 'Village', required: true },
+  villageName: { type: String, default: '' }, // Denormalized for quick display
   tankerNumber: { type: String, default: '' },
   driverName: { type: String, default: '' },
   driverContact: { type: String, default: '' },

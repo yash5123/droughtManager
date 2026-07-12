@@ -1,5 +1,6 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import authMiddleware from '../middleware/auth.js';
 import { runDailyWeatherJob, dailyJobStatus } from '../jobs/dailyWeatherJob.js';
 import { getForecastWeather, getSimulationWeather, getArchiveWeather } from '../services/weatherCacheService.js';
 import Village from '../models/Village.js';
@@ -59,7 +60,7 @@ router.get('/archive/:villageId', async (req, res) => {
  * Manually triggers the daily weather fetch + risk scoring job.
  * Returns immediately with job status.
  */
-router.post('/trigger-daily-job', async (req, res) => {
+router.post('/trigger-daily-job', authMiddleware, async (req, res) => {
   if (dailyJobStatus.running) {
     return res.json({ message: 'Daily job already running', status: dailyJobStatus });
   }

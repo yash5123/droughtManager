@@ -1,6 +1,7 @@
 import express from 'express';
 import Village from '../models/Village.js';
 import DroughtRisk from '../models/DroughtRisk.js';
+import authMiddleware from '../middleware/auth.js';
 import { seedingProgress } from '../jobs/seedDistricts.js';
 import { dailyJobStatus, computeRiskScore } from '../jobs/dailyWeatherJob.js';
 import { getArchiveWeather, getForecastWeather } from '../services/weatherCacheService.js';
@@ -17,7 +18,6 @@ router.get('/ranked', async (req, res) => {
     const limit = Math.min(1000, Math.max(1, parseInt(req.query.limit) || 50));
     
     const pipeline = [
-      { $limit: limit }, // Limit villages first for performance, or remove limit for full list
       {
         $lookup: {
           from: 'droughtrisks',
@@ -42,7 +42,6 @@ router.get('/ranked', async (req, res) => {
           district: 1,
           state: 1,
           population: 1,
-          location: 1,
           lat: 1,
           lon: 1,
           riskScore: { $ifNull: ['$riskRecord.riskScore', 0] },
@@ -62,7 +61,8 @@ router.get('/ranked', async (req, res) => {
           metricsSnapshot: '$riskRecord.metricsSnapshot'
         }
       },
-      { $sort: { riskScore: -1, name: 1 } }
+      { $sort: { riskScore: -1, name: 1 } },
+      { $limit: limit }
     ];
     
     const results = await Village.aggregate(pipeline);
@@ -215,17 +215,7 @@ router.get('/:id/detail', async (req, res) => {
   }
 });
 
-// GET /api/villages - all villages (for map, search, etc.)
-router.get('/', async (req, res) => {
-  try {
-    const villages = await Village.find().lean();
-    res.json(villages);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/villages/search?q=term
+// GET /api/villages/search?q=term (MUST be above /:id routes to avoid Express matching 'search' as an id)
 router.get('/search', async (req, res) => {
   try {
     const q = req.query.q || '';
@@ -244,8 +234,18 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// POST /api/villages/:id/calculate - Force real-time risk re-computation
-router.post('/:id/calculate', async (req, res) => {
+// GET /api/villages - all villages (for map, search, etc.)
+router.get('/', async (req, res) => {
+  try {
+    const villages = await Village.find().lean();
+    res.json(villages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/villages/:id/calculate - Force real-time risk re-computation (protected)
+router.post('/:id/calculate', authMiddleware, async (req, res) => {
   try {
     const village = await Village.findById(req.params.id);
     if (!village) return res.status(404).json({ error: 'Village not found' });
