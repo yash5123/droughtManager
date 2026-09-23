@@ -274,7 +274,7 @@ We ran a mathematical intervention. By replacing the logistic curve with a **han
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" />
 
 <div align="center">
-  <p>Made with a lot of weather data by <b>Yash</b></p>
+  <p>Made with a lot of weather data by <b>Yash and Sanskar </b></p>
   <p><i>Built to turn climate data into human action.</i></p>
 
   <a href="https://github.com/yash5123">
