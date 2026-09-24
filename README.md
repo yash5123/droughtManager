@@ -2,7 +2,7 @@
 
 <div align="center">
   <h1>🌊 AqvaSense</h1>
-  <p><i>Monitoring every drop. Protecting every life.</i></p>
+  <p><i>Monitoring every drop. Protecting every life</i></p>
 
   [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=00b4d8&center=true&width=700&lines=Real-Time+Drought+Intelligence+for+732+Indian+Districts;5-Pillar+Non-Linear+Composite+Risk+Scoring;30+Years+of+Climate+Data+as+Baseline;Live+Tanker+Dispatch+%26+Fleet+Management;Built+to+Save+Lives+During+Water+Crises)](https://git.io/typing-svg)
 
