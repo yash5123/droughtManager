@@ -7,9 +7,9 @@ import RiskBadge from '../components/ui/RiskBadge.jsx';
 import DataSourceBanner from '../components/ui/DataSourceBanner.jsx';
 import { getRiskLevel, RISK_LEVELS } from '../utils/riskLevels.js';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { getTileConfig } from '../utils/mapTiles.js';
 
 const INDIA_CENTER = [26.0, 78.5]; // Shifted further North to avoid UI obstruction
-const OSM_TILES = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
 
 function MapUpdater({ theme }) {
   const map = useMap();
@@ -34,6 +34,7 @@ export default function MapPage() {
 
 
   const { theme } = useTheme();
+  const tileConfig = useMemo(() => getTileConfig('light_nolabels', theme), [theme]);
   const [selected, setSelected] = useState(null);
   const [riskFilter, setRiskFilter] = useState('All');
 
@@ -173,7 +174,7 @@ export default function MapPage() {
           style={{ height: '100%', width: '100%', background: 'transparent' }}
         >
           <MapUpdater theme={theme} />
-          <TileLayer url={OSM_TILES} noWrap={true} />
+          <TileLayer url={tileConfig.url} attribution={tileConfig.attribution} noWrap={true} />
           {showRadar && radarUrl && (
             <TileLayer url={radarUrl} opacity={0.6} zIndex={10} maxNativeZoom={7} />
           )}

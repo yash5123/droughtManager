@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { Truck } from 'lucide-react';
+import { getTileConfig } from '../../utils/mapTiles.js';
 
 function MapUpdater({ theme }) {
   const map = useMap();
@@ -20,6 +21,8 @@ export default function TankerMap({
   formatNumber, 
   INDIA_CENTER 
 }) {
+  const tileConfig = useMemo(() => getTileConfig('themed', theme), [theme]);
+
   return (
     <div className="tanker-map-container" style={{ 
       height: '700px', 
@@ -75,11 +78,8 @@ export default function TankerMap({
       >
         <MapUpdater theme={theme} />
         <TileLayer 
-          url={theme === 'dark' 
-            ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png"
-            : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          }
-          attribution='&copy; CARTO'
+          url={tileConfig.url}
+          attribution={tileConfig.attribution}
         />
         
         {filteredTankers.map(t => {

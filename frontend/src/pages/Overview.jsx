@@ -12,9 +12,9 @@ import { getRiskLevel } from '../utils/riskLevels.js';
 import { formatNumber } from '../utils/formatters.js';
 import api from '../services/api.js';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { OSM_TILES } from '../utils/mapTiles.js';
 
 const INDIA_CENTER = [22.5, 78.5];
-const OSM_TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
