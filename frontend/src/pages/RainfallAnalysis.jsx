@@ -56,17 +56,17 @@ export default function RainfallAnalysis() {
       });
 
       if (!precipRaw) { setWeatherData({ villageId: effectiveVillage._id, period, timeSeries: null, metrics: null }); return; }
-      
+
       // Slice data to match selected period (backend returns ~30 days)
       const availableLength = precipRaw.length;
       const sliceCount = Math.min(period, availableLength);
       const precip = precipRaw.slice(availableLength - sliceCount);
       const time = timeRaw.slice(availableLength - sliceCount);
-      
+
       const total = precip.reduce((s, val) => s + (val || 0), 0);
       const expected = (effectiveVillage.historicalAvgAnnualRainfall_mm || effectiveVillage.avgAnnualRainfall || 600) * (period / 365);
       const anomalyPct = expected > 0 ? Math.round(((expected - total) / expected) * 100) : 0;
-      
+
       setWeatherData({
         villageId: effectiveVillage._id,
         period,
@@ -80,14 +80,14 @@ export default function RainfallAnalysis() {
     let list = activeVillages;
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
     if (filter !== 'All') list = list.filter(v => getRiskLevel(v.riskScore).label === filter);
-    
+
     // Sort by risk score
     list.sort((a, b) => {
       const valA = a.riskScore || 0;
       const valB = b.riskScore || 0;
       return sortDescending ? valB - valA : valA - valB;
     });
-    
+
     if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
     return list;
   }, [activeVillages, search, filter, countLimit, sortDescending]);
@@ -151,29 +151,29 @@ export default function RainfallAnalysis() {
       {/* Control Bar */}
       <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '24px', border: 'var(--glass-border)', background: 'var(--glass-bg-bright)', flexWrap: 'wrap', gap: '12px' }}>
 
-      {/* Mobile district selector — only visible on mobile */}
-      <div className="district-selector-mobile">
-        <button 
-          onClick={() => setMobileDistrictOpen(true)}
-          style={{
-            background: 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'inherit',
-            borderRadius: '10px',
-            padding: '10px 16px',
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-        >
-          <span>{effectiveVillage?.name || 'Select District'}</span>
-          <ChevronDown size={16} />
-        </button>
-      </div>
+        {/* Mobile district selector - only visible on mobile */}
+        <div className="district-selector-mobile">
+          <button
+            onClick={() => setMobileDistrictOpen(true)}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'inherit',
+              borderRadius: '10px',
+              padding: '10px 16px',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <span>{effectiveVillage?.name || 'Select District'}</span>
+            <ChevronDown size={16} />
+          </button>
+        </div>
 
-      <div className="filter-row" style={{ display: 'flex', gap: '8px' }}>
+        <div className="filter-row" style={{ display: 'flex', gap: '8px' }}>
           {['All', 'Extreme', 'Severe', 'Moderate', 'Normal'].map(level => {
             const isActive = filter === level;
             const config = getRiskLevel(level === 'All' ? 0 : level === 'Extreme' ? 90 : level === 'Severe' ? 70 : level === 'Moderate' ? 40 : 10);
@@ -196,14 +196,14 @@ export default function RainfallAnalysis() {
             );
           })}
         </div>
-        
+
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div className="glass-pill" style={{ display: 'flex', padding: '4px', background: 'var(--nav-hover-bg)' }}>
             {PERIODS.map(p => (
               <button key={p.days} onClick={() => setPeriod(p.days)} style={{ padding: '6px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, background: period === p.days ? 'var(--glass-bg-bright)' : 'transparent', color: period === p.days ? 'var(--accent-blue)' : 'var(--text-tertiary)', transition: 'all 0.2s' }}>{p.label}</button>
             ))}
           </div>
-          
+
           <button className="glass-btn" onClick={() => exportToCSV(activeVillages.map(v => ({ District: v.name, State: v.state, 'Risk Level': getRiskLevel(v.riskScore).label, 'Risk Score': (v.riskScore || 0).toFixed(1) })), `rainfall_analysis`)} style={{ padding: '10px 16px', gap: '8px', fontSize: '11px', fontWeight: 700 }}>
             <Download size={14} /> EXPORT CSV
           </button>
@@ -336,11 +336,11 @@ export default function RainfallAnalysis() {
           background: 'var(--bg-gradient, #0f172a)',
           padding: '20px',
         }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-            <h3 style={{ margin:0 }}>Select District</h3>
-            <button 
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0 }}>Select District</h3>
+            <button
               onClick={() => setMobileDistrictOpen(false)}
-              style={{ background:'transparent', border:'none', cursor:'pointer', color:'inherit' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }}
             >
               <X size={24} />
             </button>

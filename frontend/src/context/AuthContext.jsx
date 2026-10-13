@@ -47,10 +47,10 @@ export function AuthProvider({ children }) {
         const status = err.response?.status;
 
         if (status === 401 || status === 403) {
-          // Server explicitly said "unauthorized" — user is truly logged out
+          // Server explicitly said "unauthorized" - user is truly logged out
           setUser(null);
         } else {
-          // Network error, timeout, or 5xx — server is likely restarting (Render cold start)
+          // Network error, timeout, or 5xx - server is likely restarting (Render cold start)
           // Keep the cached user alive so the UI stays logged in
           console.warn('[Auth] Server unreachable during session check, keeping cached session.');
 

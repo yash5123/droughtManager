@@ -13,7 +13,7 @@ const PERIODS = [{ label: '7 Days', days: 7 }, { label: '30 Days', days: 30 }];
 export default function GroundwaterAnalysis() {
   const { data: rankedData } = useRankedVillages(1000);
   const { data: seedingStatus } = useSeedingStatus();
-  
+
   const activeVillages = useMemo(() => rankedData?.data || [], [rankedData]);
 
   let dataSource = 'pending';
@@ -52,7 +52,7 @@ export default function GroundwaterAnalysis() {
         });
 
         if (!smRaw) { setVillageTrend(null); setLoading(false); return; }
-        
+
         // Slice data to match selected period (backend returns ~30 days)
         const availableLength = smRaw.length;
         const sliceCount = Math.min(period, availableLength);
@@ -76,7 +76,7 @@ export default function GroundwaterAnalysis() {
   const filteredList = useMemo(() => {
     let list = activeVillages;
     if (search) list = list.filter(v => v.name?.toLowerCase().includes(search.toLowerCase()) || v.state?.toLowerCase().includes(search.toLowerCase()));
-    
+
     if (filter !== 'All') {
       list = list.filter(v => {
         const level = v.avgSoilMoisturePct != null ? getSoilMoistureLevel(v.avgSoilMoisturePct)?.label : 'Adequate';
@@ -87,20 +87,20 @@ export default function GroundwaterAnalysis() {
         return true;
       });
     }
-    
+
     // Sort by moisture (lowest moisture first)
     list.sort((a, b) => {
       const scoreA = (a.avgSoilMoisturePct != null && a.avgSoilMoisturePct > 0) ? a.avgSoilMoisturePct : 999;
       const scoreB = (b.avgSoilMoisturePct != null && b.avgSoilMoisturePct > 0) ? b.avgSoilMoisturePct : 999;
       return sortAscending ? scoreA - scoreB : scoreB - scoreA;
     });
-    
+
     if (countLimit !== 'All') list = list.slice(0, parseInt(countLimit, 10));
     return list;
   }, [activeVillages, search, filter, countLimit, sortAscending]);
 
   const getFilterColor = (f) => {
-    switch(f) {
+    switch (f) {
       case 'Extreme': return '#ef4444';
       case 'Severe': return '#f97316';
       case 'Moderate': return '#eab308';
@@ -121,16 +121,16 @@ export default function GroundwaterAnalysis() {
       <DataSourceBanner dataSource={dataSource} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div className="page-header">
-        <div className="header-icon-container">
-          <Droplets size={32} />
+        <div className="page-header">
+          <div className="header-icon-container">
+            <Droplets size={32} />
+          </div>
+          <div className="header-text">
+            <h1 className="header-title">Groundwater Monitoring</h1>
+            <p className="header-subtitle">Satellite-derived Soil Moisture Analysis & Aquifer Health</p>
+          </div>
         </div>
-        <div className="header-text">
-          <h1 className="header-title">Groundwater Monitoring</h1>
-          <p className="header-subtitle">Satellite-derived Soil Moisture Analysis & Aquifer Health</p>
-        </div>
-      </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="glass-pill" style={{ display: 'flex', padding: '4px' }}>
             {PERIODS.map(p => (
@@ -145,9 +145,9 @@ export default function GroundwaterAnalysis() {
 
 
 
-      {/* Mobile district selector — only visible on mobile */}
+      {/* Mobile district selector - only visible on mobile */}
       <div className="district-selector-mobile">
-        <button 
+        <button
           onClick={() => setMobileDistrictOpen(true)}
           style={{
             background: 'rgba(255,255,255,0.1)',
@@ -182,19 +182,19 @@ export default function GroundwaterAnalysis() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {/* All button on top, big */}
-            <button 
-              onClick={() => setFilter('All')} 
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                borderRadius: '12px', 
-                cursor: 'pointer', 
-                fontSize: '11px', 
-                fontWeight: 700, 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.5px', 
-                transition: 'all 0.2s', 
-                background: filter === 'All' ? 'rgba(59,130,246,0.2)' : 'transparent', 
+            <button
+              onClick={() => setFilter('All')}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                transition: 'all 0.2s',
+                background: filter === 'All' ? 'rgba(59,130,246,0.2)' : 'transparent',
                 color: filter === 'All' ? 'var(--accent-blue)' : 'var(--text-tertiary)',
                 border: filter === 'All' ? '1px solid rgba(59,130,246,0.4)' : '1px solid transparent',
                 boxShadow: filter === 'All' ? 'var(--accent-blue-glow)' : 'none',
@@ -203,7 +203,7 @@ export default function GroundwaterAnalysis() {
             >
               Show All Districts
             </button>
-            
+
             {/* Other filters in 4 columns */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', paddingBottom: '2px' }}>
               {['Extreme', 'Severe', 'Moderate', 'Normal'].map(f => {
@@ -227,11 +227,11 @@ export default function GroundwaterAnalysis() {
             ) : (
               filteredList.map((v, i) => {
                 const isSelected = selectedVillage?._id === v._id;
-                
+
                 const displayMoisture = v.avgSoilMoisturePct;
                 const level = displayMoisture != null && displayMoisture > 0 ? getSoilMoistureLevel(displayMoisture) : null;
                 const color = level?.color || 'var(--text-tertiary)';
-                
+
                 return (
                   <button key={v._id || i} onClick={() => setSelectedVillage(v)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: 'none', borderLeft: isSelected ? '3px solid var(--accent-blue)' : '3px solid transparent', cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s', background: isSelected ? 'var(--nav-active-bg)' : 'transparent' }}
                     onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--nav-hover-bg)'; }}
@@ -266,10 +266,10 @@ export default function GroundwaterAnalysis() {
                     const color = level?.color || 'var(--text-tertiary)';
                     return (
                       <>
-                        <div className="data-value" style={{ 
-                          color: color, 
-                          filter: displayMoisture <= 0 ? 'none' : `drop-shadow(0 0 8px ${color}80)`, 
-                          fontSize: '24px' 
+                        <div className="data-value" style={{
+                          color: color,
+                          filter: displayMoisture <= 0 ? 'none' : `drop-shadow(0 0 8px ${color}80)`,
+                          fontSize: '24px'
                         }}>
                           {displayMoisture > 0 ? `${displayMoisture.toFixed(1)}%` : 'N/A'}
                         </div>
@@ -284,20 +284,20 @@ export default function GroundwaterAnalysis() {
             {villageTrend && villageTrend.length > 0 && (
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
                 {[
-                  { 
-                    label: 'Current Moisture', 
-                    value: latestMoisture > 0 ? `${latestMoisture.toFixed(1)}%` : 'N/A', 
-                    color: latestMoisture > 0 ? getSoilMoistureLevel(latestMoisture).color : 'var(--text-tertiary)' 
+                  {
+                    label: 'Current Moisture',
+                    value: latestMoisture > 0 ? `${latestMoisture.toFixed(1)}%` : 'N/A',
+                    color: latestMoisture > 0 ? getSoilMoistureLevel(latestMoisture).color : 'var(--text-tertiary)'
                   },
-                  { 
-                    label: '30-Day Average', 
-                    value: avg30 > 0 ? `${avg30.toFixed(1)}%` : 'N/A', 
-                    color: 'var(--text-secondary)' 
+                  {
+                    label: '30-Day Average',
+                    value: avg30 > 0 ? `${avg30.toFixed(1)}%` : 'N/A',
+                    color: 'var(--text-secondary)'
                   },
-                  { 
-                    label: 'Trend Direction', 
-                    value: latestMoisture > 0 ? trendLabel : 'N/A', 
-                    color: latestMoisture > 0 ? trendColor : 'var(--text-tertiary)' 
+                  {
+                    label: 'Trend Direction',
+                    value: latestMoisture > 0 ? trendLabel : 'N/A',
+                    color: latestMoisture > 0 ? trendColor : 'var(--text-tertiary)'
                   }
                 ].map(chip => (
                   <div key={chip.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--divider)' }}>
@@ -314,8 +314,8 @@ export default function GroundwaterAnalysis() {
                   <AreaChart data={villageTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorMoisture" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" opacity={0.4} />
@@ -324,8 +324,8 @@ export default function GroundwaterAnalysis() {
                     <ReferenceLine y={25} stroke="#22c55e" strokeDasharray="4 3" strokeOpacity={0.7} label={{ value: 'Good', fill: '#22c55e', fontSize: 10, position: 'insideTopRight' }} />
                     <XAxis dataKey="date" tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                     <YAxis tick={{ fill: 'var(--text-tertiary)', fontSize: 10 }} axisLine={false} tickLine={false} dx={-8} />
-                    <Tooltip 
-                      contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(12px)', borderRadius: '10px', color: 'var(--text-primary)' }} 
+                    <Tooltip
+                      contentStyle={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', backdropFilter: 'blur(12px)', borderRadius: '10px', color: 'var(--text-primary)' }}
                       itemStyle={{ color: 'var(--accent-blue)' }}
                       labelStyle={{ color: 'var(--text-secondary)' }}
                       cursor={{ stroke: 'var(--text-tertiary)', strokeWidth: 1, strokeDasharray: '4 4' }}
@@ -349,11 +349,11 @@ export default function GroundwaterAnalysis() {
           background: 'var(--bg-gradient, #0f172a)',
           padding: '20px',
         }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-            <h3 style={{ margin:0 }}>Select District</h3>
-            <button 
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: 0 }}>Select District</h3>
+            <button
               onClick={() => setMobileDistrictOpen(false)}
-              style={{ background:'transparent', border:'none', cursor:'pointer', color:'inherit' }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }}
             >
               <X size={24} />
             </button>

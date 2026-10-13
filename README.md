@@ -65,7 +65,7 @@ Explore the live platform and see the data in action:
 
 ## 🔄 The Full Journey
 
-### JOURNEY 1 — THE NIGHTLY DATA PIPELINE (Automated)
+### JOURNEY 1 - THE NIGHTLY DATA PIPELINE (Automated)
 1.  **🕛 02:00 UTC**: The system triggers a CRON job via `node-cron`.
 2.  **🔄 Priority Queuing**: Extreme risk districts are queued first to ensure vital areas update regardless of API quotas.
 3.  **📡 Batch Fetching**: 15 hyper-efficient batch API calls to Open-Meteo replace 732 individual requests (a 97.9% reduction).
@@ -74,7 +74,7 @@ Explore the live platform and see the data in action:
 6.  **💾 Persistence**: Scores are cached in MongoDB Atlas for instant retrieval across all user sessions.
 7.  **🧪 Self-Healing**: If the server wakes up and data is stale, the pipeline triggers automatically.
 
-### JOURNEY 2 — THE OPERATOR EXPERIENCE (Human)
+### JOURNEY 2 - THE OPERATOR EXPERIENCE (Human)
 1.  **🗺️ Visualization**: Operator opens the **Spatial Risk Map** to see pulsing "hotspots" colored by severity.
 2.  **🔍 Deep Dive**: Clicks on a district to see **Rainfall & Groundwater Analysis** charts comparing current levels to 1993-2023 averages.
 3.  **🔢 Validation**: Opens the **Risk Calculator** to see the exact mathematical proof behind a district's score.
