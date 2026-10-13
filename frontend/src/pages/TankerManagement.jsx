@@ -77,6 +77,7 @@ export default function TankerManagement() {
   // Advanced Dispatch State
   const [form, setForm] = useState({ 
     village: '', 
+    villageName: '',
     capacityLiters: 12000, 
     driverName: '', 
     driverContact: '', 
@@ -207,14 +208,18 @@ export default function TankerManagement() {
         tankerNumber: form.tankerNumber.toUpperCase(),
         dispatchDate: new Date().toISOString() 
       });
-      addToast(`Strategic deployment initialized for ${form.village}`, 'success');
-      setForm({ village: '', capacityLiters: 12000, driverName: '', driverContact: '', tankerNumber: '', priority: 'Normal' });
+      addToast(`Strategic deployment initialized for ${form.villageName || form.village}`, 'success');
+      setForm({ village: '', villageName: '', capacityLiters: 12000, driverName: '', driverContact: '', tankerNumber: '', priority: 'Normal' });
       setShowForm(false);
       // Force selection of the new tanker
       if (res.data?._id) setSelectedId(res.data._id);
       fetchTankers();
     } catch (err) { 
-      addToast(err.response?.data?.errors?.[0]?.msg || 'Deployment aborted', 'error'); 
+      const errorMsg = err.response?.data?.errors?.[0]?.msg 
+        || err.response?.data?.error 
+        || err.response?.data?.message 
+        || 'Deployment aborted';
+      addToast(errorMsg, 'error'); 
     } finally { 
       setSubmitting(false); 
     }

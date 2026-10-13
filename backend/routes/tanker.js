@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { body, validationResult } from 'express-validator';
 import Tanker from '../models/Tanker.js';
 import Village from '../models/Village.js';
@@ -50,7 +51,7 @@ router.patch('/:id', [
 
 // Create new tanker assignment
 router.post('/', [
-  body('village').isString().notEmpty().withMessage('Village ID is required'),
+  body('village').isString().notEmpty().withMessage('Village ID or Name is required'),
   body('capacityLiters').isFloat({ gt: 0 }).withMessage('Capacity must be a positive number'),
   body('dispatchDate').isISO8601().toDate().withMessage('Dispatch date must be a valid date'),
 ], async (req, res) => {
@@ -58,14 +59,24 @@ router.post('/', [
     const validationError = handleValidation(req, res);
     if (validationError) return;
 
-    // Look up the village to get the name for denormalization
-    const village = await Village.findById(req.body.village).select('name');
+    // Look up the village by ObjectId OR by name (case-insensitive)
+    let village = null;
+    const villageQuery = req.body.village.trim();
+    if (mongoose.Types.ObjectId.isValid(villageQuery)) {
+      village = await Village.findById(villageQuery).select('name');
+    }
     if (!village) {
-      return res.status(404).json({ error: 'Village not found' });
+      village = await Village.findOne({ 
+        name: new RegExp(`^${villageQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') 
+      }).select('name');
+    }
+    if (!village) {
+      return res.status(404).json({ error: `District "${villageQuery}" not found in database` });
     }
 
     const newTanker = new Tanker({
       ...req.body,
+      village: village._id,
       villageName: village.name,
     });
     await newTanker.save();

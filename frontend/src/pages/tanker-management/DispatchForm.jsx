@@ -63,8 +63,8 @@ export default function DispatchForm({
               className="glass-input" 
               style={{ width: '100%', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', cursor: 'pointer', border: showDropdown ? '1px solid var(--accent-blue)' : '1px solid var(--divider)' }}
             >
-              <span style={{ color: form.village ? 'var(--text-primary)' : 'var(--text-tertiary)', fontSize: '14px' }}>
-                {form.village || 'Search & Select District...'}
+              <span style={{ color: (form.villageName || form.village) ? 'var(--text-primary)' : 'var(--text-tertiary)', fontSize: '14px' }}>
+                {form.villageName || form.village || 'Search & Select District...'}
               </span>
               <ChevronDown size={18} style={{ color: 'var(--text-tertiary)', transition: 'transform 0.3s', transform: showDropdown ? 'rotate(180deg)' : 'rotate(0)' }} />
             </div>
@@ -87,7 +87,7 @@ export default function DispatchForm({
                     filteredDistricts.map(v => (
                       <div 
                         key={v._id} 
-                        onClick={() => { setForm(p => ({ ...p, village: v.name })); setShowDropdown(false); setDropdownSearch(''); }}
+                        onClick={() => { setForm(p => ({ ...p, village: v._id || v.name, villageName: v.name })); setShowDropdown(false); setDropdownSearch(''); }}
                         className="dropdown-item"
                         style={{ padding: '12px 16px', cursor: 'pointer', transition: 'background 0.2s' }}
                       >
